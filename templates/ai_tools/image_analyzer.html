@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+
+{% block title %}Image Analyzer - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .analyzer-header {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 30px;
+        color: white;
+        margin-bottom: 30px;
+    }
+    
+    .upload-card {
+        background: var(--bg-secondary);
+        border: 2px dashed rgba(20, 184, 166, 0.4);
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 25px;
+    }
+    
+    .upload-card:hover, .upload-card.dragover {
+        border-color: #14B8A6;
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%);
+    }
+    
+    .upload-icon {
+        font-size: 4rem;
+        color: #14B8A6;
+        margin-bottom: 15px;
+    }
+    
+    .preview-container {
+        display: none;
+        margin-top: 20px;
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 12px;
+        border: 1px solid var(--border-default);
+    }
+    
+    .form-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 25px;
+    }
+    
+    .type-option {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        color: #e0e0e0;
+        padding: 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    
+    .type-option:hover, .type-option.selected {
+        border-color: #14B8A6;
+        background: rgba(20, 184, 166, 0.15);
+        color: white;
+    }
+    
+    .type-icon {
+        font-size: 2rem;
+        margin-bottom: 5px;
+    }
+    
+    .type-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .form-control {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 10px;
+        padding: 12px;
+    }
+    
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #14B8A6;
+        color: white;
+    }
+    
+    .btn-analyze {
+        background: linear-gradient(135deg, #14B8A6 0%, #14B8A6 100%);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        width: 100%;
+    }
+    
+    .btn-analyze:hover:not(:disabled) {
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.4);
+    }
+    
+    .btn-analyze:disabled { opacity: 0.5; }
+    
+    .loading-container {
+        text-align: center;
+        padding: 40px;
+        display: none;
+    }
+    
+    .spinner-custom {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(20, 184, 166, 0.2);
+        border-top-color: #14B8A6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analyzer-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h1><i class="bi bi-image me-2"></i>Image Analyzer</h1>
+            <p class="mb-0" style="opacity: 0.9;">Upload any image and let AI explain it</p>
+        </div>
+        <a href="{% url 'ai_tools:image_history' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-clock-history me-1"></i>History
+        </a>
+    </div>
+</div>
+
+<form id="uploadForm" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Upload Area -->
+    <div class="upload-card" id="uploadCard">
+        <div id="uploadPrompt">
+            <div class="upload-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+            <h4 style="color: white;">Drop image here or click to upload</h4>
+            <p style="color: #a0a0a0;">Supports: JPG, PNG, WebP (Max 5MB)</p>
+        </div>
+        
+        <div class="preview-container" id="previewContainer">
+            <img id="previewImage" class="preview-image" alt="Preview">
+            <p class="mt-3">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeImage()">
+                    <i class="bi bi-trash"></i> Remove
+                </button>
+            </p>
+        </div>
+        
+        <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;" required>
+    </div>
+    
+    <!-- Analysis Type -->
+    <div class="form-card">
+        <h5 style="color: white;" class="mb-3">
+            <i class="bi bi-tag me-2" style="color: #14B8A6;"></i>What kind of image is this?
+        </h5>
+        
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="type-option selected" onclick="selectType('general', this)">
+                    <div class="type-icon">🖼️</div>
+                    <div class="type-name">General</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="type-option" onclick="selectType('code', this)">
+                    <div class="type-icon">💻</div>
+                    <div class="type-name">Code</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="type-option" onclick="selectType('math', this)">
+                    <div class="type-icon">🧮</div>
+                    <div class="type-name">Math</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="type-option" onclick="selectType('handwritten', this)">
+                    <div class="type-icon">✍️</div>
+                    <div class="type-name">Notes</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="type-option" onclick="selectType('diagram', this)">
+                    <div class="type-icon">📊</div>
+                    <div class="type-name">Diagram</div>
+                </div>
+            </div>
+        </div>
+        
+        <input type="hidden" name="analysis_type" id="analysisType" value="general">
+    </div>
+    
+    <!-- Question -->
+    <div class="form-card">
+        <h5 style="color: white;" class="mb-3">
+            <i class="bi bi-question-circle me-2" style="color: #14B8A6;"></i>Any specific question? (Optional)
+        </h5>
+        <textarea 
+            name="user_question" 
+            class="form-control" 
+            rows="3" 
+            placeholder="e.g., What does this code do? Explain step by step..."></textarea>
+    </div>
+    
+    <!-- Submit -->
+    <button type="submit" class="btn-analyze" id="submitBtn">
+        <i class="bi bi-magic me-2"></i>Analyze with AI
+    </button>
+</form>
+
+<div class="loading-container" id="loadingContainer">
+    <div class="spinner-custom"></div>
+    <h4 style="color: white;">AI is analyzing your image...</h4>
+    <p class="text-muted">This may take 10-30 seconds</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const uploadCard = document.getElementById('uploadCard');
+const imageInput = document.getElementById('imageInput');
+const previewContainer = document.getElementById('previewContainer');
+const previewImage = document.getElementById('previewImage');
+const uploadPrompt = document.getElementById('uploadPrompt');
+
+// Click to upload
+uploadCard.addEventListener('click', () => {
+    if (!previewContainer.style.display || previewContainer.style.display === 'none') {
+        imageInput.click();
+    }
+});
+
+// Drag and drop
+uploadCard.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadCard.classList.add('dragover');
+});
+
+uploadCard.addEventListener('dragleave', () => {
+    uploadCard.classList.remove('dragover');
+});
+
+uploadCard.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadCard.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+        imageInput.files = e.dataTransfer.files;
+        showPreview(e.dataTransfer.files[0]);
+    }
+});
+
+imageInput.addEventListener('change', (e) => {
+    if (e.target.files.length) {
+        showPreview(e.target.files[0]);
+    }
+});
+
+function showPreview(file) {
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File too large! Max 5MB.');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        uploadPrompt.style.display = 'none';
+        previewContainer.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeImage() {
+    imageInput.value = '';
+    previewImage.src = '';
+    uploadPrompt.style.display = 'block';
+    previewContainer.style.display = 'none';
+}
+
+function selectType(type, elem) {
+    document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+    elem.classList.add('selected');
+    document.getElementById('analysisType').value = type;
+}
+
+function getCookie(name) {
+    let value = null;
+    if (document.cookie) {
+        for (let c of document.cookie.split(';')) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) {
+                value = decodeURIComponent(c.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return value;
+}
+
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!imageInput.files.length) {
+        alert('Please select an image');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingContainer = document.getElementById('loadingContainer');
+    
+    submitBtn.disabled = true;
+    submitBtn.style.display = 'none';
+    loadingContainer.style.display = 'block';
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('{% url "ai_tools:image_analyzer" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert('Error: ' + data.error);
+            submitBtn.disabled = false;
+            submitBtn.style.display = 'block';
+            loadingContainer.style.display = 'none';
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.style.display = 'block';
+        loadingContainer.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+from django import forms
+from .models import UserProfile
+
+
+class ProfileUpdateForm(forms.ModelForm):
+    """Form to update user profile"""
+    
+    skills_input = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Python, Django, AI, ML (comma separated)'
+        }),
+        help_text='Enter skills separated by commas'
+    )
+    
+    class Meta:
+        model = UserProfile
+        fields = [
+            'avatar', 'bio', 'location',
+            'github_url', 'linkedin_url', 'twitter_url', 'website_url',
+            'learning_goals', 'is_public'
+        ]
+        widgets = {
+            'avatar': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Tell us about yourself...',
+                'maxlength': 500
+            }),
+            'location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Mumbai, India'
+            }),
+            'github_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://github.com/username'
+            }),
+            'linkedin_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://linkedin.com/in/username'
+            }),
+            'twitter_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://twitter.com/username'
+            }),
+            'website_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://yourwebsite.com'
+            }),
+            'learning_goals': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'What are you learning? What are your goals?'
+            }),
+            'is_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-fill skills from list
+        if self.instance and self.instance.skills:
+            self.fields['skills_input'].initial = ', '.join(self.instance.skills)
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Parse skills from comma-separated string
+        skills_str = self.cleaned_data.get('skills_input', '')
+        if skills_str:
+            skills = [s.strip() for s in skills_str.split(',') if s.strip()]
+            instance.skills = skills
+        else:
+            instance.skills = []
+        
+        if commit:
+            instance.save()
+        return instance

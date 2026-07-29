@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bookmarks - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .bookmark-header {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .bookmark-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .bookmark-card:hover {
+        border-color: #14B8A6;
+        transform: translateX(5px);
+        color: inherit;
+    }
+    
+    .bookmark-icon {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: rgba(20, 184, 166, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .bookmark-info {
+        flex-grow: 1;
+    }
+    
+    .bookmark-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .bookmark-meta {
+        color: #a0a0a0;
+        font-size: 0.85rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #a0a0a0;
+    }
+    
+    .empty-state i {
+        font-size: 5rem;
+        color: #f59e0b;
+        opacity: 0.4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bookmark-header">
+    <h1><i class="bi bi-bookmark-star-fill me-2"></i>My Bookmarks</h1>
+    <p class="mb-0" style="opacity: 0.9;">{{ total_bookmarks }} saved items</p>
+</div>
+
+{% if bookmarks %}
+    {% for bookmark in bookmarks %}
+    <div class="bookmark-card">
+        <div class="bookmark-icon">{{ bookmark.icon }}</div>
+        <a href="{{ bookmark.url }}" class="bookmark-info" style="text-decoration: none; color: inherit;">
+            <div class="bookmark-title">{{ bookmark.title }}</div>
+            {% if bookmark.description %}
+            <div class="bookmark-meta">{{ bookmark.description|truncatechars:80 }}</div>
+            {% endif %}
+            <div class="bookmark-meta mt-1">
+                <i class="bi bi-tag me-1"></i>{{ bookmark.get_bookmark_type_display }} • 
+                <i class="bi bi-clock me-1"></i>{{ bookmark.created_at|date:"M d, Y" }}
+            </div>
+        </a>
+        <form method="post" action="{% url 'notes:bookmark_delete' bookmark.id %}" onsubmit="return confirm('Remove bookmark?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <i class="bi bi-bookmark-plus"></i>
+        <h4 class="mt-3">No Bookmarks Yet</h4>
+        <p>Bookmark important content to find it easily later</p>
+    </div>
+{% endif %}
+{% endblock %}

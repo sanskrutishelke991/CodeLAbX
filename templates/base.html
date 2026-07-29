@@ -1,0 +1,1746 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CodeLabX - AI-Powered Learning{% endblock %}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <style>
+        /* ============================================
+           PROFESSIONAL DESIGN SYSTEM
+           ============================================ */
+        
+        :root {
+            /* DARK MODE - Sophisticated, not pitch black */
+            --bg-primary: #17181C;
+            --bg-secondary: #1E1F24;
+            --bg-tertiary: #26272D;
+            --bg-elevated: #2C2D33;
+            --bg-hover: #33343B;
+            
+            --border-subtle: #2A2B31;
+            --border-default: #3A3B42;
+            --border-strong: #4A4B52;
+            
+            --text-primary: #F5F5F7;
+            --text-secondary: #A9AAB0;
+            --text-tertiary: #7C7D82;
+            --text-muted: #5C5D62;
+            
+            /* Ocean Teal + Complementary */
+            --accent: #14B8A6;
+            --accent-hover: #0D9488;
+            --accent-light: rgba(20, 184, 166, 0.1);
+            --accent-glow: rgba(20, 184, 166, 0.15);
+            
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --info: #0EA5E9;
+            
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-10: 40px;
+            --space-12: 48px;
+            --space-16: 64px;
+            
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+            
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="light"] {
+            /* LIGHT MODE - Soft, warm, professional */
+            --bg-primary: #F9F9FB;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F3F4F6;
+            --bg-elevated: #FFFFFF;
+            --bg-hover: #EEF0F3;
+            
+            --border-subtle: #EDEEF1;
+            --border-default: #E1E3E7;
+            --border-strong: #D0D2D6;
+            
+            --text-primary: #1A1B1F;
+            --text-secondary: #52545A;
+            --text-tertiary: #7C7D82;
+            --text-muted: #A0A1A6;
+            
+            --accent-light: rgba(20, 184, 166, 0.08);
+            --accent-glow: rgba(20, 184, 166, 0.12);
+            
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 400;
+            min-height: 100vh;
+            padding-bottom: 90px;
+            transition: background var(--transition), color var(--transition);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+        
+        h1 { font-size: 1.875rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; }
+        h4 { font-size: 1.125rem; }
+        h5 { font-size: 1rem; }
+        h6 { font-size: 0.875rem; }
+        
+        p { color: var(--text-secondary); }
+        
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        
+        a:hover { color: var(--accent-hover); }
+        
+        code, pre {
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+        }
+        
+        /* ============================================
+           TOP HEADER
+           ============================================ */
+        
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: var(--space-4) 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .brand-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .header-btn {
+            background: transparent;
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        
+        .header-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+        
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: 2px solid var(--border-default);
+            transition: all var(--transition);
+            overflow: hidden;
+        }
+        
+        .user-avatar:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        /* ============================================
+           MAIN CONTAINER
+           ============================================ */
+        
+        .main-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6);
+        }
+        
+        /* ============================================
+           BOTTOM NAVIGATION
+           ============================================ */
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: var(--space-4);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: 999px;
+            padding: 6px;
+            display: flex;
+            gap: 2px;
+            box-shadow: var(--shadow-lg);
+            z-index: 90;
+            backdrop-filter: blur(20px);
+        }
+        
+        .nav-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            text-decoration: none;
+        }
+        
+        .nav-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .nav-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .nav-btn i {
+            font-size: 1.1rem;
+        }
+        
+        .nav-btn .nav-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--transition);
+            border: 1px solid var(--border-default);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .nav-btn:hover .nav-tooltip { opacity: 1; }
+        
+        .nav-divider {
+            width: 1px;
+            background: var(--border-default);
+            margin: 6px 2px;
+        }
+        
+        /* ============================================
+           EXPANDED MENU
+           ============================================ */
+        
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition);
+        }
+        
+        .menu-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .menu-panel {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 90%;
+            max-width: 480px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            z-index: 101;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .menu-panel.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .menu-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-3);
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-2);
+        }
+        
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-4);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all var(--transition);
+            text-align: center;
+        }
+        
+        .menu-item:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .menu-item i {
+            font-size: 1.25rem;
+        }
+        
+        .menu-item span {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-4);
+            font-size: 0.875rem;
+            border: 1px solid transparent;
+        }
+        
+        .alert-success {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .alert-error, .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-sans);
+            font-weight: 500;
+            font-size: 0.875rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            color: white;
+        }
+        
+        .btn-secondary, .btn-outline-light {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--border-default);
+        }
+        
+        .btn-secondary:hover, .btn-outline-light:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+        
+        .btn-ghost:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        /* Toast */
+        .custom-toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            margin-top: var(--space-2);
+            color: var(--text-primary);
+            min-width: 280px;
+            max-width: 380px;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .custom-toast.badge-toast { border-color: var(--warning); }
+        .custom-toast.xp-toast { border-color: var(--success); }
+        .custom-toast.level-toast { border-color: var(--accent); }
+        
+        .toast-icon { font-size: 1.5rem; }
+        .toast-body { flex-grow: 1; }
+        .toast-title { font-weight: 600; margin-bottom: 2px; font-size: 0.875rem; }
+        .toast-desc { font-size: 0.75rem; color: var(--text-secondary); }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOutRight {
+            to { transform: translateX(400px); opacity: 0; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container { padding: var(--space-4); }
+            .menu-grid { grid-template-columns: repeat(2, 1fr); }
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% if request.resolver_match.url_name == 'landing' %}landing-page{% endif %}">
+    <header class="top-header">
+        <div class="header-container">
+            <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'landing' %}{% endif %}" class="brand">
+                <div class="brand-icon">C</div>
+                <span>CodeLabX</span>
+            </a>
+            
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <button class="header-btn" id="themeToggle" title="Toggle Theme">
+                        <i class="bi bi-moon-fill" id="themeIcon"></i>
+                    </button>
+                    <div class="user-avatar" onclick="window.location.href='{% url 'accounts:profile' %}'">
+                        {% if user.profile.avatar_url %}
+                            <img src="{{ user.profile.avatar_url }}" alt="{{ user.username }}">
+                        {% else %}
+                            {{ user.username|first|upper }}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-ghost">Sign in</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% if messages %}
+        <div class="main-container" style="padding-top: 0; padding-bottom: 0;">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}" style="margin-top: 16px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main class="main-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if user.is_authenticated %}
+    <nav class="bottom-nav">
+        <a href="{% url 'dashboard:home' %}" class="nav-btn" title="Dashboard">
+            <i class="bi bi-house-door-fill"></i>
+            <span class="nav-tooltip">Dashboard</span>
+        </a>
+        <a href="{% url 'learning:roadmaps' %}" class="nav-btn" title="Roadmaps">
+            <i class="bi bi-map-fill"></i>
+            <span class="nav-tooltip">Roadmaps</span>
+        </a>
+        <a href="{% url 'challenges:dashboard' %}" class="nav-btn" title="Challenges">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <span class="nav-tooltip">Challenges</span>
+        </a>
+        <a href="{% url 'content:library' %}" class="nav-btn" title="Videos">
+            <i class="bi bi-play-btn-fill"></i>
+            <span class="nav-tooltip">Videos</span>
+        </a>
+        
+        <div class="nav-divider"></div>
+        
+        <button class="nav-btn nav-btn-more" onclick="toggleOmnitrixNew()" title="Omnitrix">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span class="nav-tooltip">More</span>
+        </button>
+    </nav>
+
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="menu-panel" id="menuPanel">
+        <div class="menu-title">Everything at CodeLabX</div>
+        <div class="menu-grid">
+            <a href="{% url 'progress:achievements' %}" class="menu-item">
+                <i class="bi bi-trophy-fill"></i>
+                <span>Achievements</span>
+            </a>
+            <a href="{% url 'progress:analytics' %}" class="menu-item">
+                <i class="bi bi-graph-up"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="{% url 'notes:list' %}" class="menu-item">
+                <i class="bi bi-journal-text"></i>
+                <span>Notes</span>
+            </a>
+            <a href="{% url 'assessments:quiz_list' %}" class="menu-item">
+                <i class="bi bi-clipboard-check-fill"></i>
+                <span>Tests</span>
+            </a>
+            <a href="{% url 'practice:examiner' %}" class="menu-item">
+                <i class="bi bi-code-slash"></i>
+                <span>Code Review</span>
+            </a>
+            <a href="{% url 'ai_tools:image_analyzer' %}" class="menu-item">
+                <i class="bi bi-image"></i>
+                <span>Image AI</span>
+            </a>
+            <a href="{% url 'ai_tools:home' %}" class="menu-item">
+                <i class="bi bi-robot"></i>
+                <span>AI Tools</span>
+            </a>
+            <a href="{% url 'accounts:profile' %}" class="menu-item">
+                <i class="bi bi-person-fill"></i>
+                <span>Profile</span>
+            </a>
+            <a href="{% url 'accounts:logout' %}" class="menu-item" style="color: var(--error); border-color: var(--error);">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div id="toastContainer" style="position: fixed; bottom: 100px; right: 20px; z-index: 9999;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function showToast(type, title, description, icon) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `custom-toast ${type}-toast`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-body">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-desc">${description}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutRight 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+        
+        function handleProgressResponse(data) {
+            if (data.new_badges && data.new_badges.length > 0) {
+                data.new_badges.forEach(badge => {
+                    showToast('badge', 'Badge Unlocked!', badge.name, badge.icon);
+                });
+            }
+            if (data.xp_earned) {
+                showToast('xp', `+${data.xp_earned} XP`, data.xp_reason || 'Keep learning!', '⚡');
+            }
+            if (data.leveled_up) {
+                showToast('level', 'Level Up!', `Now Level ${data.new_level}`, '👑');
+            }
+        }
+        
+        (function() {
+            const savedTheme = localStorage.getItem('codelabx-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeToggle = document.getElementById('themeToggle');
+                const themeIcon = document.getElementById('themeIcon');
+                
+                if (themeIcon) {
+                    themeIcon.className = savedTheme === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+                }
+                
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', function() {
+                        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                        document.documentElement.setAttribute('data-theme', newTheme);
+                        localStorage.setItem('codelabx-theme', newTheme);
+                        if (themeIcon) {
+                            themeIcon.className = newTheme === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+                        }
+                    });
+                }
+            });
+        })();
+        
+        function toggleMenu() {
+            const overlay = document.getElementById('menuOverlay');
+            const panel = document.getElementById('menuPanel');
+            if (overlay && panel) {
+                overlay.classList.toggle('open');
+                panel.classList.toggle('open');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const href = btn.getAttribute('href');
+                if (href && currentPath.startsWith(href) && href !== '/') {
+                    btn.classList.add('active');
+                }
+                if (href === '/dashboard/' && currentPath === '/dashboard/') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const overlay = document.getElementById('menuOverlay');
+                    if (overlay && overlay.classList.contains('open')) {
+                        toggleMenu();
+                    }
+                }
+            });
+        });
+    </script>
+    
+    
+    {% if user.is_authenticated %}
+    <!-- AI Study Buddy Chat Widget -->
+    <div id="chatWidget">
+        <button id="chatToggleBtn" class="chat-toggle-btn" title="AI Study Buddy" onclick="toggleChat()">
+            <i class="bi bi-chat-dots-fill" id="chatToggleIcon"></i>
+        </button>
+        
+        <div id="chatWindow" class="chat-window">
+            <div class="chat-header">
+                <div class="d-flex align-items-center">
+                    <div class="chat-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="ms-2">
+                        <div class="chat-title">Study Buddy</div>
+                        <div class="chat-status">Ready to help</div>
+                    </div>
+                </div>
+                <div>
+                    <button class="chat-header-btn" onclick="newChat()" title="New Chat">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button class="chat-header-btn" onclick="toggleChat()" title="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="chatMessages" class="chat-messages">
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <h5>Hi! I am your Study Buddy</h5>
+                    <p>Ask me anything about programming, ML, AI, or DSA.</p>
+                    <div class="suggested-prompts">
+                        <button class="prompt-btn" onclick="sendSuggestion(this)">Explain recursion simply</button>
+                        <button class="prompt-btn" onclick="sendSuggestion(this)">What is machine learning?</button>
+                        <button class="prompt-btn" onclick="sendSuggestion(this)">Python vs JavaScript</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Ask me anything..."
+                    rows="1"
+                    onkeydown="handleChatKey(event)"
+                ></textarea>
+                <button id="chatSendBtn" class="chat-send-btn" onclick="sendMessage()">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .chat-toggle-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+            z-index: 89;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-toggle-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+        
+        .chat-toggle-btn.active {
+            background: var(--error);
+        }
+        
+        .chat-window {
+            position: fixed;
+            bottom: 145px;
+            right: 24px;
+            width: 380px;
+            height: 540px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            display: none;
+            flex-direction: column;
+            z-index: 88;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        
+        .chat-window.open {
+            display: flex;
+            animation: chatSlideUp 0.25s ease;
+        }
+        
+        @keyframes chatSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chat-header {
+            background: var(--accent);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        
+        .chat-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+        }
+        
+        .chat-status {
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+        
+        .chat-header-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            margin-left: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all var(--transition);
+        }
+        
+        .chat-header-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: var(--bg-primary);
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-default);
+            border-radius: 3px;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .welcome-icon {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+        
+        .welcome-message h5 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .welcome-message p {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 16px;
+        }
+        
+        .suggested-prompts {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .prompt-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: left;
+        }
+        
+        .prompt-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .chat-message {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 8px;
+            animation: msgFadeIn 0.2s;
+        }
+        
+        @keyframes msgFadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chat-message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+        
+        .message-avatar.user {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .message-avatar.assistant {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            color: var(--accent);
+        }
+        
+        .message-content {
+            background: var(--bg-tertiary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            max-width: 75%;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            border: 1px solid var(--border-subtle);
+        }
+        
+        .chat-message.user .message-content {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        
+        .message-content code {
+            background: var(--bg-primary);
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: var(--accent);
+            font-size: 0.8em;
+            font-family: var(--font-mono);
+        }
+        
+        .message-content pre {
+            background: var(--bg-primary);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            overflow-x: auto;
+            margin: 6px 0;
+            border: 1px solid var(--border-subtle);
+        }
+        
+        .message-content pre code {
+            background: none;
+            color: var(--text-primary);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 6px 0;
+        }
+        
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+        
+        .chat-input-area {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        
+        .chat-input {
+            flex-grow: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            resize: none;
+            max-height: 80px;
+            font-family: inherit;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .chat-send-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-send-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+        
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 576px) {
+            .chat-window {
+                width: calc(100vw - 24px);
+                right: 12px;
+                bottom: 130px;
+                height: 65vh;
+            }
+            
+            .chat-toggle-btn {
+                bottom: 75px;
+                right: 16px;
+                width: 46px;
+                height: 46px;
+            }
+        }
+    
+    
+    /* Overlay */
+    .omnitrix-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        z-index: 500;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .omnitrix-overlay.open {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Main Container */
+    .omnitrix-container {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) scale(0.5);
+        width: 500px;
+        height: 320px;
+        z-index: 501;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        pointer-events: none;
+    }
+    
+    .omnitrix-container.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) scale(1);
+        pointer-events: auto;
+    }
+    
+    /* Background Rings */
+    .omnitrix-ring {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 50%;
+        border: 1px solid rgba(20, 184, 166, 0.15);
+        pointer-events: none;
+    }
+    
+    .omnitrix-ring-outer {
+        width: 500px;
+        height: 500px;
+        border-color: rgba(20, 184, 166, 0.1);
+        animation: ringRotate 30s linear infinite;
+    }
+    
+    .omnitrix-ring-middle {
+        width: 400px;
+        height: 400px;
+        border-color: rgba(20, 184, 166, 0.15);
+        border-style: dashed;
+        animation: ringRotate 20s linear infinite reverse;
+    }
+    
+    .omnitrix-ring-inner {
+        width: 300px;
+        height: 300px;
+        border-color: rgba(20, 184, 166, 0.2);
+        animation: ringRotate 15s linear infinite;
+    }
+    
+    @keyframes ringRotate {
+        from { transform: translateX(-50%) rotate(0deg); }
+        to { transform: translateX(-50%) rotate(360deg); }
+    }
+    
+    /* Center Avatar */
+    .omnitrix-center {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 10;
+    }
+    
+    .omnitrix-avatar-glow {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+        animation: avatarPulse 2s ease-in-out infinite;
+        pointer-events: none;
+    }
+    
+    @keyframes avatarPulse {
+        0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+        50% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+    }
+    
+    .omnitrix-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), #06B6D4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 2rem;
+        font-weight: 800;
+        border: 3px solid var(--accent);
+        box-shadow: 
+            0 0 40px rgba(20, 184, 166, 0.4),
+            0 0 80px rgba(20, 184, 166, 0.2);
+        position: relative;
+        z-index: 2;
+        overflow: hidden;
+    }
+    
+    .omnitrix-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .omnitrix-label {
+        margin-top: 16px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .omnitrix-label-name {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+        letter-spacing: -0.01em;
+    }
+    
+    .omnitrix-label-desc {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+    }
+    
+    /* Feature Positions (Semi-circle arc) */
+    .omnitrix-features {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        height: 100%;
+    }
+    
+    .omnitrix-feature {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(30, 30, 35, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        transform: translateX(-50%);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .omnitrix-feature:hover {
+        transform: translateX(-50%) scale(1.2) translateY(-10px);
+        z-index: 20;
+    }
+    
+    /* Individual feature glow */
+    .omnitrix-feature-glow {
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        filter: blur(15px);
+    }
+    
+    .omnitrix-feature:hover .omnitrix-feature-glow {
+        opacity: 0.8;
+    }
+    
+    .omnitrix-feature-icon {
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Feature Colors */
+    .omnitrix-feature-1 { --feature-color: #F59E0B; }
+    .omnitrix-feature-2 { --feature-color: #0EA5E9; }
+    .omnitrix-feature-3 { --feature-color: #8B5CF6; }
+    .omnitrix-feature-4 { --feature-color: #EF4444; }
+    .omnitrix-feature-5 { --feature-color: #10B981; }
+    .omnitrix-feature-6 { --feature-color: #EC4899; }
+    .omnitrix-feature-7 { --feature-color: #14B8A6; }
+    .omnitrix-feature-8 { --feature-color: #6366F1; }
+    .omnitrix-feature-9 { --feature-color: #EF4444; }
+    
+    .omnitrix-feature:hover {
+        background: var(--feature-color);
+        border-color: var(--feature-color);
+        color: white;
+        box-shadow: 0 0 30px var(--feature-color);
+    }
+    
+    .omnitrix-feature-glow {
+        background: var(--feature-color);
+    }
+    
+    /* Semi-circle Arc Positions
+       Bottom center = start point (0,0)
+       Radius = 180px
+       9 features spread in top semi-circle (180deg total)
+       Each 20 degrees apart, starting from -80 to +80 (with slight gap for center)
+    */
+    
+    .omnitrix-feature-1 { transform: translateX(-50%) rotate(-90deg) translateY(-180px) rotate(90deg); }
+    .omnitrix-feature-2 { transform: translateX(-50%) rotate(-67.5deg) translateY(-180px) rotate(67.5deg); }
+    .omnitrix-feature-3 { transform: translateX(-50%) rotate(-45deg) translateY(-180px) rotate(45deg); }
+    .omnitrix-feature-4 { transform: translateX(-50%) rotate(-22.5deg) translateY(-180px) rotate(22.5deg); }
+    .omnitrix-feature-5 { transform: translateX(-50%) rotate(0deg) translateY(-180px) rotate(0deg); }
+    .omnitrix-feature-6 { transform: translateX(-50%) rotate(22.5deg) translateY(-180px) rotate(-22.5deg); }
+    .omnitrix-feature-7 { transform: translateX(-50%) rotate(45deg) translateY(-180px) rotate(-45deg); }
+    .omnitrix-feature-8 { transform: translateX(-50%) rotate(67.5deg) translateY(-180px) rotate(-67.5deg); }
+    .omnitrix-feature-9 { transform: translateX(-50%) rotate(90deg) translateY(-180px) rotate(-90deg); }
+    
+    /* Hover transforms - override */
+    .omnitrix-feature-1:hover { transform: translateX(-50%) rotate(-90deg) translateY(-190px) rotate(90deg) scale(1.2); }
+    .omnitrix-feature-2:hover { transform: translateX(-50%) rotate(-67.5deg) translateY(-190px) rotate(67.5deg) scale(1.2); }
+    .omnitrix-feature-3:hover { transform: translateX(-50%) rotate(-45deg) translateY(-190px) rotate(45deg) scale(1.2); }
+    .omnitrix-feature-4:hover { transform: translateX(-50%) rotate(-22.5deg) translateY(-190px) rotate(22.5deg) scale(1.2); }
+    .omnitrix-feature-5:hover { transform: translateX(-50%) rotate(0deg) translateY(-190px) rotate(0deg) scale(1.2); }
+    .omnitrix-feature-6:hover { transform: translateX(-50%) rotate(22.5deg) translateY(-190px) rotate(-22.5deg) scale(1.2); }
+    .omnitrix-feature-7:hover { transform: translateX(-50%) rotate(45deg) translateY(-190px) rotate(-45deg) scale(1.2); }
+    .omnitrix-feature-8:hover { transform: translateX(-50%) rotate(67.5deg) translateY(-190px) rotate(-67.5deg) scale(1.2); }
+    .omnitrix-feature-9:hover { transform: translateX(-50%) rotate(90deg) translateY(-190px) rotate(-90deg) scale(1.2); }
+    
+    /* Animation delays for stagger effect */
+    .omnitrix-container.open .omnitrix-feature-1 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.1s both; }
+    .omnitrix-container.open .omnitrix-feature-2 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.15s both; }
+    .omnitrix-container.open .omnitrix-feature-3 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.2s both; }
+    .omnitrix-container.open .omnitrix-feature-4 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.25s both; }
+    .omnitrix-container.open .omnitrix-feature-5 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.3s both; }
+    .omnitrix-container.open .omnitrix-feature-6 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.35s both; }
+    .omnitrix-container.open .omnitrix-feature-7 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.4s both; }
+    .omnitrix-container.open .omnitrix-feature-8 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.45s both; }
+    .omnitrix-container.open .omnitrix-feature-9 { animation: featureEnter 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.5s both; }
+    
+    @keyframes featureEnter {
+        from {
+            opacity: 0;
+            scale: 0;
+        }
+        to {
+            opacity: 1;
+            scale: 1;
+        }
+    }
+    
+    /* Instructions */
+    .omnitrix-instructions {
+        position: absolute;
+        bottom: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 20px;
+        white-space: nowrap;
+    }
+    
+    .omnitrix-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .omnitrix-hint kbd {
+        padding: 2px 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 640px) {
+        .omnitrix-container {
+            width: 380px;
+            height: 250px;
+        }
+        
+        .omnitrix-ring-outer { width: 380px; height: 380px; }
+        .omnitrix-ring-middle { width: 300px; height: 300px; }
+        .omnitrix-ring-inner { width: 230px; height: 230px; }
+        
+        .omnitrix-feature {
+            width: 48px;
+            height: 48px;
+            font-size: 1.1rem;
+        }
+        
+        .omnitrix-avatar {
+            width: 64px;
+            height: 64px;
+            font-size: 1.5rem;
+        }
+        
+        /* Update positions for mobile */
+        .omnitrix-feature-1 { transform: translateX(-50%) rotate(-90deg) translateY(-140px) rotate(90deg); }
+        .omnitrix-feature-2 { transform: translateX(-50%) rotate(-67.5deg) translateY(-140px) rotate(67.5deg); }
+        .omnitrix-feature-3 { transform: translateX(-50%) rotate(-45deg) translateY(-140px) rotate(45deg); }
+        .omnitrix-feature-4 { transform: translateX(-50%) rotate(-22.5deg) translateY(-140px) rotate(22.5deg); }
+        .omnitrix-feature-5 { transform: translateX(-50%) rotate(0deg) translateY(-140px) rotate(0deg); }
+        .omnitrix-feature-6 { transform: translateX(-50%) rotate(22.5deg) translateY(-140px) rotate(-22.5deg); }
+        .omnitrix-feature-7 { transform: translateX(-50%) rotate(45deg) translateY(-140px) rotate(-45deg); }
+        .omnitrix-feature-8 { transform: translateX(-50%) rotate(67.5deg) translateY(-140px) rotate(-67.5deg); }
+        .omnitrix-feature-9 { transform: translateX(-50%) rotate(90deg) translateY(-140px) rotate(-90deg); }
+        
+        .omnitrix-feature-1:hover { transform: translateX(-50%) rotate(-90deg) translateY(-150px) rotate(90deg) scale(1.15); }
+        .omnitrix-feature-2:hover { transform: translateX(-50%) rotate(-67.5deg) translateY(-150px) rotate(67.5deg) scale(1.15); }
+        .omnitrix-feature-3:hover { transform: translateX(-50%) rotate(-45deg) translateY(-150px) rotate(45deg) scale(1.15); }
+        .omnitrix-feature-4:hover { transform: translateX(-50%) rotate(-22.5deg) translateY(-150px) rotate(22.5deg) scale(1.15); }
+        .omnitrix-feature-5:hover { transform: translateX(-50%) rotate(0deg) translateY(-150px) rotate(0deg) scale(1.15); }
+        .omnitrix-feature-6:hover { transform: translateX(-50%) rotate(22.5deg) translateY(-150px) rotate(-22.5deg) scale(1.15); }
+        .omnitrix-feature-7:hover { transform: translateX(-50%) rotate(45deg) translateY(-150px) rotate(-45deg) scale(1.15); }
+        .omnitrix-feature-8:hover { transform: translateX(-50%) rotate(67.5deg) translateY(-150px) rotate(-67.5deg) scale(1.15); }
+        .omnitrix-feature-9:hover { transform: translateX(-50%) rotate(90deg) translateY(-150px) rotate(-90deg) scale(1.15); }
+    }
+
+    </style>
+
+    <script>
+        let currentSessionId = null;
+        let isChatOpen = false;
+        
+        function toggleChat() {
+            const window = document.getElementById('chatWindow');
+            const btn = document.getElementById('chatToggleBtn');
+            const icon = document.getElementById('chatToggleIcon');
+            
+            isChatOpen = !isChatOpen;
+            
+            if (isChatOpen) {
+                window.classList.add('open');
+                btn.classList.add('active');
+                icon.className = 'bi bi-x-lg';
+                document.getElementById('chatInput').focus();
+            } else {
+                window.classList.remove('open');
+                btn.classList.remove('active');
+                icon.className = 'bi bi-chat-dots-fill';
+            }
+        }
+        
+        function newChat() {
+            currentSessionId = null;
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="welcome-message">
+                    <div class="welcome-icon"><i class="bi bi-stars"></i></div>
+                    <h5>New Chat Started</h5>
+                    <p>Ask me anything!</p>
+                </div>
+            `;
+        }
+        
+        function handleChatKey(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendSuggestion(btn) {
+            document.getElementById('chatInput').value = btn.textContent;
+            sendMessage();
+        }
+        
+        function addMessage(role, content, isHtml = false) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const welcome = messagesDiv.querySelector('.welcome-message');
+            if (welcome) welcome.remove();
+            
+            const messageEl = document.createElement('div');
+            messageEl.className = `chat-message ${role}`;
+            
+            const avatarChar = role === 'user' ? '{{ user.username|first|upper }}' : '<i class="bi bi-robot"></i>';
+            const avatarClass = role === 'user' ? 'user' : 'assistant';
+            
+            messageEl.innerHTML = `
+                <div class="message-avatar ${avatarClass}">${avatarChar}</div>
+                <div class="message-content">${isHtml ? content : escapeHtml(content)}</div>
+            `;
+            
+            messagesDiv.appendChild(messageEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showTyping() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const typingEl = document.createElement('div');
+            typingEl.id = 'typingIndicator';
+            typingEl.className = 'chat-message assistant';
+            typingEl.innerHTML = `
+                <div class="message-avatar assistant"><i class="bi bi-robot"></i></div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(typingEl);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function removeTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('chatSendBtn');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('user', message);
+            input.value = '';
+            sendBtn.disabled = true;
+            showTyping();
+            
+            try {
+                const response = await fetch('/ai-tools/chat/send/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (function(){let v=null;if(document.cookie){for(let c of document.cookie.split(';')){c=c.trim();if(c.startsWith('csrftoken=')){v=decodeURIComponent(c.substring(10));break;}}}return v;})()
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: currentSessionId
+                    })
+                });
+                
+                const data = await response.json();
+                removeTyping();
+                
+                if (data.success) {
+                    currentSessionId = data.session_id;
+                    addMessage('assistant', data.response, true);
+                } else {
+                    addMessage('assistant', 'Sorry, encountered an error: ' + data.error);
+                }
+            } catch (error) {
+                removeTyping();
+                addMessage('assistant', 'Error: ' + error.message);
+            } finally {
+                sendBtn.disabled = false;
+                input.focus();
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+                });
+            }
+        });
+    </script>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+
+    
+    <!-- ============================================
+         OMNITRIX DIAL v2 - Simple Working Version
+         ============================================ -->
+    {% if user.is_authenticated %}
+    <div id="omnitrixBackdrop" class="omni-backdrop" onclick="closeOmnitrixNew()"></div>
+    
+    <div id="omnitrixDial" class="omni-dial">
+        <!-- Background rings -->
+        <div class="omni-ring omni-ring-1"></div>
+        <div class="omni-ring omni-ring-2"></div>
+        <div class="omni-ring omni-ring-3"></div>
+        
+        <!-- Center avatar -->
+        <div class="omni-center">
+            <div class="omni-avatar-glow"></div>
+            <div class="omni-avatar">
+                {% if user.profile.avatar_url %}
+                    <img src="{{ user.profile.avatar_url }}" alt="{{ user.username }}">
+                {% else %}
+                    <span>{{ user.username|first|upper }}</span>
+                {% endif %}
+            </div>
+            <div class="omni-label" id="omniLabel">
+                <div class="omni-label-name">Select Feature</div>
+                <div class="omni-label-desc">Hover any icon</div>
+            </div>
+        </div>
+        
+        <!-- Feature buttons -->
+        <a href="{% url 'progress:achievements' %}" class="omni-btn omni-btn-1" 
+           data-name="Achievements" data-desc="Your badges">
+            <i class="bi bi-trophy-fill"></i>
+        </a>
+        
+        <a href="{% url 'progress:analytics' %}" class="omni-btn omni-btn-2"
+           data-name="Analytics" data-desc="Learning insights">
+            <i class="bi bi-graph-up"></i>
+        </a>
+        
+        <a href="{% url 'notes:list' %}" class="omni-btn omni-btn-3"
+           data-name="Notes" data-desc="Personal notes">
+            <i class="bi bi-journal-text"></i>
+        </a>
+        
+        <a href="{% url 'assessments:quiz_list' %}" class="omni-btn omni-btn-4"
+           data-name="Tests" data-desc="AI-generated tests">
+            <i class="bi bi-clipboard-check-fill"></i>
+        </a>
+        
+        <a href="{% url 'practice:examiner' %}" class="omni-btn omni-btn-5"
+           data-name="Code Review" data-desc="AI code examiner">
+            <i class="bi bi-code-slash"></i>
+        </a>
+        
+        <a href="{% url 'ai_tools:image_analyzer' %}" class="omni-btn omni-btn-6"
+           data-name="Image AI" data-desc="Analyze images">
+            <i class="bi bi-image-fill"></i>
+        </a>
+        
+        <a href="{% url 'ai_tools:home' %}" class="omni-btn omni-btn-7"
+           data-name="AI Tools" data-desc="All AI features">
+            <i class="bi bi-robot"></i>
+        </a>
+        
+        <a href="{% url 'accounts:profile' %}" class="omni-btn omni-btn-8"
+           data-name="Profile" data-desc="Your account">
+            <i class="bi bi-person-fill"></i>
+        </a>
+        
+        <a href="{% url 'accounts:logout' %}" class="omni-btn omni-btn-9"
+           data-name="Sign Out" data-desc="Log out safely">
+            <i class="bi bi-box-arrow-right"></i>
+        </a>
+    </div>
+    {% endif %}
+    
+</body>
+</html>

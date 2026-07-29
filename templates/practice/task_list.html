@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Practice Arena - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .practice-header {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        text-align: center;
+    }
+    
+    .feature-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s;
+        height: 100%;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: #14B8A6;
+        box-shadow: 0 15px 40px rgba(20, 184, 166, 0.3);
+        color: inherit;
+        text-decoration: none;
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 20px;
+    }
+    
+    .icon-purple { background: rgba(20, 184, 166, 0.2); color: #14B8A6; }
+    .icon-green { background: rgba(0, 212, 170, 0.2); color: #00D4AA; }
+    .icon-red { background: rgba(255, 107, 107, 0.2); color: #FF6B6B; }
+    .icon-orange { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+    
+    .feature-card h4 { color: white; margin-bottom: 10px; }
+    .feature-card p { color: #a0a0a0; }
+    
+    .badge-new {
+        display: inline-block;
+        background: #FF6B6B;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="practice-header">
+    <h1><i class="bi bi-code-slash me-2"></i>Practice Arena</h1>
+    <p class="mb-0" style="opacity: 0.9;">Master coding through hands-on practice and AI-powered feedback</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'practice:examiner' %}" class="feature-card">
+            <div class="feature-icon icon-purple">
+                <i class="bi bi-robot"></i>
+            </div>
+            <h4>AI Code Examiner <span class="badge-new">NEW</span></h4>
+            <p>Get instant AI feedback on your code. Bug detection, improvements & best practices.</p>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
+            <div class="feature-icon icon-green">
+                <i class="bi bi-lightning-charge"></i>
+            </div>
+            <h4>Daily Challenges</h4>
+            <p>Coming soon! Solve daily coding problems with varying difficulty.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
+            <div class="feature-icon icon-red">
+                <i class="bi bi-trophy"></i>
+            </div>
+            <h4>Coding Contests</h4>
+            <p>Coming soon! Compete with others in real-time coding contests.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
+            <div class="feature-icon icon-orange">
+                <i class="bi bi-collection"></i>
+            </div>
+            <h4>Problem Sets</h4>
+            <p>Coming soon! Curated problems by topic - Arrays, Trees, DP, etc.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
+            <div class="feature-icon icon-purple">
+                <i class="bi bi-people"></i>
+            </div>
+            <h4>Mock Interviews</h4>
+            <p>Coming soon! AI-powered mock interview preparation.</p>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
+            <div class="feature-icon icon-green">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <h4>Progress Tracker</h4>
+            <p>Coming soon! Track your practice progress with detailed analytics.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

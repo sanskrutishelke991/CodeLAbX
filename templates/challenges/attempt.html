@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ challenge.title }} - Challenge{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .challenge-header {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 25px;
+        color: white;
+    }
+    
+    .timer-display {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .content-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    
+    .code-editor {
+        background: #0A0A0A;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+        border-radius: 10px;
+        color: #00D4AA;
+        font-family: monospace;
+        font-size: 14px;
+        min-height: 300px;
+        padding: 20px;
+        width: 100%;
+        resize: vertical;
+    }
+    
+    .option-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        color: #e0e0e0;
+        padding: 15px 20px;
+        border-radius: 12px;
+        width: 100%;
+        text-align: left;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    
+    .option-btn:hover {
+        border-color: #14B8A6;
+        background: rgba(20, 184, 166, 0.1);
+    }
+    
+    .option-btn.selected {
+        border-color: #14B8A6;
+        background: rgba(20, 184, 166, 0.15);
+        color: white;
+    }
+    
+    .hint-card {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #00D4AA 0%, #00a685 100%);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    .btn-submit:disabled {
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="challenge-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h2 class="mb-2">{{ challenge.title }}</h2>
+            <span class="badge bg-light text-dark me-2">{{ challenge.get_challenge_type_display }}</span>
+            <span class="badge bg-warning">{{ challenge.get_difficulty_display }}</span>
+            <span class="badge bg-success">+{{ challenge.xp_reward }} XP</span>
+        </div>
+        <div class="timer-display" id="timer">00:00</div>
+    </div>
+</div>
+
+<div class="content-card">
+    <h5 style="color: white;"><i class="bi bi-file-text me-2" style="color: #14B8A6;"></i>Problem Statement</h5>
+    <p style="line-height: 1.7;">{{ challenge.description|linebreaks }}</p>
+    
+    {% if challenge.challenge_type == 'coding' and challenge.example_input %}
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <strong style="color: white;">Example Input:</strong>
+            <pre style="background: #0A0A0A; padding: 10px; border-radius: 8px; color: #00D4AA;">{{ challenge.example_input }}</pre>
+        </div>
+        <div class="col-md-6">
+            <strong style="color: white;">Example Output:</strong>
+            <pre style="background: #0A0A0A; padding: 10px; border-radius: 8px; color: #00D4AA;">{{ challenge.example_output }}</pre>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if challenge.challenge_type == 'coding' %}
+    <!-- Coding Interface -->
+    <div class="content-card">
+        <h5 style="color: white;"><i class="bi bi-code-slash me-2" style="color: #14B8A6;"></i>Your Solution</h5>
+        <textarea id="codeInput" class="code-editor">{{ challenge.starter_code }}</textarea>
+        
+        {% if challenge.hints %}
+        <div class="mt-3">
+            <button class="btn btn-sm btn-outline-warning" onclick="toggleHints()">
+                <i class="bi bi-lightbulb"></i> Show Hints
+            </button>
+            <div id="hintsSection" style="display: none;" class="mt-3">
+                {% for hint in challenge.hints %}
+                    <div class="hint-card">
+                        <strong style="color: #f59e0b;">Hint {{ forloop.counter }}:</strong> {{ hint }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% else %}
+    <!-- Theory MCQ Interface -->
+    <div class="content-card">
+        <h5 style="color: white;" class="mb-3">Choose your answer:</h5>
+        {% for option in challenge.options %}
+            <button class="option-btn" onclick="selectOption({{ forloop.counter0 }}, this)">
+                <strong>{{ forloop.counter0|add:65|stringformat:"c" }}.</strong> {{ option.text }}
+            </button>
+        {% endfor %}
+        <input type="hidden" id="selectedOption" value="-1">
+    </div>
+{% endif %}
+
+<div class="text-center mt-4">
+    <button class="btn-submit" id="submitBtn" onclick="submitChallenge()">
+        <i class="bi bi-check-lg me-2"></i>Submit Answer
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let startTime = Date.now();
+let selectedOptionIdx = -1;
+
+// Timer
+setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const sec = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = `${min}:${sec}`;
+}, 1000);
+
+function toggleHints() {
+    const section = document.getElementById('hintsSection');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectOption(idx, btn) {
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedOptionIdx = idx;
+    document.getElementById('selectedOption').value = idx;
+}
+
+function getCookie(name) {
+    let value = null;
+    if (document.cookie) {
+        for (let c of document.cookie.split(';')) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) {
+                value = decodeURIComponent(c.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return value;
+}
+
+async function submitChallenge() {
+    const btn = document.getElementById('submitBtn');
+    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+    
+    let data = { time_taken: timeTaken };
+    
+    {% if challenge.challenge_type == 'coding' %}
+        const code = document.getElementById('codeInput').value.trim();
+        if (!code) {
+            alert('Please write some code!');
+            return;
+        }
+        data.code = code;
+    {% else %}
+        if (selectedOptionIdx < 0) {
+            alert('Please select an answer!');
+            return;
+        }
+        data.selected_option = selectedOptionIdx;
+    {% endif %}
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
+    
+    try {
+        const response = await fetch('/challenges/submit/{{ challenge.id }}/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            window.location.href = result.redirect_url;
+        } else {
+            alert('Error: ' + result.error);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Submit Answer';
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

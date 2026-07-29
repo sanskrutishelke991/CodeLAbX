@@ -1,0 +1,3944 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-mode="developer">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeLabX — Learn to code with an AI that understands you</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Inter+Tight:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        /* ============================================
+           CODELABX LANDING PAGE - v2.0
+           Dual Mode: Developer / Student
+           ============================================ */
+        
+        /* Developer Mode (Default) */
+        :root {
+            --bg-primary: #0A0A0A;
+            --bg-secondary: #111111;
+            --bg-tertiary: #171717;
+            --bg-elevated: #1F1F1F;
+            --bg-card: #141414;
+            
+            --border-subtle: #1F1F1F;
+            --border-default: #262626;
+            --border-strong: #404040;
+            
+            --text-primary: #FAFAFA;
+            --text-secondary: #A3A3A3;
+            --text-tertiary: #737373;
+            --text-muted: #525252;
+            
+            --accent: #14B8A6;
+            --accent-hover: #0D9488;
+            --accent-light: rgba(20, 184, 166, 0.1);
+            --accent-glow: rgba(20, 184, 166, 0.2);
+            
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            
+            --gradient-1: #14B8A6;
+            --gradient-2: #06B6D4;
+            --gradient-3: #0EA5E9;
+            
+            --font-sans: 'Inter', -apple-system, sans-serif;
+            --font-display: 'Inter Tight', 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            
+            --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Student Mode - Fun & Colorful */
+        [data-mode="student"] {
+            --bg-primary: #FAFAF9;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F5F5F4;
+            --bg-elevated: #FFFFFF;
+            --bg-card: #FFFFFF;
+            
+            --border-subtle: #F0F0EF;
+            --border-default: #E5E5E4;
+            --border-strong: #D4D4D3;
+            
+            --text-primary: #0A0A0A;
+            --text-secondary: #525252;
+            --text-tertiary: #737373;
+            --text-muted: #A3A3A3;
+            
+            --accent: #14B8A6;
+            --accent-hover: #0D9488;
+            --accent-light: rgba(20, 184, 166, 0.08);
+            --accent-glow: rgba(20, 184, 166, 0.15);
+            
+            --gradient-1: #14B8A6;
+            --gradient-2: #F472B6;
+            --gradient-3: #FBBF24;
+        }
+        
+        /* Reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+        
+        a { color: inherit; text-decoration: none; }
+        
+        /* ============================================
+           NAVBAR
+           ============================================ */
+        
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            transition: all var(--transition);
+        }
+        
+        [data-mode="student"] .nav {
+            background: rgba(250, 250, 249, 0.8);
+        }
+        
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+        }
+        
+        .nav-logo {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 14px;
+        }
+        
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: 999px;
+            padding: 3px;
+            gap: 2px;
+            position: relative;
+        }
+        
+        .mode-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: none;
+            border-radius: 999px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-sans);
+        }
+        
+        .mode-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .mode-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+        
+        .nav-signin {
+            padding: 8px 14px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color var(--transition);
+        }
+        
+        .nav-signin:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Specular Button */
+        .btn-specular {
+            position: relative;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-specular::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transition: left 0.5s ease;
+        }
+        
+        .btn-specular:hover::before {
+            left: 100%;
+        }
+        
+        .btn-specular:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(20, 184, 166, 0.3);
+        }
+        
+        .btn-specular-lg {
+            padding: 14px 28px;
+            font-size: 0.95rem;
+        }
+        
+        .btn-outline {
+            padding: 10px 20px;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+        
+        .btn-outline-lg {
+            padding: 14px 28px;
+            font-size: 0.95rem;
+        }
+        
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 24px 80px;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        /* Aurora background - subtle */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 900px;
+            background: 
+                radial-gradient(circle at 30% 30%, var(--gradient-1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 40%, var(--gradient-2) 0%, transparent 50%),
+                radial-gradient(circle at 50% 60%, var(--gradient-3) 0%, transparent 50%);
+            opacity: 0.15;
+            filter: blur(80px);
+            animation: auroraSlow 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        [data-mode="student"] .hero::before {
+            opacity: 0.25;
+        }
+        
+        @keyframes auroraSlow {
+            0%, 100% { transform: translateX(-50%) scale(1) rotate(0deg); }
+            50% { transform: translateX(-50%) scale(1.1) rotate(180deg); }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        /* New badge */
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px 6px 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            transition: all var(--transition);
+            cursor: pointer;
+        }
+        
+        .hero-badge:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        
+        .hero-badge-pill {
+            background: var(--accent);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+        
+        .hero-title-accent {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+        
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .hero-trust {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+        }
+        
+        .hero-trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .hero-trust-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        
+        
+        /* ============================================
+           LOGO LOOP SECTION
+           ============================================ */
+        
+        .logo-loop-section {
+            padding: 60px 0 40px;
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-secondary);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .logo-loop-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 0 24px;
+        }
+        
+        .logo-loop-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 4px;
+        }
+        
+        .logo-loop-container {
+            position: relative;
+            overflow: hidden;
+            padding: 20px 0;
+        }
+        
+        /* Fade gradients on edges */
+        .logo-loop-container::before,
+        .logo-loop-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 150px;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .logo-loop-container::before {
+            left: 0;
+            background: linear-gradient(to right, var(--bg-secondary), transparent);
+        }
+        
+        .logo-loop-container::after {
+            right: 0;
+            background: linear-gradient(to left, var(--bg-secondary), transparent);
+        }
+        
+        /* Track that scrolls infinitely */
+        .logo-loop-track {
+            display: flex;
+            gap: 60px;
+            width: max-content;
+            animation: logoScroll 30s linear infinite;
+        }
+        
+        .logo-loop-track:hover {
+            animation-play-state: paused;
+        }
+        
+        @keyframes logoScroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        
+        /* Individual logo */
+        .logo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            transition: all var(--transition);
+            border-radius: var(--radius-md);
+            filter: grayscale(1);
+            opacity: 0.6;
+        }
+        
+        .logo-item:hover {
+            color: var(--text-primary);
+            filter: grayscale(0);
+            opacity: 1;
+            background: var(--bg-tertiary);
+        }
+        
+        .logo-item i,
+        .logo-item svg {
+            font-size: 1.75rem;
+        }
+        
+        /* Different color for each logo on hover */
+        .logo-item.python:hover { color: #3776AB; }
+        .logo-item.django:hover { color: #092E20; }
+        .logo-item.gemini:hover { color: #4285F4; }
+        .logo-item.openai:hover { color: #10B981; }
+        .logo-item.react:hover { color: #61DAFB; }
+        .logo-item.javascript:hover { color: #F7DF1E; }
+        .logo-item.git:hover { color: #F05032; }
+        .logo-item.github:hover { color: #FAFAFA; }
+        .logo-item.postgres:hover { color: #4169E1; }
+        .logo-item.docker:hover { color: #2496ED; }
+        
+        [data-mode="student"] .logo-item.github:hover { color: #0A0A0A; }
+        
+        @media (max-width: 768px) {
+            .logo-loop-header {
+                margin-bottom: 24px;
+            }
+            
+            .logo-loop-track {
+                gap: 40px;
+            }
+            
+            .logo-item {
+                font-size: 0.9rem;
+                padding: 8px 16px;
+            }
+            
+            .logo-item i,
+            .logo-item svg {
+                font-size: 1.4rem;
+            }
+            
+            .logo-loop-container::before,
+            .logo-loop-container::after {
+                width: 60px;
+            }
+        }
+
+        /* ============================================
+           PLACEHOLDER SECTIONS (For now)
+           ============================================ */
+        
+        .section {
+            padding: 80px 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-eyebrow {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+        
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .section-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .placeholder-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 60px;
+            text-align: center;
+            color: var(--text-tertiary);
+            margin: 40px 0;
+        }
+        
+        
+        /* ============================================
+           BENTO GRID FEATURES
+           ============================================ */
+        
+        .bento-section {
+            padding: 100px 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .bento-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .bento-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        .bento-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        
+        .bento-title-accent {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .bento-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Bento Grid */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(200px, auto);
+            gap: 16px;
+        }
+        
+        /* Card Base */
+        .bento-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            overflow: hidden;
+            transition: all var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--accent-glow), transparent 40%);
+            opacity: 0;
+            transition: opacity var(--transition);
+            pointer-events: none;
+        }
+        
+        .bento-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(20, 184, 166, 0.15);
+        }
+        
+        .bento-card:hover::before {
+            opacity: 1;
+        }
+        
+        /* Grid Positions */
+        .bento-card.large-1 { grid-column: span 2; grid-row: span 2; }
+        .bento-card.large-2 { grid-column: span 2; grid-row: span 2; }
+        .bento-card.medium { grid-column: span 2; grid-row: span 1; }
+        .bento-card.small { grid-column: span 1; grid-row: span 1; }
+        .bento-card.wide { grid-column: span 2; grid-row: span 1; }
+        
+        /* Card Content */
+        .bento-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--accent-light);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            transition: all var(--transition);
+        }
+        
+        .bento-card:hover .bento-icon {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .bento-card-title {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+        
+        .bento-card.large-1 .bento-card-title,
+        .bento-card.large-2 .bento-card-title {
+            font-size: 1.75rem;
+        }
+        
+        .bento-card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .bento-card.small .bento-card-title {
+            font-size: 1.1rem;
+        }
+        
+        .bento-card.small .bento-card-description {
+            font-size: 0.8rem;
+        }
+        
+        /* Large Card Preview - AI Roadmap */
+        .bento-preview {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .preview-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+        
+        .preview-item:hover {
+            border-color: var(--accent);
+        }
+        
+        .preview-item-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: var(--accent-light);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .preview-item.completed .preview-item-icon {
+            background: var(--success);
+            color: white;
+        }
+        
+        .preview-item.active .preview-item-icon {
+            background: var(--accent);
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Chat Preview */
+        .chat-preview {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .chat-msg {
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            max-width: 80%;
+            animation: chatFadeIn 0.4s ease;
+        }
+        
+        .chat-msg.user {
+            background: var(--accent);
+            color: white;
+            align-self: flex-end;
+        }
+        
+        .chat-msg.ai {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+            align-self: flex-start;
+        }
+        
+        @keyframes chatFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Stats Preview */
+        .stats-preview {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        
+        .stat-item {
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+        }
+        
+        /* Badge for "new" or "beta" */
+        .bento-tag {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 4px 10px;
+            background: var(--accent);
+            color: white;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .bento-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .bento-card.large-1,
+            .bento-card.large-2 {
+                grid-column: span 2;
+            }
+            
+            .bento-card.medium {
+                grid-column: span 1;
+                grid-row: span 1;
+            }
+            
+            .bento-card.wide {
+                grid-column: span 2;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .bento-section {
+                padding: 60px 20px;
+            }
+            
+            .bento-grid {
+                grid-template-columns: 1fr;
+                grid-auto-rows: auto;
+            }
+            
+            .bento-card.large-1,
+            .bento-card.large-2,
+            .bento-card.medium,
+            .bento-card.wide,
+            .bento-card.small {
+                grid-column: span 1;
+                grid-row: auto;
+                min-height: 220px;
+            }
+            
+            .bento-card {
+                padding: 24px;
+            }
+        }
+
+        
+        /* ============================================
+           HOW IT WORKS SECTION
+           ============================================ */
+        
+        .how-section {
+            padding: 100px 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .how-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        
+        .how-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        .how-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        
+        .how-title-accent {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .how-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Steps Container */
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            position: relative;
+        }
+        
+        /* Connecting line */
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 60px;
+            left: 16.67%;
+            right: 16.67%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--gradient-2), var(--accent));
+            opacity: 0.2;
+            z-index: 0;
+        }
+        
+        .step-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            text-align: center;
+            transition: all var(--transition);
+            z-index: 1;
+        }
+        
+        .step-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(20, 184, 166, 0.15);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            border: 3px solid var(--accent);
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 0 auto 24px;
+            position: relative;
+            transition: all var(--transition);
+        }
+        
+        .step-card:hover .step-number {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .step-number::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 1px dashed var(--border-default);
+            opacity: 0;
+            transition: all var(--transition);
+        }
+        
+        .step-card:hover .step-number::before {
+            opacity: 1;
+            animation: rotateDash 8s linear infinite;
+        }
+        
+        @keyframes rotateDash {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .step-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: var(--accent-light);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin: 0 auto 20px;
+            transition: all var(--transition);
+        }
+        
+        .step-card:hover .step-icon {
+            background: var(--accent);
+            color: white;
+            transform: rotate(-5deg) scale(1.1);
+        }
+        
+        .step-title {
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+        
+        .step-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .step-features {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .step-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        
+        .step-features li i {
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+        
+        /* Bottom CTA */
+        .how-cta {
+            text-align: center;
+            margin-top: 60px;
+        }
+        
+        .how-cta-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .steps-container {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .steps-container::before {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .how-section {
+                padding: 60px 20px;
+            }
+            
+            .how-header {
+                margin-bottom: 50px;
+            }
+            
+            .step-card {
+                padding: 28px 20px;
+            }
+            
+            .step-number {
+                width: 64px;
+                height: 64px;
+                font-size: 1.5rem;
+            }
+        }
+
+        
+        /* ============================================
+           PRODUCT SHOWCASE SECTION
+           ============================================ */
+        
+        .showcase-section {
+            padding: 100px 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .showcase-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .showcase-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        .showcase-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        
+        .showcase-title-accent {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .showcase-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Tab Buttons */
+        .showcase-tabs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .showcase-tab {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .showcase-tab:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+        
+        .showcase-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        
+        .showcase-tab i {
+            font-size: 1rem;
+        }
+        
+        /* Browser Window Mockup */
+        .browser-window {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+        
+        [data-mode="student"] .browser-window {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        
+        .browser-header {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .browser-dots {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .browser-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .browser-dot.red { background: #FF5F57; }
+        .browser-dot.yellow { background: #FFBD2E; }
+        .browser-dot.green { background: #28C940; }
+        
+        .browser-url {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin: 0 auto;
+            max-width: 400px;
+        }
+        
+        .browser-url i {
+            color: var(--success);
+            margin-right: 6px;
+        }
+        
+        .browser-content {
+            min-height: 500px;
+            background: var(--bg-primary);
+            padding: 24px;
+            display: none;
+        }
+        
+        .browser-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* DASHBOARD MOCKUP */
+        .mock-dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        
+        .mock-hero {
+            grid-column: span 4;
+            padding: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+        
+        .mock-hero-label {
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 6px;
+        }
+        
+        .mock-hero-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .mock-hero-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .mock-stat {
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+        }
+        
+        .mock-stat-value {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        
+        .mock-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 6px;
+        }
+        
+        .mock-card {
+            grid-column: span 2;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+        }
+        
+        .mock-card-eyebrow {
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        
+        .mock-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        
+        .mock-card-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .mock-card-link {
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        /* HEATMAP MOCKUP */
+        .mock-heatmap {
+            grid-column: span 4;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+        }
+        
+        .mock-heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(30, 1fr);
+            gap: 3px;
+            margin-top: 12px;
+        }
+        
+        .mock-heat-cell {
+            aspect-ratio: 1;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+        }
+        
+        .mock-heat-cell.level-1 { background: rgba(20, 184, 166, 0.3); }
+        .mock-heat-cell.level-2 { background: rgba(20, 184, 166, 0.5); }
+        .mock-heat-cell.level-3 { background: rgba(20, 184, 166, 0.7); }
+        .mock-heat-cell.level-4 { background: var(--accent); }
+        
+        /* LEARNING MOCKUP */
+        .mock-learning {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 20px;
+        }
+        
+        .mock-sidebar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+        
+        .mock-sidebar-title {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        
+        .mock-day-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .mock-day {
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition);
+        }
+        
+        .mock-day.completed {
+            color: var(--text-primary);
+        }
+        
+        .mock-day.completed::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
+        }
+        
+        .mock-day.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        
+        .mock-day.active::before {
+            content: '●';
+            color: var(--accent);
+        }
+        
+        .mock-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: 24px;
+        }
+        
+        .mock-content h4 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .mock-content p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        
+        .mock-code-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            overflow-x: auto;
+        }
+        
+        .mock-code-block .keyword { color: #F472B6; }
+        .mock-code-block .string { color: #FBBF24; }
+        .mock-code-block .comment { color: var(--text-tertiary); }
+        
+        /* CHAT MOCKUP */
+        .mock-chat {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .mock-chat-msg {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .mock-chat-msg.user {
+            flex-direction: row-reverse;
+        }
+        
+        .mock-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .mock-avatar.user {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .mock-avatar.ai {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            color: var(--accent);
+        }
+        
+        .mock-msg-bubble {
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            max-width: 70%;
+        }
+        
+        .mock-chat-msg.user .mock-msg-bubble {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .mock-chat-msg.ai .mock-msg-bubble {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+        }
+        
+        .mock-msg-bubble code {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+        }
+        
+        /* ANALYTICS MOCKUP */
+        .mock-analytics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .mock-chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: 20px;
+        }
+        
+        .mock-chart-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        
+        .mock-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 140px;
+            padding: 10px 0;
+        }
+        
+        .mock-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--accent), var(--gradient-2));
+            border-radius: 3px 3px 0 0;
+            opacity: 0.8;
+            transition: all var(--transition);
+        }
+        
+        .mock-bar:hover {
+            opacity: 1;
+        }
+        
+        .mock-ring {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent) 0deg 240deg, var(--bg-tertiary) 240deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .mock-ring::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--bg-card);
+        }
+        
+        .mock-ring-value {
+            position: relative;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        
+        /* Features List */
+        .showcase-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .showcase-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .showcase-feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--accent-light);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+        
+        .showcase-feature-text h4 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .showcase-feature-text p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .showcase-section {
+                padding: 60px 20px;
+            }
+            
+            .mock-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .mock-hero,
+            .mock-heatmap {
+                grid-column: span 2;
+            }
+            
+            .mock-card {
+                grid-column: span 2;
+            }
+            
+            .mock-learning {
+                grid-template-columns: 1fr;
+            }
+            
+            .mock-analytics {
+                grid-template-columns: 1fr;
+            }
+            
+            .showcase-features {
+                grid-template-columns: 1fr;
+            }
+            
+            .browser-content {
+                min-height: 400px;
+                padding: 16px;
+            }
+            
+            .mock-heatmap-grid {
+                grid-template-columns: repeat(20, 1fr);
+            }
+        }
+
+        
+        /* ============================================
+           STATS SECTION
+           ============================================ */
+        
+        .stats-section {
+            padding: 100px 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .stats-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-xl);
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Decorative background glow */
+        .stats-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            filter: blur(60px);
+            pointer-events: none;
+        }
+        
+        .stats-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--gradient-2) 0%, transparent 70%);
+            opacity: 0.1;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+        
+        .stats-header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stats-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        .stats-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        
+        .stats-title-accent {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stats-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stat-item {
+            padding: 20px;
+            text-align: center;
+            border-right: 1px solid var(--border-subtle);
+            transition: all var(--transition);
+            cursor: default;
+        }
+        
+        .stat-item:last-child {
+            border-right: none;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-4px);
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 20px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            transition: all var(--transition);
+        }
+        
+        .stat-item:hover .stat-icon {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        
+        .stat-suffix {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 800;
+            color: var(--accent);
+            margin-left: 2px;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+        
+        .stat-description {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+        
+        /* Trust badges below stats */
+        .stats-trust {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .trust-item i {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            
+            .stat-item {
+                border-right: none;
+                border-bottom: 1px solid var(--border-subtle);
+                padding-bottom: 30px;
+            }
+            
+            .stat-item:nth-child(3),
+            .stat-item:nth-child(4) {
+                border-bottom: none;
+            }
+            
+            .stat-item:nth-child(2n) {
+                border-right: none;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .stats-section {
+                padding: 60px 20px;
+            }
+            
+            .stats-wrapper {
+                padding: 40px 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-item {
+                border-right: none;
+                border-bottom: 1px solid var(--border-subtle);
+                padding: 24px 0;
+            }
+            
+            .stat-item:last-child {
+                border-bottom: none;
+            }
+            
+            .stats-trust {
+                gap: 20px;
+                margin-top: 40px;
+            }
+        }
+
+        
+        /* ============================================
+           FAQ SECTION
+           ============================================ */
+        
+        .faq-section {
+            padding: 100px 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .faq-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .faq-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        .faq-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        
+        .faq-title-accent {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .faq-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* FAQ List */
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: all var(--transition);
+        }
+        
+        .faq-item:hover {
+            border-color: var(--border-strong);
+        }
+        
+        .faq-item.open {
+            border-color: var(--accent);
+            background: var(--bg-card);
+        }
+        
+        .faq-question {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            cursor: pointer;
+            user-select: none;
+            transition: all var(--transition);
+        }
+        
+        .faq-question:hover .faq-question-text {
+            color: var(--accent);
+        }
+        
+        .faq-question-text {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: color var(--transition);
+            flex: 1;
+        }
+        
+        .faq-item.open .faq-question-text {
+            color: var(--accent);
+        }
+        
+        .faq-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+        
+        .faq-item.open .faq-icon {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            transform: rotate(45deg);
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .faq-item.open .faq-answer {
+            max-height: 500px;
+        }
+        
+        .faq-answer-content {
+            padding: 0 24px 20px 24px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 20px;
+        }
+        
+        .faq-answer-content strong {
+            color: var(--text-primary);
+        }
+        
+        .faq-answer-content a {
+            color: var(--accent);
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color var(--transition);
+        }
+        
+        .faq-answer-content a:hover {
+            border-bottom-color: var(--accent);
+        }
+        
+        .faq-answer-content ul {
+            padding-left: 20px;
+            margin: 12px 0;
+        }
+        
+        .faq-answer-content li {
+            margin-bottom: 6px;
+        }
+        
+        /* Contact CTA at bottom */
+        .faq-contact {
+            margin-top: 60px;
+            padding: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .faq-contact::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 200px;
+            background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 60%);
+            filter: blur(60px);
+            pointer-events: none;
+        }
+        
+        .faq-contact-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .faq-contact-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .faq-contact-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .faq-contact-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        
+        .faq-contact-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .faq-section {
+                padding: 60px 20px;
+            }
+            
+            .faq-question {
+                padding: 16px 20px;
+            }
+            
+            .faq-question-text {
+                font-size: 0.95rem;
+            }
+            
+            .faq-answer-content {
+                padding: 20px;
+                font-size: 0.9rem;
+            }
+            
+            .faq-contact {
+                padding: 30px 20px;
+            }
+        }
+
+        
+        /* ============================================
+           FINAL CTA SECTION
+           ============================================ */
+        
+        .cta-section {
+            padding: 100px 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .cta-wrapper {
+            position: relative;
+            padding: 80px 40px;
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-tertiary));
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        /* Decorative gradient orbs */
+        .cta-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent) 0%, transparent 60%);
+            opacity: 0.15;
+            filter: blur(80px);
+            animation: ctaFloat 15s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        .cta-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--gradient-2) 0%, transparent 60%);
+            opacity: 0.15;
+            filter: blur(80px);
+            animation: ctaFloat 20s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+        
+        @keyframes ctaFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, -30px) scale(1.1); }
+        }
+        
+        .cta-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .cta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 24px;
+        }
+        
+        .cta-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+        
+        .cta-title-accent {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .cta-description {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+        
+        .cta-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .cta-trust {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        
+        .cta-trust-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .cta-trust-item i {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+        
+        /* Ratings row */
+        .cta-ratings {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .cta-stars {
+            display: flex;
+            gap: 2px;
+            color: #FFB800;
+        }
+        
+        .cta-stars i {
+            font-size: 1.1rem;
+        }
+        
+        .cta-rating-text {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        /* ============================================
+           FOOTER
+           ============================================ */
+        
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-subtle);
+            padding: 60px 24px 30px;
+            margin-top: 40px;
+        }
+        
+        .footer-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .footer-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            padding-bottom: 50px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        /* Footer Brand Column */
+        .footer-brand {
+            max-width: 300px;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .footer-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 15px;
+        }
+        
+        .footer-tagline {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .footer-social {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .footer-social a {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            transition: all var(--transition);
+        }
+        
+        .footer-social a:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Footer Link Columns */
+        .footer-column h4 {
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-column li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-column a {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: color var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .footer-column a:hover {
+            color: var(--accent);
+        }
+        
+        .footer-column .badge-new {
+            padding: 2px 6px;
+            background: var(--accent);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Footer Bottom */
+        .footer-bottom {
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .footer-copyright {
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+        }
+        
+        .footer-copyright strong {
+            color: var(--text-secondary);
+        }
+        
+        .footer-made-with {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+        }
+        
+        .footer-made-with i {
+            color: var(--accent);
+            animation: heartBeat 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        
+        .footer-legal {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .footer-legal a {
+            color: var(--text-tertiary);
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+        
+        .footer-legal a:hover {
+            color: var(--accent);
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .footer-main {
+                grid-template-columns: 1fr 1fr;
+                gap: 40px;
+            }
+            
+            .footer-brand {
+                grid-column: span 2;
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .cta-section {
+                padding: 60px 20px;
+            }
+            
+            .cta-wrapper {
+                padding: 50px 24px;
+            }
+            
+            .footer {
+                padding: 40px 20px 20px;
+            }
+            
+            .footer-main {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding-bottom: 30px;
+            }
+            
+            .footer-brand {
+                grid-column: span 1;
+            }
+            
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+            
+            .cta-trust {
+                gap: 16px;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 100px 20px 60px;
+            }
+            
+            .nav-container {
+                padding: 0 16px;
+            }
+            
+            .mode-btn span {
+                display: none;
+            }
+            
+            .mode-btn {
+                padding: 8px;
+            }
+            
+            .section {
+                padding: 60px 20px;
+            }
+            
+            .placeholder-section {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- ========== NAVBAR ========== -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <div class="nav-logo">C</div>
+                <span>CodeLabX</span>
+            </a>
+            
+            <div class="nav-right">
+                <!-- Mode Toggle -->
+                <div class="mode-toggle" role="tablist">
+                    <button class="mode-btn" data-mode-btn="student" role="tab">
+                        <i class="bi bi-mortarboard-fill"></i>
+                        <span>Student</span>
+                    </button>
+                    <button class="mode-btn active" data-mode-btn="developer" role="tab">
+                        <i class="bi bi-code-slash"></i>
+                        <span>Developer</span>
+                    </button>
+                </div>
+                
+                <a href="{% url 'accounts:login' %}" class="nav-signin">Sign in</a>
+                <a href="{% url 'accounts:register' %}" class="btn-specular">
+                    Get Started
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- ========== HERO SECTION ========== -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="hero-badge-pill">New</span>
+                <span>AI Study Buddy is here</span>
+                <i class="bi bi-arrow-right"></i>
+            </div>
+            
+            <h1 class="hero-title">
+                Learn to code with an AI<br>
+                that <span class="hero-title-accent">actually understands you</span>
+            </h1>
+            
+            <p class="hero-subtitle">
+                Personalized roadmaps, instant code reviews, and daily challenges that make 
+                progress feel real from the very first session.
+            </p>
+            
+            <div class="hero-actions">
+                <a href="{% url 'accounts:register' %}" class="btn-specular btn-specular-lg">
+                    Start Learning Free
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <a href="#features" class="btn-outline btn-outline-lg">
+                    <i class="bi bi-play-circle"></i>
+                    See how it works
+                </a>
+            </div>
+            
+            <div class="hero-trust">
+                <div class="hero-trust-item">
+                    <span class="hero-trust-dot"></span>
+                    <span>Free forever</span>
+                </div>
+                <div class="hero-trust-item">
+                    <span class="hero-trust-dot"></span>
+                    <span>No credit card</span>
+                </div>
+                <div class="hero-trust-item">
+                    <span class="hero-trust-dot"></span>
+                    <span>Made by students</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    
+    <!-- ========== LOGO LOOP - TECH STACK ========== -->
+    <section class="logo-loop-section">
+        <div class="logo-loop-header">
+            <div class="logo-loop-label">Powered by industry-leading technology</div>
+        </div>
+        
+        <div class="logo-loop-container">
+            <div class="logo-loop-track">
+                <!-- First set -->
+                <div class="logo-item python">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.914 0C5.82 0 6.2 2.656 6.2 2.656l.007 2.752h5.814v.826H3.9S0 5.789 0 11.969c0 6.18 3.403 5.96 3.403 5.96h2.03v-2.867s-.109-3.42 3.35-3.42h5.766s3.24.052 3.24-3.148V3.202S18.28 0 11.914 0zM8.708 1.85c.578 0 1.046.474 1.046 1.06 0 .583-.468 1.058-1.046 1.058-.579 0-1.046-.475-1.046-1.06 0-.583.467-1.058 1.046-1.058z"/>
+                        <path d="M12.087 24c6.092 0 5.712-2.656 5.712-2.656l-.007-2.752h-5.814v-.826h8.121s3.9.445 3.9-5.735c0-6.18-3.404-5.96-3.404-5.96h-2.03v2.867s.109 3.42-3.35 3.42H9.451s-3.242-.052-3.242 3.147v5.292S5.72 24 12.087 24zm3.206-1.85c-.578 0-1.046-.474-1.046-1.06 0-.583.468-1.058 1.046-1.058.579 0 1.046.475 1.046 1.06 0 .583-.467 1.058-1.046 1.058z"/>
+                    </svg>
+                    <span>Python</span>
+                </div>
+                <div class="logo-item django">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.146 0h3.924v18.166c-2.013.382-3.491.535-5.096.535-4.791 0-7.288-2.166-7.288-6.32 0-4.002 2.65-6.6 6.753-6.6.637 0 1.121.05 1.707.203zm0 9.143a3.894 3.894 0 0 0-1.325-.204c-1.988 0-3.134 1.223-3.134 3.365 0 2.09 1.096 3.236 3.109 3.236.433 0 .79-.025 1.35-.102V9.143z"/>
+                        <path d="M19.089 6.216v9.055c0 3.12-.229 4.618-.917 5.917-.637 1.249-1.478 2.039-3.211 2.905l-3.644-1.733c1.733-.815 2.574-1.529 3.109-2.625.561-1.121.739-2.421.739-5.822V6.216h3.924zM15.165 0h3.924v4.026h-3.924V0z"/>
+                    </svg>
+                    <span>Django</span>
+                </div>
+                <div class="logo-item gemini">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4a8 8 0 100 16 8 8 0 000-16zm0 2a6 6 0 110 12 6 6 0 010-12zm0 2a4 4 0 100 8 4 4 0 000-8z"/>
+                    </svg>
+                    <span>Gemini AI</span>
+                </div>
+                <div class="logo-item javascript">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M0 0h24v24H0V0zm22.034 18.276c-.175-1.095-.888-2.015-3.003-2.873-.736-.345-1.554-.585-1.797-1.14-.091-.33-.105-.51-.046-.705.15-.646.915-.84 1.515-.66.39.12.75.42.976.9 1.034-.676 1.034-.676 1.755-1.125-.27-.42-.404-.601-.586-.78-.63-.705-1.469-1.065-2.834-1.034l-.705.089c-.676.165-1.32.525-1.71 1.005-1.14 1.291-.811 3.541.569 4.471 1.365 1.02 3.361 1.244 3.616 2.205.24 1.17-.87 1.545-1.966 1.41-.811-.18-1.26-.586-1.755-1.336l-1.83 1.051c.21.48.45.689.81 1.109 1.74 1.756 6.09 1.666 6.871-1.004.029-.09.24-.705.074-1.65l.046.067zm-8.983-7.245h-2.248c0 1.938-.009 3.864-.009 5.805 0 1.232.063 2.363-.138 2.711-.33.689-1.18.601-1.566.48-.396-.196-.597-.466-.83-.855-.063-.105-.11-.196-.127-.196l-1.825 1.125c.305.63.75 1.172 1.324 1.517.855.51 2.004.675 3.207.405.783-.226 1.458-.691 1.811-1.411.51-.93.402-2.07.397-3.346.012-2.054 0-4.109 0-6.179l.004-.056z"/>
+                    </svg>
+                    <span>JavaScript</span>
+                </div>
+                <div class="logo-item react">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.36-.034-.47 0-.92.014-1.36.034.44-.572.895-1.096 1.36-1.564zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.36.034.47 0 .92-.014 1.36-.034-.44.572-.895 1.095-1.36 1.56-.465-.467-.92-.99-1.36-1.56z"/>
+                    </svg>
+                    <span>React</span>
+                </div>
+                <div class="logo-item git">
+                    <i class="bi bi-git"></i>
+                    <span>Git</span>
+                </div>
+                <div class="logo-item github">
+                    <i class="bi bi-github"></i>
+                    <span>GitHub</span>
+                </div>
+                <div class="logo-item postgres">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.111 5.441c-.14-.42-.564-.694-1.06-.816-.234-.058-.5-.093-.788-.093a3.71 3.71 0 0 0-.646.056c-.402-.68-.902-1.045-1.393-1.238-.632-.246-1.235-.213-1.626-.14-.148.028-.276.061-.379.09-.245-.79-.664-1.494-1.208-2.08C15.106.416 13.795-.05 12.216.005 10.766.056 9.647.628 8.988 1.05a5.36 5.36 0 0 0-.317.22c-.51-.093-1.052-.14-1.605-.14-1.294 0-2.71.243-3.847 1.075-.964.707-1.719 1.808-2.238 3.293C.457 7.005.041 9.078.041 11.633c0 2.4.416 4.407 1.163 6.023.723 1.567 1.795 2.834 3.152 3.802 1.316.937 2.822 1.577 4.463 1.911 1.68.343 3.435.408 5.226.198 1.804-.213 3.577-.7 5.253-1.463 1.68-.766 3.155-1.762 4.362-2.98 1.218-1.226 2.155-2.65 2.766-4.185.615-1.541.85-3.164.696-4.81-.15-1.607-.685-3.192-1.61-4.688z"/>
+                    </svg>
+                    <span>PostgreSQL</span>
+                </div>
+                
+                <!-- Duplicate set for seamless loop -->
+                <div class="logo-item python">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.914 0C5.82 0 6.2 2.656 6.2 2.656l.007 2.752h5.814v.826H3.9S0 5.789 0 11.969c0 6.18 3.403 5.96 3.403 5.96h2.03v-2.867s-.109-3.42 3.35-3.42h5.766s3.24.052 3.24-3.148V3.202S18.28 0 11.914 0zM8.708 1.85c.578 0 1.046.474 1.046 1.06 0 .583-.468 1.058-1.046 1.058-.579 0-1.046-.475-1.046-1.06 0-.583.467-1.058 1.046-1.058z"/>
+                        <path d="M12.087 24c6.092 0 5.712-2.656 5.712-2.656l-.007-2.752h-5.814v-.826h8.121s3.9.445 3.9-5.735c0-6.18-3.404-5.96-3.404-5.96h-2.03v2.867s.109 3.42-3.35 3.42H9.451s-3.242-.052-3.242 3.147v5.292S5.72 24 12.087 24zm3.206-1.85c-.578 0-1.046-.474-1.046-1.06 0-.583.468-1.058 1.046-1.058.579 0 1.046.475 1.046 1.06 0 .583-.467 1.058-1.046 1.058z"/>
+                    </svg>
+                    <span>Python</span>
+                </div>
+                <div class="logo-item django">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.146 0h3.924v18.166c-2.013.382-3.491.535-5.096.535-4.791 0-7.288-2.166-7.288-6.32 0-4.002 2.65-6.6 6.753-6.6.637 0 1.121.05 1.707.203zm0 9.143a3.894 3.894 0 0 0-1.325-.204c-1.988 0-3.134 1.223-3.134 3.365 0 2.09 1.096 3.236 3.109 3.236.433 0 .79-.025 1.35-.102V9.143z"/>
+                        <path d="M19.089 6.216v9.055c0 3.12-.229 4.618-.917 5.917-.637 1.249-1.478 2.039-3.211 2.905l-3.644-1.733c1.733-.815 2.574-1.529 3.109-2.625.561-1.121.739-2.421.739-5.822V6.216h3.924zM15.165 0h3.924v4.026h-3.924V0z"/>
+                    </svg>
+                    <span>Django</span>
+                </div>
+                <div class="logo-item gemini">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4a8 8 0 100 16 8 8 0 000-16zm0 2a6 6 0 110 12 6 6 0 010-12zm0 2a4 4 0 100 8 4 4 0 000-8z"/>
+                    </svg>
+                    <span>Gemini AI</span>
+                </div>
+                <div class="logo-item javascript">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M0 0h24v24H0V0zm22.034 18.276c-.175-1.095-.888-2.015-3.003-2.873-.736-.345-1.554-.585-1.797-1.14-.091-.33-.105-.51-.046-.705.15-.646.915-.84 1.515-.66.39.12.75.42.976.9 1.034-.676 1.034-.676 1.755-1.125-.27-.42-.404-.601-.586-.78-.63-.705-1.469-1.065-2.834-1.034l-.705.089c-.676.165-1.32.525-1.71 1.005-1.14 1.291-.811 3.541.569 4.471 1.365 1.02 3.361 1.244 3.616 2.205.24 1.17-.87 1.545-1.966 1.41-.811-.18-1.26-.586-1.755-1.336l-1.83 1.051c.21.48.45.689.81 1.109 1.74 1.756 6.09 1.666 6.871-1.004.029-.09.24-.705.074-1.65l.046.067zm-8.983-7.245h-2.248c0 1.938-.009 3.864-.009 5.805 0 1.232.063 2.363-.138 2.711-.33.689-1.18.601-1.566.48-.396-.196-.597-.466-.83-.855-.063-.105-.11-.196-.127-.196l-1.825 1.125c.305.63.75 1.172 1.324 1.517.855.51 2.004.675 3.207.405.783-.226 1.458-.691 1.811-1.411.51-.93.402-2.07.397-3.346.012-2.054 0-4.109 0-6.179l.004-.056z"/>
+                    </svg>
+                    <span>JavaScript</span>
+                </div>
+                <div class="logo-item react">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236z"/>
+                    </svg>
+                    <span>React</span>
+                </div>
+                <div class="logo-item git">
+                    <i class="bi bi-git"></i>
+                    <span>Git</span>
+                </div>
+                <div class="logo-item github">
+                    <i class="bi bi-github"></i>
+                    <span>GitHub</span>
+                </div>
+                <div class="logo-item postgres">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.111 5.441c-.14-.42-.564-.694-1.06-.816z"/>
+                    </svg>
+                    <span>PostgreSQL</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- ========== BENTO GRID FEATURES ========== -->
+    <section class="bento-section" id="features">
+        <div class="bento-header">
+            <div class="bento-eyebrow">
+                <i class="bi bi-stars"></i>
+                <span>What Makes Us Different</span>
+            </div>
+            <h2 class="bento-title">
+                Three powerful features. <span class="bento-title-accent">Plus a lot more.</span>
+            </h2>
+            <p class="bento-subtitle">
+                The essentials you need to accelerate your learning. Discover more powerful 
+                tools once you're inside.
+            </p>
+        </div>
+        
+        <div class="bento-grid">
+            
+            <!-- LARGE 1: AI Roadmaps with preview -->
+            <div class="bento-card large-1">
+                <div>
+                    <div class="bento-icon">
+                        <i class="bi bi-map-fill"></i>
+                    </div>
+                    <h3 class="bento-card-title">AI-Powered Learning Paths</h3>
+                    <p class="bento-card-description">
+                        Personalized roadmaps that adapt to your pace, goals, and skill level. 
+                        Learn what matters, when it matters.
+                    </p>
+                </div>
+                <div class="bento-preview">
+                    <div class="preview-item completed">
+                        <div class="preview-item-icon"><i class="bi bi-check"></i></div>
+                        <span>Python Fundamentals</span>
+                    </div>
+                    <div class="preview-item completed">
+                        <div class="preview-item-icon"><i class="bi bi-check"></i></div>
+                        <span>Data Structures Basics</span>
+                    </div>
+                    <div class="preview-item active">
+                        <div class="preview-item-icon">3</div>
+                        <span>Machine Learning Intro</span>
+                    </div>
+                    <div class="preview-item">
+                        <div class="preview-item-icon">4</div>
+                        <span>Neural Networks</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LARGE 2: Study Buddy Chat -->
+            <div class="bento-card large-2">
+                <span class="bento-tag">Popular</span>
+                <div>
+                    <div class="bento-icon">
+                        <i class="bi bi-chat-dots-fill"></i>
+                    </div>
+                    <h3 class="bento-card-title">AI Study Buddy</h3>
+                    <p class="bento-card-description">
+                        Chat with your personal AI tutor. Ask anything, get instant answers 
+                        with code examples and explanations.
+                    </p>
+                </div>
+                <div class="chat-preview">
+                    <div class="chat-msg user">Explain recursion simply</div>
+                    <div class="chat-msg ai">Sure! Recursion is when a function calls itself to solve smaller versions of a problem 🎯</div>
+                    <div class="chat-msg user">Show me a code example</div>
+                </div>
+            </div>
+            
+            <!-- MEDIUM: Progress Analytics -->
+            <div class="bento-card medium-tall">
+                <div>
+                    <div class="bento-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h3 class="bento-card-title">Progress Analytics</h3>
+                    <p class="bento-card-description">
+                        Deep insights into your learning journey. See streaks, growth, and predictions.
+                    </p>
+                </div>
+                <div class="stats-preview">
+                    <div class="stat-item">
+                        <div class="stat-value">47</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">92%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MEDIUM: Mystery Card - "And more..." -->
+            <div class="bento-card medium-mystery">
+                <div class="mystery-content">
+                    <div class="mystery-icon">
+                        <i class="bi bi-boxes"></i>
+                    </div>
+                    <h3 class="mystery-title">And 12+ more features</h3>
+                    <p class="mystery-description">
+                        Code reviews · Smart tests · Daily challenges · Video library · Image AI · Achievements · Notes · And more surprises inside...
+                    </p>
+                    <a href="{% url 'accounts:register' %}" class="mystery-cta">
+                        Discover them all
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="mystery-glow"></div>
+            </div>
+            
+        </div>
+    </section>
+    
+    <!-- ========== HOW IT WORKS ========== -->
+    <section class="how-section" id="how-it-works">
+        <div class="how-header">
+            <div class="how-eyebrow">
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span>How It Works</span>
+            </div>
+            <h2 class="how-title">
+                Get started in <span class="how-title-accent">three simple steps</span>
+            </h2>
+            <p class="how-subtitle">
+                No complicated setup. No overwhelming choices. 
+                Just a clear path from where you are to where you want to be.
+            </p>
+        </div>
+        
+        <div class="steps-container">
+            
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <div class="step-icon">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <h3 class="step-title">Choose Your Path</h3>
+                <p class="step-description">
+                    Pick your topic, set your duration, and choose how many hours you can commit daily.
+                </p>
+                <ul class="step-features">
+                    <li><i class="bi bi-check-circle-fill"></i> ML, DSA, AI, and more</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Flexible duration</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Any skill level</li>
+                </ul>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <div class="step-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <h3 class="step-title">Learn With AI</h3>
+                <p class="step-description">
+                    Get personalized lessons, instant code reviews, and 24/7 AI tutor support whenever you need help.
+                </p>
+                <ul class="step-features">
+                    <li><i class="bi bi-check-circle-fill"></i> Instant explanations</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Real-time feedback</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Chat anytime</li>
+                </ul>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <div class="step-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h3 class="step-title">Track Progress</h3>
+                <p class="step-description">
+                    See your growth with streaks, badges, and detailed analytics. Stay motivated with real results.
+                </p>
+                <ul class="step-features">
+                    <li><i class="bi bi-check-circle-fill"></i> Activity heatmap</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Earn badges</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Deep insights</li>
+                </ul>
+            </div>
+            
+        </div>
+        
+        <div class="how-cta">
+            <p class="how-cta-text">Ready to start your learning journey?</p>
+            <a href="{% url 'accounts:register' %}" class="btn-specular btn-specular-lg">
+                Get Started for Free
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    
+    <!-- ========== PRODUCT SHOWCASE ========== -->
+    <section class="showcase-section" id="showcase">
+        <div class="showcase-header">
+            <div class="showcase-eyebrow">
+                <i class="bi bi-eye-fill"></i>
+                <span>See It In Action</span>
+            </div>
+            <h2 class="showcase-title">
+                A product built for <span class="showcase-title-accent">real learners</span>
+            </h2>
+            <p class="showcase-subtitle">
+                Every feature designed with one goal in mind: making your learning journey 
+                clearer, faster, and more enjoyable.
+            </p>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="showcase-tabs">
+            <button class="showcase-tab active" data-tab="dashboard">
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="showcase-tab" data-tab="learning">
+                <i class="bi bi-book-fill"></i>
+                <span>Learning</span>
+            </button>
+            <button class="showcase-tab" data-tab="chat">
+                <i class="bi bi-chat-dots-fill"></i>
+                <span>AI Chat</span>
+            </button>
+            <button class="showcase-tab" data-tab="analytics">
+                <i class="bi bi-graph-up"></i>
+                <span>Analytics</span>
+            </button>
+        </div>
+        
+        <!-- Browser Window -->
+        <div class="browser-window">
+            <div class="browser-header">
+                <div class="browser-dots">
+                    <div class="browser-dot red"></div>
+                    <div class="browser-dot yellow"></div>
+                    <div class="browser-dot green"></div>
+                </div>
+                <div class="browser-url">
+                    <i class="bi bi-lock-fill"></i>
+                    codelabx.com/dashboard
+                </div>
+            </div>
+            
+            <!-- DASHBOARD -->
+            <div class="browser-content active" data-content="dashboard">
+                <div class="mock-dashboard">
+                    <div class="mock-hero">
+                        <div class="mock-hero-label">JUL 28 · STREAK 12</div>
+                        <div class="mock-hero-title">Good morning, Alex</div>
+                        <div class="mock-hero-desc">Continue where you left off — Machine Learning</div>
+                    </div>
+                    <div class="mock-stat">
+                        <div class="mock-stat-value">6</div>
+                        <div class="mock-stat-label">Active Paths</div>
+                    </div>
+                    <div class="mock-stat">
+                        <div class="mock-stat-value">42</div>
+                        <div class="mock-stat-label">Days Done</div>
+                    </div>
+                    <div class="mock-stat">
+                        <div class="mock-stat-value">84h</div>
+                        <div class="mock-stat-label">Studied</div>
+                    </div>
+                    <div class="mock-stat">
+                        <div class="mock-stat-value">12</div>
+                        <div class="mock-stat-label">Badges</div>
+                    </div>
+                    <div class="mock-card">
+                        <div class="mock-card-eyebrow">TODAY</div>
+                        <div class="mock-card-title">Machine Learning: Neural Networks</div>
+                        <div class="mock-card-desc">Continue your journey into deep learning fundamentals.</div>
+                        <div class="mock-card-link">Continue →</div>
+                    </div>
+                    <div class="mock-card">
+                        <div class="mock-card-eyebrow">DAILY CHALLENGE</div>
+                        <div class="mock-card-title">Reverse a Linked List</div>
+                        <div class="mock-card-desc">Medium difficulty · Solve in 15 minutes to earn bonus XP.</div>
+                        <div class="mock-card-link">Start challenge →</div>
+                    </div>
+                    <div class="mock-heatmap">
+                        <div class="mock-card-eyebrow">ACTIVITY · LAST 30 DAYS</div>
+                        <div class="mock-heatmap-grid">
+                            <div class="mock-heat-cell level-2"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-1"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-2"></div>
+                            <div class="mock-heat-cell"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-2"></div>
+                            <div class="mock-heat-cell level-1"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-2"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-1"></div>
+                            <div class="mock-heat-cell"></div>
+                            <div class="mock-heat-cell level-2"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-2"></div>
+                            <div class="mock-heat-cell level-1"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-4"></div>
+                            <div class="mock-heat-cell level-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LEARNING -->
+            <div class="browser-content" data-content="learning">
+                <div class="mock-learning">
+                    <div class="mock-sidebar">
+                        <div class="mock-sidebar-title">ML Roadmap</div>
+                        <div class="mock-day-list">
+                            <div class="mock-day completed">Day 1 · Intro</div>
+                            <div class="mock-day completed">Day 2 · Data</div>
+                            <div class="mock-day completed">Day 3 · NumPy</div>
+                            <div class="mock-day active">Day 4 · Pandas</div>
+                            <div class="mock-day">Day 5 · Visualization</div>
+                            <div class="mock-day">Day 6 · Statistics</div>
+                            <div class="mock-day">Day 7 · ML Intro</div>
+                        </div>
+                    </div>
+                    <div class="mock-content">
+                        <h4>Day 4: Data Manipulation with Pandas</h4>
+                        <p>Pandas is a powerful Python library for data manipulation and analysis. It provides two main data structures: Series (1D) and DataFrame (2D).</p>
+                        <div class="mock-code-block">
+<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+<span class="comment"># Create a DataFrame</span>
+df = pd.DataFrame({
+    <span class="string">'name'</span>: [<span class="string">'Alice'</span>, <span class="string">'Bob'</span>],
+    <span class="string">'age'</span>: [25, 30]
+})
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI CHAT -->
+            <div class="browser-content" data-content="chat">
+                <div class="mock-chat">
+                    <div class="mock-chat-msg user">
+                        <div class="mock-avatar user">A</div>
+                        <div class="mock-msg-bubble">What's the difference between let and var in JavaScript?</div>
+                    </div>
+                    <div class="mock-chat-msg ai">
+                        <div class="mock-avatar ai">AI</div>
+                        <div class="mock-msg-bubble">
+                            Great question! The main differences are:<br><br>
+                            • <code>var</code> is function-scoped, <code>let</code> is block-scoped<br>
+                            • <code>var</code> can be redeclared, <code>let</code> cannot<br>
+                            • <code>let</code> has temporal dead zone
+                        </div>
+                    </div>
+                    <div class="mock-chat-msg user">
+                        <div class="mock-avatar user">A</div>
+                        <div class="mock-msg-bubble">Can you show me an example?</div>
+                    </div>
+                    <div class="mock-chat-msg ai">
+                        <div class="mock-avatar ai">AI</div>
+                        <div class="mock-msg-bubble">
+                            Sure! Here's a quick example showing scope difference between the two...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ANALYTICS -->
+            <div class="browser-content" data-content="analytics">
+                <div class="mock-analytics">
+                    <div class="mock-chart-card">
+                        <div class="mock-chart-title">Daily Study Time · Last 7 Days</div>
+                        <div class="mock-chart">
+                            <div class="mock-bar" style="height: 40%"></div>
+                            <div class="mock-bar" style="height: 65%"></div>
+                            <div class="mock-bar" style="height: 45%"></div>
+                            <div class="mock-bar" style="height: 80%"></div>
+                            <div class="mock-bar" style="height: 90%"></div>
+                            <div class="mock-bar" style="height: 70%"></div>
+                            <div class="mock-bar" style="height: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="mock-chart-card">
+                        <div class="mock-chart-title">Consistency Score</div>
+                        <div class="mock-ring">
+                            <div class="mock-ring-value">67%</div>
+                        </div>
+                    </div>
+                    <div class="mock-chart-card">
+                        <div class="mock-chart-title">Topic Mastery</div>
+                        <div class="mock-chart">
+                            <div class="mock-bar" style="height: 85%"></div>
+                            <div class="mock-bar" style="height: 60%"></div>
+                            <div class="mock-bar" style="height: 90%"></div>
+                            <div class="mock-bar" style="height: 45%"></div>
+                            <div class="mock-bar" style="height: 70%"></div>
+                        </div>
+                    </div>
+                    <div class="mock-chart-card">
+                        <div class="mock-chart-title">Test Performance</div>
+                        <div class="mock-chart">
+                            <div class="mock-bar" style="height: 70%"></div>
+                            <div class="mock-bar" style="height: 85%"></div>
+                            <div class="mock-bar" style="height: 60%"></div>
+                            <div class="mock-bar" style="height: 90%"></div>
+                            <div class="mock-bar" style="height: 95%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Features under the mockup -->
+        <div class="showcase-features">
+            <div class="showcase-feature">
+                <div class="showcase-feature-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <div class="showcase-feature-text">
+                    <h4>Lightning Fast</h4>
+                    <p>Every interaction is optimized for speed. No waiting, just learning.</p>
+                </div>
+            </div>
+            <div class="showcase-feature">
+                <div class="showcase-feature-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div class="showcase-feature-text">
+                    <h4>Privacy First</h4>
+                    <p>Your data stays yours. No tracking, no ads, no nonsense.</p>
+                </div>
+            </div>
+            <div class="showcase-feature">
+                <div class="showcase-feature-icon">
+                    <i class="bi bi-phone-fill"></i>
+                </div>
+                <div class="showcase-feature-text">
+                    <h4>Works Everywhere</h4>
+                    <p>Desktop, tablet, mobile — beautiful and functional on any device.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- ========== STATS SECTION ========== -->
+    <section class="stats-section" id="stats">
+        <div class="stats-wrapper">
+            <div class="stats-header">
+                <div class="stats-eyebrow">
+                    <i class="bi bi-bar-chart-fill"></i>
+                    <span>By The Numbers</span>
+                </div>
+                <h2 class="stats-title">
+                    Numbers that <span class="stats-title-accent">speak for themselves</span>
+                </h2>
+                <p class="stats-subtitle">
+                    Built with focus. Designed with purpose. Ready to help you grow.
+                </p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <div>
+                        <span class="stat-number" data-count="15">0</span><span class="stat-suffix">+</span>
+                    </div>
+                    <div class="stat-label">Features</div>
+                    <div class="stat-description">Powerful tools built-in</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div>
+                        <span class="stat-number" data-count="24">0</span><span class="stat-suffix">/7</span>
+                    </div>
+                    <div class="stat-label">AI Support</div>
+                    <div class="stat-description">Always available</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-book-fill"></i>
+                    </div>
+                    <div>
+                        <span class="stat-number" data-count="500">0</span><span class="stat-suffix">+</span>
+                    </div>
+                    <div class="stat-label">Topics</div>
+                    <div class="stat-description">Curated content</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="bi bi-heart-fill"></i>
+                    </div>
+                    <div>
+                        <span class="stat-number" data-count="100">0</span><span class="stat-suffix">%</span>
+                    </div>
+                    <div class="stat-label">Free</div>
+                    <div class="stat-description">Forever, no catches</div>
+                </div>
+            </div>
+            
+            <!-- Trust badges -->
+            <div class="stats-trust">
+                <div class="trust-item">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Secure & Private</span>
+                </div>
+                <div class="trust-item">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    <span>Lightning Fast</span>
+                </div>
+                <div class="trust-item">
+                    <i class="bi bi-github"></i>
+                    <span>Open Source Ready</span>
+                </div>
+                <div class="trust-item">
+                    <i class="bi bi-heart-fill"></i>
+                    <span>Made with Love</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- ========== FAQ SECTION ========== -->
+    <section class="faq-section" id="faq">
+        <div class="faq-header">
+            <div class="faq-eyebrow">
+                <i class="bi bi-question-circle-fill"></i>
+                <span>Common Questions</span>
+            </div>
+            <h2 class="faq-title">
+                Frequently asked <span class="faq-title-accent">questions</span>
+            </h2>
+            <p class="faq-subtitle">
+                Everything you need to know about CodeLabX. Can't find what you're looking for? Reach out.
+            </p>
+        </div>
+        
+        <div class="faq-list">
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Is CodeLabX really free forever?</div>
+                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <strong>Yes, 100% free.</strong> No credit card required, no hidden charges, no premium tiers. 
+                        CodeLabX was built by students, for students. We believe quality education should be accessible to everyone. 
+                        You get access to all features including AI Study Buddy, personalized roadmaps, code review, tests, 
+                        and everything else — forever.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">What programming languages and topics are supported?</div>
+                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        We currently support a wide range of topics including:
+                        <ul>
+                            <li><strong>Programming:</strong> Python, JavaScript, Java, C++, and more</li>
+                            <li><strong>Data Science & ML:</strong> Machine Learning, Deep Learning, Neural Networks</li>
+                            <li><strong>Computer Science:</strong> Data Structures, Algorithms (DSA)</li>
+                            <li><strong>Web Development:</strong> Django, React, HTML/CSS</li>
+                            <li><strong>Databases:</strong> SQL, PostgreSQL</li>
+                        </ul>
+                        And we're constantly adding more topics based on user feedback.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Do I need any prior coding experience?</div>
+                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <strong>Absolutely not!</strong> CodeLabX is designed for learners at all levels. 
+                        When you create a roadmap, you can choose from three difficulty levels:
+                        <ul>
+                            <li><strong>Beginner:</strong> Perfect if you're just starting out</li>
+                            <li><strong>Intermediate:</strong> For those with some coding background</li>
+                            <li><strong>Advanced:</strong> Deep dive into complex topics</li>
+                        </ul>
+                        The AI adapts to your pace and skill level, so you always learn at the right speed for you.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">How does the AI code review work?</div>
+                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Our AI Code Examiner uses <strong>Google Gemini</strong> to analyze your code in real-time. 
+                        You paste your code, and within seconds you get:
+                        <ul>
+                            <li>Line-by-line explanation of what your code does</li>
+                            <li>Bug detection and error identification</li>
+                            <li>Suggestions for optimization and best practices</li>
+                            <li>Time and space complexity analysis</li>
+                            <li>Alternative approaches to solve the problem</li>
+                        </ul>
+                        It's like having a senior developer reviewing your code 24/7.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Is my code and data private and secure?</div>
+                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <strong>Yes, your privacy is our top priority.</strong> Here's what we do:
+                        <ul>
+                            <li>All data is stored securely with industry-standard encryption</li>
+                            <li>Your code and progress are visible only to you</li>
+                            <li>We never sell or share your data with third parties</li>
+                            <li>No tracking, no ads, no marketing spam</li>
+                            <li>You can delete your account and all data anytime</li>
+                        </ul>
+                        We believe learning should be a safe and private experience.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-text">Can I use CodeLabX on mobile devices?</div>
+                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <strong>Absolutely!</strong> CodeLabX is fully responsive and works beautifully on:
+                        <ul>
+                            <li>Desktop computers</li>
+                            <li>Laptops</li>
+                            <li>Tablets</li>
+                            <li>Mobile phones</li>
+                        </ul>
+                        You can start learning on your laptop and continue on your phone. Your progress syncs automatically 
+                        across all devices. A dedicated mobile app is coming soon!
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Contact CTA -->
+        <div class="faq-contact">
+            <div class="faq-contact-content">
+                <div class="faq-contact-icon">
+                    <i class="bi bi-chat-heart-fill"></i>
+                </div>
+                <h3 class="faq-contact-title">Still have questions?</h3>
+                <p class="faq-contact-desc">
+                    We're here to help. Reach out and we'll get back to you as soon as possible.
+                </p>
+                <div class="faq-contact-actions">
+                    <a href="mailto:support@codelabx.com" class="btn-specular">
+                        <i class="bi bi-envelope-fill"></i>
+                        Email Us
+                    </a>
+                    <a href="#" class="btn-outline">
+                        <i class="bi bi-github"></i>
+                        GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- ========== FINAL CTA SECTION ========== -->
+    <section class="cta-section" id="cta">
+        <div class="cta-wrapper">
+            <div class="cta-content">
+                <div class="cta-badge">
+                    <i class="bi bi-rocket-takeoff-fill"></i>
+                    <span>Start Free Today</span>
+                </div>
+                
+                <div class="cta-ratings">
+                    <div class="cta-stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <span class="cta-rating-text">Trusted by 1000+ learners</span>
+                </div>
+                
+                <h2 class="cta-title">
+                    Ready to <span class="cta-title-accent">level up</span><br>
+                    your coding journey?
+                </h2>
+                
+                <p class="cta-description">
+                    Join thousands of learners already using CodeLabX to master programming, 
+                    machine learning, and computer science with an AI that actually understands them.
+                </p>
+                
+                <div class="cta-actions">
+                    <a href="{% url 'accounts:register' %}" class="btn-specular btn-specular-lg">
+                        Get Started for Free
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="#features" class="btn-outline btn-outline-lg">
+                        <i class="bi bi-play-circle"></i>
+                        Explore Features
+                    </a>
+                </div>
+                
+                <div class="cta-trust">
+                    <div class="cta-trust-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Free forever</span>
+                    </div>
+                    <div class="cta-trust-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>No credit card required</span>
+                    </div>
+                    <div class="cta-trust-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Setup in 30 seconds</span>
+                    </div>
+                    <div class="cta-trust-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Cancel anytime</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-main">
+                
+                <!-- Brand Column -->
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon">C</div>
+                        <span>CodeLabX</span>
+                    </div>
+                    <p class="footer-tagline">
+                        AI-powered learning platform built for the next generation of developers. 
+                        Learn smarter, code better, ship faster.
+                    </p>
+                    <div class="footer-social">
+                        <a href="#" title="GitHub">
+                            <i class="bi bi-github"></i>
+                        </a>
+                        <a href="#" title="Twitter">
+                            <i class="bi bi-twitter-x"></i>
+                        </a>
+                        <a href="#" title="LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        <a href="#" title="Discord">
+                            <i class="bi bi-discord"></i>
+                        </a>
+                        <a href="#" title="YouTube">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Product Column -->
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#showcase">Screenshots</a></li>
+                        <li><a href="{% url 'accounts:register' %}">Get Started</a></li>
+                        <li><a href="#">AI Study Buddy <span class="badge-new">New</span></a></li>
+                        <li><a href="#">Roadmap</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Resources Column -->
+                <div class="footer-column">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Tutorials</a></li>
+                        <li><a href="#">Community</a></li>
+                        <li><a href="#">Changelog</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Company Column -->
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Press Kit</a></li>
+                        <li><a href="#">Partners</a></li>
+                        <li><a href="mailto:support@codelabx.com">Support</a></li>
+                    </ul>
+                </div>
+                
+            </div>
+            
+            <!-- Bottom Bar -->
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    © 2026 <strong>CodeLabX</strong>. All rights reserved.
+                </div>
+                
+                <div class="footer-made-with">
+                    <span>Made with</span>
+                    <i class="bi bi-heart-fill"></i>
+                    <span>by students, for students</span>
+                </div>
+                
+                <div class="footer-legal">
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        
+        // Mouse tracking for bento cards
+        (function() {
+            const cards = document.querySelectorAll('.bento-card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    card.style.setProperty('--mouse-x', x + '%');
+                    card.style.setProperty('--mouse-y', y + '%');
+                });
+            });
+        })();
+
+        
+        // Product showcase tab switcher
+        (function() {
+            const tabs = document.querySelectorAll('.showcase-tab');
+            const contents = document.querySelectorAll('.browser-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    contents.forEach(c => {
+                        if (c.dataset.content === target) {
+                            c.classList.add('active');
+                        } else {
+                            c.classList.remove('active');
+                        }
+                    });
+                });
+            });
+        })();
+
+        
+        // Animated counter for stats
+        (function() {
+            const counters = document.querySelectorAll('.stat-number[data-count]');
+            
+            const animateCounter = (element) => {
+                const target = parseInt(element.dataset.count);
+                const duration = 2000;
+                const startTime = performance.now();
+                
+                const update = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function - ease out cubic
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(easeProgress * target);
+                    
+                    element.textContent = current;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        element.textContent = target;
+                    }
+                };
+                
+                requestAnimationFrame(update);
+            };
+            
+            // Observe when stats come into view
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.dataset.animated) {
+                        entry.target.dataset.animated = 'true';
+                        animateCounter(entry.target);
+                    }
+                });
+            }, { threshold: 0.3 });
+            
+            counters.forEach(counter => observer.observe(counter));
+        })();
+
+        
+        // FAQ accordion
+        (function() {
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                question.addEventListener('click', () => {
+                    const isOpen = item.classList.contains('open');
+                    
+                    // Close all other items (accordion behavior)
+                    faqItems.forEach(otherItem => {
+                        otherItem.classList.remove('open');
+                    });
+                    
+                    // Toggle current item
+                    if (!isOpen) {
+                        item.classList.add('open');
+                    }
+                });
+            });
+        })();
+
+        // Mode Toggle System
+        (function() {
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const html = document.documentElement;
+            
+            // Load saved mode
+            const savedMode = localStorage.getItem('codelabx-mode') || 'developer';
+            html.setAttribute('data-mode', savedMode);
+            updateActiveButton(savedMode);
+            
+            function updateActiveButton(mode) {
+                modeButtons.forEach(btn => {
+                    if (btn.dataset.modeBtn === mode) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+            
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const newMode = this.dataset.modeBtn;
+                    html.setAttribute('data-mode', newMode);
+                    localStorage.setItem('codelabx-mode', newMode);
+                    updateActiveButton(newMode);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

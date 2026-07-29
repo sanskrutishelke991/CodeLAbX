@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Note - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .form-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 40px;
+    }
+    
+    .form-title-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+        padding: 15px;
+        width: 100%;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .form-title-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .form-content-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 15px;
+        width: 100%;
+        border-radius: 10px;
+        min-height: 300px;
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: vertical;
+    }
+    
+    .form-content-input:focus {
+        outline: none;
+        border-color: #14B8A6;
+    }
+    
+    .form-tags-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 12px 15px;
+        width: 100%;
+        border-radius: 10px;
+    }
+    
+    .color-picker {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .color-option {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.2s;
+    }
+    
+    .color-option:hover {
+        transform: scale(1.1);
+    }
+    
+    .color-option.selected {
+        border-color: white;
+        transform: scale(1.15);
+    }
+    
+    .color-purple { background: #14B8A6; }
+    .color-blue { background: #4a90e2; }
+    .color-green { background: #00D4AA; }
+    .color-red { background: #FF6B6B; }
+    .color-yellow { background: #f59e0b; }
+    .color-pink { background: #ec4899; }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #14B8A6 0%, #ec4899 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    .label { color: white; font-weight: 500; margin-bottom: 10px; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <h2 style="color: white;" class="mb-4">
+            <i class="bi bi-journal-plus me-2" style="color: #14B8A6;"></i>{{ action }} Note
+        </h2>
+        
+        <div class="form-card">
+            <form method="post">
+                {% csrf_token %}
+                
+                <input 
+                    type="text" 
+                    name="title" 
+                    class="form-title-input" 
+                    placeholder="Note title..." 
+                    value="{{ note.title|default:'' }}"
+                    required
+                    autofocus
+                >
+                
+                <div class="mb-4">
+                    <label class="label">Color</label>
+                    <div class="color-picker">
+                        {% for color in "purple,blue,green,red,yellow,pink"|slice:":100"|make_list %}{% endfor %}
+                        <div class="color-option color-purple {% if not note or note.color == 'purple' %}selected{% endif %}" data-color="purple"></div>
+                        <div class="color-option color-blue {% if note.color == 'blue' %}selected{% endif %}" data-color="blue"></div>
+                        <div class="color-option color-green {% if note.color == 'green' %}selected{% endif %}" data-color="green"></div>
+                        <div class="color-option color-red {% if note.color == 'red' %}selected{% endif %}" data-color="red"></div>
+                        <div class="color-option color-yellow {% if note.color == 'yellow' %}selected{% endif %}" data-color="yellow"></div>
+                        <div class="color-option color-pink {% if note.color == 'pink' %}selected{% endif %}" data-color="pink"></div>
+                    </div>
+                    <input type="hidden" name="color" id="colorInput" value="{{ note.color|default:'purple' }}">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="label">Content</label>
+                    <textarea 
+                        name="content" 
+                        class="form-content-input" 
+                        placeholder="Start writing your note..."
+                    >{{ note.content|default:'' }}</textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="label">Tags (comma separated)</label>
+                    <input 
+                        type="text" 
+                        name="tags" 
+                        class="form-tags-input" 
+                        placeholder="python, django, ml"
+                        value="{{ tags_str|default:'' }}"
+                    >
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'notes:list' %}" class="btn btn-outline-light">Cancel</a>
+                    <button type="submit" class="btn-save">
+                        <i class="bi bi-check-lg me-2"></i>Save Note
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.color-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('colorInput').value = this.dataset.color;
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}My Videos - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .header-card {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 30px;
+        color: white;
+        margin-bottom: 25px;
+    }
+    
+    .tab-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+    
+    .tab-btn {
+        background: transparent;
+        border: 1px solid var(--border-default);
+        color: #e0e0e0;
+        padding: 10px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .tab-btn.active, .tab-btn:hover {
+        background: rgba(20, 184, 166, 0.2);
+        border-color: #14B8A6;
+        color: white;
+    }
+    
+    .video-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.3s;
+    }
+    
+    .video-card:hover {
+        transform: translateY(-3px);
+        border-color: #14B8A6;
+        color: inherit;
+    }
+    
+    .video-thumbnail {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+    }
+    
+    .video-body { padding: 15px; }
+    .video-title { color: white; font-weight: 600; margin-bottom: 8px; }
+    .video-meta { color: #a0a0a0; font-size: 0.85rem; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #a0a0a0;
+    }
+    
+    .empty-state i { font-size: 5rem; color: #14B8A6; opacity: 0.4; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-card">
+    <h1><i class="bi bi-collection-play-fill me-2"></i>My Videos</h1>
+    <p class="mb-0" style="opacity: 0.9;">
+        {{ watched_count }} watched • {{ favorites_count }} favorited
+    </p>
+</div>
+
+<div class="tab-buttons">
+    <a href="?tab=watched" class="tab-btn {% if active_tab == 'watched' %}active{% endif %}">
+        <i class="bi bi-check-circle me-1"></i>Watched ({{ watched_count }})
+    </a>
+    <a href="?tab=favorites" class="tab-btn {% if active_tab == 'favorites' %}active{% endif %}">
+        <i class="bi bi-heart me-1"></i>Favorites ({{ favorites_count }})
+    </a>
+</div>
+
+{% if progress_list %}
+<div class="row">
+    {% for progress in progress_list %}
+    <div class="col-lg-4 col-md-6">
+        <a href="{% url 'content:video_detail' progress.video.id %}" class="video-card">
+            <img src="{{ progress.video.thumbnail_url }}" class="video-thumbnail" loading="lazy">
+            <div class="video-body">
+                <div class="video-title">{{ progress.video.title }}</div>
+                <div class="video-meta">
+                    {{ progress.video.channel_name }} • 
+                    {{ progress.video.category.icon }} {{ progress.video.category.name }}
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-{% if active_tab == 'favorites' %}heart{% else %}camera-video{% endif %}"></i>
+    <h4 class="mt-3">
+        {% if active_tab == 'favorites' %}No favorites yet{% else %}No watched videos yet{% endif %}
+    </h4>
+    <p>Start exploring the video library</p>
+    <a href="{% url 'content:library' %}" class="btn btn-primary mt-2">
+        <i class="bi bi-play-btn me-1"></i>Browse Videos
+    </a>
+</div>
+{% endif %}
+{% endblock %}

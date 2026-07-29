@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% block title %}Take Test - CodeLabX{% endblock %}
+{% block extra_css %}
+<style>
+body { background: #0A0A0A; color: #e0e0e0; }
+.test-header { background: var(--accent); border-radius: 8px; padding: 20px; margin-bottom: 25px; color: white; }
+.question-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 30px; margin-bottom: 20px; }
+.timer-display { font-size: 2rem; font-weight: 700; color: white; }
+.timer-warning { color: #FF6B6B; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.progress-bar-custom { background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; }
+.progress-fill { background: linear-gradient(90deg, #14B8A6 0%, #00D4AA 100%); height: 100%; border-radius: 10px; transition: width 0.3s; }
+.option-label { display: block; padding: 15px 20px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+.option-label:hover { border-color: rgba(108,99,255,0.5); background: rgba(108,99,255,0.1); }
+.option-label.selected { border-color: #14B8A6; background: rgba(108,99,255,0.15); }
+.option-input { display: none; }
+.option-text { color: #e0e0e0; font-size: 1rem; }
+.btn-nav { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 30px; border-radius: 10px; }
+.btn-nav:hover { background: rgba(108,99,255,0.2); border-color: #14B8A6; color: white; }
+.btn-submit { background: linear-gradient(135deg, #00D4AA 0%, #00b894 100%); border: none; color: white; padding: 12px 40px; border-radius: 10px; font-weight: 600; }
+.btn-submit:hover { transform: translateY(-2px); color: white; }
+.question-number { background: #14B8A6; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 15px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="test-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h4 class="mb-1"><i class="bi bi-clipboard-check me-2"></i>{{ test.title }}</h4>
+            <small style="opacity: 0.9;">{{ test.topic }} • {{ test.get_difficulty_display }}</small>
+        </div>
+        <div class="text-end">
+            <div class="timer-display" id="timer">{{ test.time_limit_minutes }}:00</div>
+            <small>Time Remaining</small>
+        </div>
+    </div>
+</div>
+
+<div class="progress-bar-custom mb-4">
+    <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <span style="color: #a0a0a0;">Question <span id="currentQ">1</span> of <span id="totalQ">{{ test.num_questions }}</span></span>
+    <button class="btn btn-sm btn-outline-light" onclick="saveProgress()">
+        <i class="bi bi-save me-1"></i>Save Progress
+    </button>
+</div>
+
+<div class="question-card">
+    <div class="d-flex align-items-start mb-4">
+        <span class="question-number" id="qNumber">1</span>
+        <h4 style="color: white;" id="questionText">Loading question...</h4>
+    </div>
+    
+    <div id="optionsContainer">
+        <!-- Options will be rendered here -->
+    </div>
+    
+    <div class="d-flex justify-content-between mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.1);">
+        <button class="btn-nav" id="prevBtn" onclick="prevQuestion()" disabled>
+            <i class="bi bi-arrow-left me-2"></i>Previous
+        </button>
+        <button class="btn-nav" id="nextBtn" onclick="nextQuestion()">
+            Next<i class="bi bi-arrow-right ms-2"></i>
+        </button>
+        <button class="btn-submit" id="submitBtn" onclick="showSubmitModal()" style="display: none;">
+            <i class="bi bi-check-circle me-2"></i>Submit Test
+        </button>
+    </div>
+</div>
+
+<!-- Submit Confirmation Modal -->
+<div class="modal fade" id="submitModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.3); border-radius: 8px;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h5 class="modal-title" style="color: white;">Submit Test?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="color: #e0e0e0;">
+                <p>Are you sure you want to submit your test?</p>
+                <p class="text-muted">You have answered <span id="answeredCount">0</span> out of {{ test.num_questions }} questions.</p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">Cancel</button>
+                <button type="button" class="btn btn-submit" onclick="submitTest()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const questions = {{ test.questions|safe }};
+let currentQuestion = 0;
+let answers = {};
+let timeRemaining = {{ test.time_limit_minutes }} * 60;
+let timerInterval;
+
+// Load saved answers from localStorage
+function loadSavedAnswers() {
+    const saved = localStorage.getItem('test_{{ test.id }}_answers');
+    if (saved) {
+        answers = JSON.parse(saved);
+    }
+}
+
+// Save answers to localStorage
+function saveProgress() {
+    localStorage.setItem('test_{{ test.id }}_answers', JSON.stringify(answers));
+    alert('Progress saved!');
+}
+
+// Render current question
+function renderQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById('qNumber').textContent = currentQuestion + 1;
+    document.getElementById('currentQ').textContent = currentQuestion + 1;
+    document.getElementById('questionText').textContent = q.question;
+    
+    // Update progress bar
+    const progress = ((currentQuestion + 1) / questions.length) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+    
+    // Render options
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    
+    q.options.forEach((option, index) => {
+        const isSelected = answers[currentQuestion] === index;
+        const label = document.createElement('label');
+        label.className = 'option-label' + (isSelected ? ' selected' : '');
+        label.innerHTML = `
+            <input type="radio" name="option" class="option-input" value="${index}" ${isSelected ? 'checked' : ''}>
+            <span class="option-text">${String.fromCharCode(65 + index)}. ${option}</span>
+        `;
+        label.onclick = () => selectOption(index);
+        container.appendChild(label);
+    });
+    
+    // Update buttons
+    document.getElementById('prevBtn').disabled = currentQuestion === 0;
+    
+    if (currentQuestion === questions.length - 1) {
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('submitBtn').style.display = 'inline-block';
+    } else {
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        document.getElementById('submitBtn').style.display = 'none';
+    }
+}
+
+// Select an option
+function selectOption(index) {
+    answers[currentQuestion] = index;
+    renderQuestion();
+    saveProgress();
+}
+
+// Navigate questions
+function nextQuestion() {
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        renderQuestion();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuestion();
+    }
+}
+
+// Timer
+function updateTimer() {
+    const minutes = Math.floor(timeRemaining / 60);
+    const seconds = timeRemaining % 60;
+    const timerEl = document.getElementById('timer');
+    
+    timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    if (timeRemaining <= 60) {
+        timerEl.classList.add('timer-warning');
+    }
+    
+    if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        alert('Time is up! Submitting your test...');
+        submitTest();
+    }
+    
+    timeRemaining--;
+}
+
+// Show submit modal
+function showSubmitModal() {
+    const answered = Object.keys(answers).length;
+    document.getElementById('answeredCount').textContent = answered;
+    new bootstrap.Modal(document.getElementById('submitModal')).show();
+}
+
+// Submit test
+async function submitTest() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('submitModal'));
+    if (modal) modal.hide();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Submitting...';
+    
+    clearInterval(timerInterval);
+    
+    const timeTaken = ({{ test.time_limit_minutes }} * 60) - timeRemaining;
+    
+    try {
+        const response = await fetch('/assessments/api/submit/{{ test.id }}/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                answers: answers,
+                time_taken: timeTaken
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            localStorage.removeItem('test_{{ test.id }}_answers');
+            window.location.href = '/assessments/result/{{ test.id }}/';
+        } else {
+            alert('Error submitting test: ' + data.error);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Submit Test';
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Submit Test';
+    }
+}
+
+function getCookie(name) {
+    let v = null;
+    if (document.cookie) {
+        for (let c of document.cookie.split(';')) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) { v = decodeURIComponent(c.substring(name.length + 1)); break; }
+        }
+    }
+    return v;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadSavedAnswers();
+    renderQuestion();
+    timerInterval = setInterval(updateTimer, 1000);
+});
+
+// Auto-save on page unload
+window.addEventListener('beforeunload', function() {
+    saveProgress();
+});
+</script>
+{% endblock %}

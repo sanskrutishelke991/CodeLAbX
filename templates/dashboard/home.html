@@ -1,0 +1,2906 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       DASHBOARD v2 - Modern Command Center
+       ============================================ */
+    
+    body {
+        background: var(--bg-primary);
+    }
+    
+    /* Dashboard Mode System */
+    [data-dash-mode="focus"] {
+        --dash-spacing: 32px;
+        --dash-card-padding: 24px;
+        --dash-emphasis: minimal;
+    }
+    
+    [data-dash-mode="student"] {
+        --dash-spacing: 24px;
+        --dash-card-padding: 20px;
+        --dash-emphasis: colorful;
+    }
+    
+    [data-dash-mode="beginner"] {
+        --dash-spacing: 28px;
+        --dash-card-padding: 28px;
+        --dash-emphasis: friendly;
+    }
+    
+    /* ============================================
+       DASHBOARD MODE TOGGLE
+       ============================================ */
+    
+    .dash-mode-toggle {
+        position: fixed;
+        top: 80px;
+        right: 24px;
+        z-index: 90;
+        display: flex;
+        gap: 4px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 999px;
+        padding: 4px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .dash-mode-btn {
+        padding: 8px 16px;
+        background: transparent;
+        border: none;
+        border-radius: 999px;
+        color: var(--text-secondary);
+        font-family: var(--font-sans);
+        font-weight: 500;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .dash-mode-btn:hover {
+        color: var(--text-primary);
+    }
+    
+    .dash-mode-btn.active {
+        background: var(--accent);
+        color: white;
+    }
+    
+    .dash-mode-btn i {
+        font-size: 0.85rem;
+    }
+    
+    /* ============================================
+       DASHBOARD CONTAINER
+       ============================================ */
+    
+    .dash-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    /* ============================================
+       HERO CARD - Personalized Greeting
+       ============================================ */
+    
+    .dash-hero {
+        position: relative;
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: var(--dash-spacing, 24px);
+        overflow: hidden;
+    }
+    
+    .dash-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.12), transparent 60%);
+        filter: blur(60px);
+        pointer-events: none;
+    }
+    
+    .dash-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dash-hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .dash-date {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+    
+    .dash-streak {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 999px;
+        color: #F59E0B;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .dash-greeting {
+        font-family: 'Inter Tight', var(--font-display);
+        font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    
+    .dash-greeting-accent {
+        background: linear-gradient(135deg, var(--accent), #06B6D4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .dash-subtitle {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+        max-width: 600px;
+    }
+    
+    .dash-hero-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    /* ============================================
+       CSS-ONLY SPECULAR BUTTON
+       ============================================ */
+    
+    .btn-spec {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border: 1px solid;
+        border-radius: 10px;
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        letter-spacing: 0.01em;
+    }
+    
+    .btn-spec::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+    }
+    
+    .btn-spec:hover::before {
+        left: 150%;
+    }
+    
+    /* Specular Primary (Accent) */
+    .btn-spec-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+        box-shadow: 
+            0 4px 14px rgba(20, 184, 166, 0.25),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+    
+    .btn-spec-primary:hover {
+        background: var(--accent-hover);
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 
+            0 8px 24px rgba(20, 184, 166, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+    
+    /* Specular Secondary (Ghost) */
+    .btn-spec-secondary {
+        background: var(--bg-secondary);
+        border-color: var(--border-default);
+        color: var(--text-primary);
+    }
+    
+    .btn-spec-secondary:hover {
+        background: var(--bg-tertiary);
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-2px);
+    }
+    
+    /* Specular Outline */
+    .btn-spec-outline {
+        background: transparent;
+        border-color: var(--border-default);
+        color: var(--text-secondary);
+    }
+    
+    .btn-spec-outline:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(20, 184, 166, 0.05);
+    }
+    
+    /* Sizes */
+    .btn-spec-sm {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+    
+    .btn-spec-lg {
+        padding: 16px 32px;
+        font-size: 1rem;
+    }
+    
+    /* ============================================
+       COMING SOON PLACEHOLDER
+       ============================================ */
+    
+    .dash-coming-soon {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        margin-top: 24px;
+    }
+    
+    .dash-coming-soon i {
+        font-size: 2.5rem;
+        color: var(--accent);
+        margin-bottom: 16px;
+        display: block;
+    }
+    
+    .dash-coming-soon h3 {
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-family: 'Inter Tight', sans-serif;
+        font-weight: 700;
+    }
+    
+    .dash-coming-soon p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .dash-coming-soon .next-steps {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+    
+    .step-badge {
+        padding: 4px 10px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+    
+    
+    
+    /* ============================================
+       PHASE 2 STYLES
+       ============================================ */
+    
+    /* Stats Bar - Inline Editorial */
+    .dash-stats {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding: 24px 40px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        margin-bottom: var(--dash-spacing, 24px);
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .dash-stat {
+        text-align: center;
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .dash-stat-value {
+        font-family: 'Inter Tight', var(--font-display);
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+    }
+    
+    .dash-stat-label {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+    }
+    
+    .dash-stat-divider {
+        width: 1px;
+        height: 40px;
+        background: var(--border-default);
+    }
+    
+    /* Focus + Challenge Grid */
+    .dash-focus-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: var(--dash-spacing, 24px);
+    }
+    
+    .dash-focus-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 28px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dash-focus-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.08), transparent 60%);
+        filter: blur(60px);
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        opacity: 0;
+    }
+    
+    .dash-focus-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+    }
+    
+    .dash-focus-card:hover::before {
+        opacity: 1;
+    }
+    
+    .dash-challenge-card::before {
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.08), transparent 60%);
+    }
+    
+    .dash-challenge-card:hover {
+        border-color: #F59E0B;
+    }
+    
+    .dash-focus-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .dash-focus-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+    
+    .dash-focus-badge {
+        padding: 4px 10px;
+        background: rgba(20, 184, 166, 0.1);
+        border: 1px solid rgba(20, 184, 166, 0.3);
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .dash-challenge-badge {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #F59E0B;
+    }
+    
+    .dash-focus-title {
+        font-family: 'Inter Tight', var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+    }
+    
+    .dash-focus-desc {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+    
+    .dash-focus-progress {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .dash-focus-progress-bar {
+        flex: 1;
+        height: 6px;
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .dash-focus-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), #06B6D4);
+        border-radius: 3px;
+        transition: width 0.6s ease;
+    }
+    
+    .dash-focus-progress-text {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--accent);
+        min-width: 40px;
+    }
+    
+    .dash-focus-meta {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-subtle);
+    }
+    
+    .dash-focus-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .dash-focus-meta-item i {
+        color: var(--accent);
+    }
+    
+    /* Challenge Info */
+    .dash-challenge-info {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+    }
+    
+    .dash-challenge-stat {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+    }
+    
+    .dash-challenge-stat-icon {
+        width: 36px;
+        height: 36px;
+        background: rgba(245, 158, 11, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #F59E0B;
+        font-size: 1rem;
+    }
+    
+    .dash-challenge-stat-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .dash-challenge-stat-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 2px;
+    }
+    
+    /* Section Header */
+    .dash-section {
+        margin-bottom: var(--dash-spacing, 24px);
+    }
+    
+    .dash-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .dash-section-title {
+        font-family: 'Inter Tight', var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+    }
+    
+    .dash-section-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    /* Paths Grid */
+    .dash-paths-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+    
+    .dash-path-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 24px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        display: block;
+    }
+    
+    .dash-path-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-3px);
+        color: inherit;
+        box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
+    }
+    
+    .dash-path-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .dash-path-icon {
+        width: 44px;
+        height: 44px;
+        background: var(--accent-light);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        font-size: 1.3rem;
+        transition: all 0.3s ease;
+    }
+    
+    .dash-path-card:hover .dash-path-icon {
+        background: var(--accent);
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .dash-path-level {
+        padding: 3px 10px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .dash-path-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+    }
+    
+    .dash-path-progress {
+        margin-bottom: 16px;
+    }
+    
+    .dash-path-progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .dash-path-progress-percent {
+        font-family: var(--font-mono);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--accent);
+    }
+    
+    .dash-path-progress-days {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+    }
+    
+    .dash-path-progress-bar {
+        height: 4px;
+        background: var(--bg-tertiary);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    
+    .dash-path-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), #06B6D4);
+        border-radius: 2px;
+    }
+    
+    .dash-path-cta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-subtle);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: gap 0.2s ease;
+    }
+    
+    .dash-path-card:hover .dash-path-cta {
+        gap: 10px;
+    }
+    
+    /* Badges Row */
+    .dash-badges-row {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+    }
+    
+    .dash-badge {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 10px;
+        padding: 16px 12px;
+        text-align: center;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+    }
+    
+    .dash-badge:hover {
+        border-color: var(--accent);
+        transform: translateY(-3px);
+        color: inherit;
+        background: var(--accent-light);
+    }
+    
+    .dash-badge-icon {
+        font-size: 2rem;
+        margin-bottom: 6px;
+        line-height: 1;
+    }
+    
+    .dash-badge-name {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    .dash-badge-more {
+        background: var(--bg-tertiary);
+        border-style: dashed;
+    }
+    
+    .dash-badge-more .dash-badge-icon {
+        color: var(--accent);
+        font-weight: 700;
+        font-family: var(--font-display);
+    }
+    
+    /* Mode-specific styling */
+    [data-dash-mode="student"] .dash-focus-card,
+    [data-dash-mode="student"] .dash-path-card {
+        border-radius: 16px;
+    }
+    
+    [data-dash-mode="beginner"] .dash-focus-title,
+    [data-dash-mode="beginner"] .dash-path-title {
+        font-size: 1.2rem;
+    }
+    
+    [data-dash-mode="beginner"] .dash-stats {
+        padding: 32px 40px;
+    }
+    
+    [data-dash-mode="beginner"] .dash-stat-value {
+        font-size: 2.5rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 900px) {
+        .dash-focus-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dash-paths-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dash-badges-row {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .dash-stats {
+            padding: 20px;
+        }
+        
+        .dash-stat-divider {
+            display: none;
+        }
+    }
+    
+    @media (max-width: 500px) {
+        .dash-badges-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .dash-focus-card {
+            padding: 20px;
+        }
+        
+        .dash-focus-title {
+            font-size: 1.2rem;
+        }
+        
+        .dash-stat-value {
+            font-size: 1.5rem;
+        }
+    }
+
+    
+    
+    /* ============================================
+       PHASE 3 - WIDGETS ROW
+       ============================================ */
+    
+    .dash-widgets-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: var(--dash-spacing, 24px);
+    }
+    
+    .dash-widget {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        min-height: 260px;
+    }
+    
+    .dash-widget:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+    }
+    
+    .dash-widget::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, var(--accent-glow), transparent 60%);
+        filter: blur(40px);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .dash-widget:hover::before {
+        opacity: 1;
+    }
+    
+    /* Widget Header */
+    .dash-widget-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    
+    .dash-widget-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    
+    .quote-icon {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8B5CF6;
+    }
+    
+    .timer-icon {
+        background: rgba(245, 158, 11, 0.1);
+        color: #F59E0B;
+    }
+    
+    .music-icon {
+        background: rgba(236, 72, 153, 0.1);
+        color: #EC4899;
+    }
+    
+    .ai-icon {
+        background: rgba(20, 184, 166, 0.1);
+        color: #14B8A6;
+    }
+    
+    .dash-widget-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+    
+    /* Widget Body */
+    .dash-widget-body {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Widget Action Button */
+    .dash-widget-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px;
+        background: transparent;
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 12px;
+        text-decoration: none;
+    }
+    
+    .dash-widget-action:hover {
+        background: var(--accent-light);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    
+    /* ==================== QUOTE WIDGET ==================== */
+    
+    .dash-widget-quote::before {
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent 60%);
+    }
+    
+    .dash-quote-text {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        line-height: 1.5;
+        font-style: italic;
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
+    }
+    
+    .dash-quote-author {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    /* ==================== TIMER WIDGET ==================== */
+    
+    .dash-widget-timer::before {
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.15), transparent 60%);
+    }
+    
+    .dash-timer-display {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        text-align: center;
+        line-height: 1;
+        margin-bottom: 6px;
+        letter-spacing: -0.02em;
+    }
+    
+    .dash-timer-display.active {
+        color: #F59E0B;
+        text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+    }
+    
+    .dash-timer-status {
+        text-align: center;
+        color: var(--text-tertiary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .dash-timer-progress {
+        height: 4px;
+        background: var(--bg-tertiary);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 14px;
+    }
+    
+    .dash-timer-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #F59E0B, #FBBF24);
+        border-radius: 2px;
+        transition: width 1s linear;
+    }
+    
+    .dash-timer-modes {
+        display: flex;
+        gap: 6px;
+    }
+    
+    .timer-mode {
+        flex: 1;
+        padding: 6px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: var(--font-mono);
+    }
+    
+    .timer-mode:hover {
+        border-color: #F59E0B;
+        color: #F59E0B;
+    }
+    
+    .timer-mode.active {
+        background: #F59E0B;
+        border-color: #F59E0B;
+        color: white;
+    }
+    
+    .dash-timer-controls {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+    }
+    
+    .timer-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid var(--border-default);
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .timer-btn-primary {
+        flex: 1;
+        background: #F59E0B;
+        border-color: #F59E0B;
+        color: white;
+    }
+    
+    .timer-btn-primary:hover {
+        background: #D97706;
+    }
+    
+    .timer-btn-secondary {
+        width: 36px;
+    }
+    
+    .timer-btn-secondary:hover {
+        border-color: #F59E0B;
+        color: #F59E0B;
+    }
+    
+    /* ==================== MUSIC WIDGET ==================== */
+    
+    .dash-widget-music::before {
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.15), transparent 60%);
+    }
+    
+    .dash-music-visualizer {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 3px;
+        height: 40px;
+        margin-bottom: 14px;
+    }
+    
+    .music-bar {
+        width: 4px;
+        background: linear-gradient(to top, #EC4899, #F472B6);
+        border-radius: 2px;
+        transition: height 0.15s ease;
+        height: 8px;
+    }
+    
+    .dash-music-visualizer.playing .music-bar:nth-child(1) { animation: musicBar 1s ease-in-out infinite; }
+    .dash-music-visualizer.playing .music-bar:nth-child(2) { animation: musicBar 0.8s ease-in-out infinite; }
+    .dash-music-visualizer.playing .music-bar:nth-child(3) { animation: musicBar 1.2s ease-in-out infinite; }
+    .dash-music-visualizer.playing .music-bar:nth-child(4) { animation: musicBar 0.9s ease-in-out infinite; }
+    .dash-music-visualizer.playing .music-bar:nth-child(5) { animation: musicBar 1.1s ease-in-out infinite; }
+    .dash-music-visualizer.playing .music-bar:nth-child(6) { animation: musicBar 0.7s ease-in-out infinite; }
+    .dash-music-visualizer.playing .music-bar:nth-child(7) { animation: musicBar 1.3s ease-in-out infinite; }
+    .dash-music-visualizer.playing .music-bar:nth-child(8) { animation: musicBar 0.85s ease-in-out infinite; }
+    
+    @keyframes musicBar {
+        0%, 100% { height: 8px; }
+        50% { height: 32px; }
+    }
+    
+    .dash-music-info {
+        text-align: center;
+        margin-bottom: 12px;
+    }
+    
+    .dash-music-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+    
+    .dash-music-artist {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+    }
+    
+    .dash-music-genres {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .music-genre {
+        flex: 1;
+        padding: 5px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .music-genre:hover {
+        border-color: #EC4899;
+        color: #EC4899;
+    }
+    
+    .music-genre.active {
+        background: #EC4899;
+        border-color: #EC4899;
+        color: white;
+    }
+    
+    .dash-music-controls {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        margin-top: 12px;
+    }
+    
+    .music-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .music-btn:hover {
+        border-color: #EC4899;
+        color: #EC4899;
+    }
+    
+    .music-btn-primary {
+        width: 44px;
+        height: 44px;
+        background: #EC4899;
+        border-color: #EC4899;
+        color: white;
+        font-size: 1.1rem;
+    }
+    
+    .music-btn-primary:hover {
+        background: #DB2777;
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    /* ==================== AI WIDGET ==================== */
+    
+    .dash-widget-ai::before {
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.15), transparent 60%);
+    }
+    
+    .ai-rec-tag {
+        display: inline-block;
+        padding: 3px 8px;
+        background: var(--accent-light);
+        color: var(--accent);
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 10px;
+    }
+    
+    .ai-rec-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+    }
+    
+    .ai-rec-desc {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+    
+    .dash-ai-stats {
+        display: flex;
+        gap: 16px;
+        padding: 10px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+    }
+    
+    .ai-stat {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .ai-stat-value {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--accent);
+    }
+    
+    .ai-stat-label {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 2px;
+    }
+    
+    .ai-action {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+    
+    .ai-action:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+        color: white;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .dash-widgets-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .dash-widgets-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    
+    
+    /* ============================================
+       PHASE 4 - ACTIVITY HEATMAP + TIMELINE
+       ============================================ */
+    
+    .dash-activity-section {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 20px;
+        margin-bottom: var(--dash-spacing, 24px);
+    }
+    
+    /* ==================== HEATMAP CARD ==================== */
+    
+    .dash-heatmap-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dash-heatmap-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.05), transparent 60%);
+        filter: blur(60px);
+        pointer-events: none;
+    }
+    
+    .dash-heatmap-card:hover {
+        border-color: var(--border-strong);
+    }
+    
+    .dash-heatmap-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        gap: 16px;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dash-heatmap-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 4px;
+    }
+    
+    .dash-heatmap-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+    
+    /* View Toggle */
+    .dash-heatmap-view-toggle {
+        display: flex;
+        gap: 2px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        padding: 3px;
+    }
+    
+    .heatmap-view-btn {
+        padding: 6px 14px;
+        background: transparent;
+        border: none;
+        border-radius: 5px;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .heatmap-view-btn:hover {
+        color: var(--text-primary);
+    }
+    
+    .heatmap-view-btn.active {
+        background: var(--accent);
+        color: white;
+    }
+    
+    /* Summary Stats */
+    .dash-heatmap-summary {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 16px 20px;
+        background: var(--bg-tertiary);
+        border-radius: 10px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    
+    .heatmap-summary-item {
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .heatmap-summary-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+    }
+    
+    .heatmap-summary-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+    }
+    
+    .heatmap-summary-divider {
+        width: 1px;
+        height: 32px;
+        background: var(--border-default);
+    }
+    
+    /* Heatmap Container */
+    .dash-heatmap-container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .heatmap-months {
+        display: grid;
+        grid-template-columns: 30px repeat(53, 1fr);
+        gap: 3px;
+        margin-bottom: 6px;
+        padding-left: 30px;
+    }
+    
+    .heatmap-months span {
+        font-size: 0.65rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        text-align: left;
+    }
+    
+    .heatmap-wrapper {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+    
+    .heatmap-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .heatmap-wrapper::-webkit-scrollbar-thumb {
+        background: var(--border-default);
+        border-radius: 3px;
+    }
+    
+    .heatmap-days {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding-top: 0;
+        flex-shrink: 0;
+    }
+    
+    .heatmap-days span {
+        height: 12px;
+        font-size: 0.65rem;
+        color: var(--text-tertiary);
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+    }
+    
+    .heatmap-grid {
+        display: grid;
+        grid-template-columns: repeat(53, minmax(12px, 1fr));
+        grid-template-rows: repeat(7, 12px);
+        gap: 3px;
+        flex: 1;
+    }
+    
+    /* Heatmap Cells */
+    .heatmap-cell {
+        width: 100%;
+        height: 12px;
+        border-radius: 3px;
+        transition: all 0.2s;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .heatmap-cell:hover {
+        transform: scale(1.3);
+        z-index: 10;
+        border: 1px solid var(--text-primary);
+    }
+    
+    .heatmap-cell::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 6px;
+        padding: 6px 10px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 0.7rem;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 100;
+    }
+    
+    .heatmap-cell:hover::after {
+        opacity: 1;
+    }
+    
+    /* Cell Levels */
+    .heatmap-level-0 {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-subtle);
+    }
+    
+    .heatmap-level-1 {
+        background: rgba(20, 184, 166, 0.25);
+    }
+    
+    .heatmap-level-2 {
+        background: rgba(20, 184, 166, 0.5);
+    }
+    
+    .heatmap-level-3 {
+        background: rgba(20, 184, 166, 0.75);
+    }
+    
+    .heatmap-level-4 {
+        background: var(--accent);
+        box-shadow: 0 0 4px var(--accent-glow);
+    }
+    
+    /* Legend */
+    .heatmap-legend {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-subtle);
+    }
+    
+    .heatmap-legend-label {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        font-weight: 500;
+    }
+    
+    .heatmap-legend-cells {
+        display: flex;
+        gap: 3px;
+    }
+    
+    .heatmap-legend-cells .heatmap-cell {
+        width: 12px;
+        height: 12px;
+        cursor: default;
+    }
+    
+    .heatmap-legend-cells .heatmap-cell:hover {
+        transform: none;
+        border: none;
+    }
+    
+    /* ==================== TIMELINE CARD ==================== */
+    
+    .dash-timeline-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.3s ease;
+    }
+    
+    .dash-timeline-card:hover {
+        border-color: var(--border-strong);
+    }
+    
+    .dash-timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        gap: 12px;
+    }
+    
+    .dash-timeline-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 4px;
+    }
+    
+    .dash-timeline-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+    
+    /* Timeline Items */
+    .dash-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        position: relative;
+    }
+    
+    .dash-timeline::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
+        background: var(--border-default);
+        z-index: 0;
+    }
+    
+    .timeline-item {
+        display: flex;
+        gap: 16px;
+        padding: 14px 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .timeline-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent);
+        margin-top: 6px;
+        flex-shrink: 0;
+        border: 3px solid var(--bg-secondary);
+        box-shadow: 0 0 0 2px var(--accent);
+    }
+    
+    .timeline-dot-success {
+        background: #10B981;
+        box-shadow: 0 0 0 2px #10B981;
+    }
+    
+    .timeline-dot-warning {
+        background: #F59E0B;
+        box-shadow: 0 0 0 2px #F59E0B;
+    }
+    
+    .timeline-dot-info {
+        background: #0EA5E9;
+        box-shadow: 0 0 0 2px #0EA5E9;
+    }
+    
+    .timeline-dot-purple {
+        background: #8B5CF6;
+        box-shadow: 0 0 0 2px #8B5CF6;
+    }
+    
+    .timeline-dot-accent {
+        background: var(--accent);
+        box-shadow: 0 0 0 2px var(--accent);
+    }
+    
+    .timeline-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .timeline-header {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .timeline-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    
+    .timeline-icon-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10B981;
+    }
+    
+    .timeline-icon-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #F59E0B;
+    }
+    
+    .timeline-icon-info {
+        background: rgba(14, 165, 233, 0.1);
+        color: #0EA5E9;
+    }
+    
+    .timeline-icon-purple {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8B5CF6;
+    }
+    
+    .timeline-icon-accent {
+        background: var(--accent-light);
+        color: var(--accent);
+    }
+    
+    .timeline-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .timeline-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+    
+    .timeline-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        flex-wrap: wrap;
+    }
+    
+    .timeline-separator {
+        color: var(--text-muted);
+    }
+    
+    .timeline-xp {
+        color: #10B981;
+        font-weight: 700;
+    }
+    
+    .timeline-score {
+        color: var(--accent);
+        font-weight: 700;
+    }
+    
+    .timeline-badge-earned {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        background: rgba(245, 158, 11, 0.1);
+        color: #F59E0B;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+    
+    .timeline-desc {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 6px;
+        line-height: 1.5;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .dash-activity-section {
+            grid-template-columns: 1fr;
+        }
+        
+        .heatmap-wrapper {
+            overflow-x: auto;
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .dash-heatmap-summary {
+            gap: 12px;
+        }
+        
+        .heatmap-summary-divider {
+            display: none;
+        }
+        
+        .heatmap-summary-value {
+            font-size: 1.2rem;
+        }
+        
+        .dash-heatmap-view-toggle {
+            width: 100%;
+        }
+        
+        .heatmap-view-btn {
+            flex: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dash-container {
+            padding: 16px;
+        }
+        
+        .dash-hero {
+            padding: 24px;
+        }
+        
+        .dash-mode-toggle {
+            top: 70px;
+            right: 12px;
+        }
+        
+        .dash-mode-btn span {
+            display: none;
+        }
+        
+        .dash-mode-btn {
+            padding: 8px;
+        }
+        
+        .dash-hero-actions {
+            flex-direction: column;
+        }
+        
+        .btn-spec {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Mode Toggle -->
+<div class="dash-mode-toggle" role="tablist">
+    <button class="dash-mode-btn active" data-mode="focus" role="tab" title="Focus Mode">
+        <i class="bi bi-bullseye"></i>
+        <span>Focus</span>
+    </button>
+    <button class="dash-mode-btn" data-mode="student" role="tab" title="Student Mode">
+        <i class="bi bi-mortarboard-fill"></i>
+        <span>Student</span>
+    </button>
+    <button class="dash-mode-btn" data-mode="beginner" role="tab" title="Beginner Mode">
+        <i class="bi bi-sunrise-fill"></i>
+        <span>Beginner</span>
+    </button>
+</div>
+
+<div class="dash-container">
+    
+    <!-- HERO CARD -->
+    <div class="dash-hero">
+        <div class="dash-hero-content">
+            <div class="dash-hero-meta">
+                <span class="dash-date" id="currentDate">Loading...</span>
+                <span class="dash-streak">
+                    <i class="bi bi-fire"></i>
+                    <span>{{ current_streak|default:0 }} Day Streak</span>
+                </span>
+            </div>
+            
+            <h1 class="dash-greeting" id="greeting">
+                Good morning, <span class="dash-greeting-accent">{{ user.username }}</span>
+            </h1>
+            
+            <p class="dash-subtitle" id="subtitle">
+                Ready to continue your learning journey? Let's make today count.
+            </p>
+            
+            <div class="dash-hero-actions">
+                {% if roadmaps %}
+                    <a href="{% url 'learning:roadmap_detail' roadmaps.0.id %}" class="btn-spec btn-spec-primary btn-spec-lg">
+                        <i class="bi bi-play-fill"></i>
+                        Resume Learning
+                    </a>
+                {% else %}
+                    <a href="{% url 'learning:roadmap_create' %}" class="btn-spec btn-spec-primary btn-spec-lg">
+                        <i class="bi bi-plus-lg"></i>
+                        Create Your First Path
+                    </a>
+                {% endif %}
+                <a href="{% url 'challenges:dashboard' %}" class="btn-spec btn-spec-secondary btn-spec-lg">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Today's Challenge
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ============================================
+         STATS BAR - Inline Editorial Style
+         ============================================ -->
+    <div class="dash-stats">
+        <div class="dash-stat">
+            <div class="dash-stat-value">{{ active_roadmaps|default:0 }}</div>
+            <div class="dash-stat-label">Active Paths</div>
+        </div>
+        <div class="dash-stat-divider"></div>
+        <div class="dash-stat">
+            <div class="dash-stat-value">{{ days_completed|default:0 }}</div>
+            <div class="dash-stat-label">Days Completed</div>
+        </div>
+        <div class="dash-stat-divider"></div>
+        <div class="dash-stat">
+            <div class="dash-stat-value">{{ total_hours|default:0 }}</div>
+            <div class="dash-stat-label">Hours Studied</div>
+        </div>
+        <div class="dash-stat-divider"></div>
+        <div class="dash-stat">
+            <div class="dash-stat-value">{{ achievements|default:0 }}</div>
+            <div class="dash-stat-label">Badges Earned</div>
+        </div>
+    </div>
+    
+    <!-- ============================================
+         TODAY'S FOCUS + DAILY CHALLENGE
+         ============================================ -->
+    <div class="dash-focus-grid">
+        
+        <!-- Today's Focus Card -->
+        <div class="dash-focus-card">
+            <div class="dash-focus-header">
+                <div class="dash-focus-eyebrow">
+                    <i class="bi bi-book-fill"></i>
+                    <span>Today's Focus</span>
+                </div>
+                <span class="dash-focus-badge">In Progress</span>
+            </div>
+            
+            {% if roadmaps %}
+                <h3 class="dash-focus-title">{{ roadmaps.0.title }}</h3>
+                <p class="dash-focus-desc">
+                    Continue your journey · Day {{ roadmaps.0.completed_days }} of {{ roadmaps.0.total_days }}
+                </p>
+                
+                <div class="dash-focus-progress">
+                    <div class="dash-focus-progress-bar">
+                        <div class="dash-focus-progress-fill" style="width: {{ roadmaps.0.progress_percentage }}%"></div>
+                    </div>
+                    <span class="dash-focus-progress-text">{{ roadmaps.0.progress_percentage }}%</span>
+                </div>
+                
+                <div class="dash-focus-meta">
+                    <div class="dash-focus-meta-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ roadmaps.0.daily_hours }}h/day</span>
+                    </div>
+                    <div class="dash-focus-meta-item">
+                        <i class="bi bi-graph-up"></i>
+                        <span>{{ roadmaps.0.get_level_display }}</span>
+                    </div>
+                </div>
+                
+                <a href="{% url 'learning:roadmap_detail' roadmaps.0.id %}" class="btn-spec btn-spec-primary">
+                    <i class="bi bi-arrow-right"></i>
+                    Continue Learning
+                </a>
+            {% else %}
+                <h3 class="dash-focus-title">No Active Path</h3>
+                <p class="dash-focus-desc">
+                    Create your first personalized learning roadmap to get started.
+                </p>
+                <a href="{% url 'learning:roadmap_create' %}" class="btn-spec btn-spec-primary">
+                    <i class="bi bi-plus-lg"></i>
+                    Create Your Path
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Daily Challenge Card -->
+        <div class="dash-focus-card dash-challenge-card">
+            <div class="dash-focus-header">
+                <div class="dash-focus-eyebrow" style="color: #F59E0B;">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    <span>Daily Challenge</span>
+                </div>
+                <span class="dash-focus-badge dash-challenge-badge">New Today</span>
+            </div>
+            
+            <h3 class="dash-focus-title">Today's Challenge</h3>
+            <p class="dash-focus-desc">
+                Test your skills with today's fresh coding & theory challenges.
+            </p>
+            
+            <div class="dash-challenge-info">
+                <div class="dash-challenge-stat">
+                    <div class="dash-challenge-stat-icon"><i class="bi bi-clock-fill"></i></div>
+                    <div>
+                        <div class="dash-challenge-stat-value">15 min</div>
+                        <div class="dash-challenge-stat-label">Est. time</div>
+                    </div>
+                </div>
+                <div class="dash-challenge-stat">
+                    <div class="dash-challenge-stat-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div>
+                        <div class="dash-challenge-stat-value">+45 XP</div>
+                        <div class="dash-challenge-stat-label">Reward</div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="{% url 'challenges:dashboard' %}" class="btn-spec btn-spec-secondary">
+                <i class="bi bi-arrow-right"></i>
+                Start Challenge
+            </a>
+        </div>
+    </div>
+    
+    <!-- ============================================
+         YOUR LEARNING PATHS
+         ============================================ -->
+    {% if roadmaps %}
+    <div class="dash-section">
+        <div class="dash-section-header">
+            <div>
+                <h2 class="dash-section-title">Your Learning Paths</h2>
+                <p class="dash-section-subtitle">Continue where you left off</p>
+            </div>
+            <a href="{% url 'learning:roadmaps' %}" class="btn-spec btn-spec-outline btn-spec-sm">
+                View All
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="dash-paths-grid">
+            {% for roadmap in roadmaps|slice:":3" %}
+            <a href="{% url 'learning:roadmap_detail' roadmap.id %}" class="dash-path-card">
+                <div class="dash-path-header">
+                    <div class="dash-path-icon">
+                        {% if roadmap.topic == 'ML' %}
+                            <i class="bi bi-robot"></i>
+                        {% elif roadmap.topic == 'DSA' %}
+                            <i class="bi bi-diagram-3-fill"></i>
+                        {% else %}
+                            <i class="bi bi-code-slash"></i>
+                        {% endif %}
+                    </div>
+                    <span class="dash-path-level">{{ roadmap.get_level_display }}</span>
+                </div>
+                
+                <h3 class="dash-path-title">{{ roadmap.title }}</h3>
+                
+                <div class="dash-path-progress">
+                    <div class="dash-path-progress-header">
+                        <span class="dash-path-progress-percent">{{ roadmap.progress_percentage }}%</span>
+                        <span class="dash-path-progress-days">{{ roadmap.completed_days }}/{{ roadmap.total_days }} days</span>
+                    </div>
+                    <div class="dash-path-progress-bar">
+                        <div class="dash-path-progress-fill" style="width: {{ roadmap.progress_percentage }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="dash-path-cta">
+                    <span>Continue</span>
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- ============================================
+         RECENT ACHIEVEMENTS
+         ============================================ -->
+    <div class="dash-section">
+        <div class="dash-section-header">
+            <div>
+                <h2 class="dash-section-title">Recent Achievements</h2>
+                <p class="dash-section-subtitle">Your latest badges earned</p>
+            </div>
+            <a href="{% url 'progress:achievements' %}" class="btn-spec btn-spec-outline btn-spec-sm">
+                All Badges
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="dash-badges-row">
+            <div class="dash-badge">
+                <div class="dash-badge-icon">🏆</div>
+                <div class="dash-badge-name">Week Warrior</div>
+            </div>
+            <div class="dash-badge">
+                <div class="dash-badge-icon">⚡</div>
+                <div class="dash-badge-name">Fast Learner</div>
+            </div>
+            <div class="dash-badge">
+                <div class="dash-badge-icon">🔥</div>
+                <div class="dash-badge-name">On Fire</div>
+            </div>
+            <div class="dash-badge">
+                <div class="dash-badge-icon">🎯</div>
+                <div class="dash-badge-name">Perfectionist</div>
+            </div>
+            <div class="dash-badge">
+                <div class="dash-badge-icon">📚</div>
+                <div class="dash-badge-name">Bookworm</div>
+            </div>
+            <a href="{% url 'progress:achievements' %}" class="dash-badge dash-badge-more">
+                <div class="dash-badge-icon">+</div>
+                <div class="dash-badge-name">7 more</div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- ============================================
+         WIDGETS ROW - Phase 3
+         ============================================ -->
+    <div class="dash-widgets-row">
+        
+        <!-- Widget 1: Daily Motivation -->
+        <div class="dash-widget dash-widget-quote">
+            <div class="dash-widget-header">
+                <div class="dash-widget-icon quote-icon">
+                    <i class="bi bi-quote"></i>
+                </div>
+                <span class="dash-widget-label">Daily Inspiration</span>
+            </div>
+            <div class="dash-widget-body">
+                <p class="dash-quote-text" id="quoteText">
+                    "The only way to do great work is to love what you do."
+                </p>
+                <div class="dash-quote-author" id="quoteAuthor">— Steve Jobs</div>
+            </div>
+            <button class="dash-widget-action" onclick="newQuote()">
+                <i class="bi bi-arrow-clockwise"></i>
+                <span>New quote</span>
+            </button>
+        </div>
+        
+        <!-- Widget 2: Study Timer -->
+        <div class="dash-widget dash-widget-timer">
+            <div class="dash-widget-header">
+                <div class="dash-widget-icon timer-icon">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                <span class="dash-widget-label">Focus Timer</span>
+            </div>
+            <div class="dash-widget-body">
+                <div class="dash-timer-display" id="timerDisplay">25:00</div>
+                <div class="dash-timer-status" id="timerStatus">Ready to focus</div>
+                <div class="dash-timer-progress">
+                    <div class="dash-timer-progress-fill" id="timerProgressFill" style="width: 0%"></div>
+                </div>
+                <div class="dash-timer-modes">
+                    <button class="timer-mode active" data-time="25" data-name="Focus">25m</button>
+                    <button class="timer-mode" data-time="5" data-name="Break">5m</button>
+                    <button class="timer-mode" data-time="15" data-name="Long">15m</button>
+                </div>
+            </div>
+            <div class="dash-timer-controls">
+                <button class="timer-btn timer-btn-primary" id="timerToggle" onclick="toggleTimer()">
+                    <i class="bi bi-play-fill"></i>
+                    <span>Start</span>
+                </button>
+                <button class="timer-btn timer-btn-secondary" onclick="resetTimer()">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Widget 3: Music Player -->
+        <div class="dash-widget dash-widget-music">
+            <div class="dash-widget-header">
+                <div class="dash-widget-icon music-icon">
+                    <i class="bi bi-music-note-beamed"></i>
+                </div>
+                <span class="dash-widget-label">Focus Music</span>
+            </div>
+            <div class="dash-widget-body">
+                <div class="dash-music-visualizer" id="musicVisualizer">
+                    <div class="music-bar"></div>
+                    <div class="music-bar"></div>
+                    <div class="music-bar"></div>
+                    <div class="music-bar"></div>
+                    <div class="music-bar"></div>
+                    <div class="music-bar"></div>
+                    <div class="music-bar"></div>
+                    <div class="music-bar"></div>
+                </div>
+                <div class="dash-music-info">
+                    <div class="dash-music-title" id="musicTitle">Lofi Beats to Study</div>
+                    <div class="dash-music-artist" id="musicArtist">Chill Focus Vibes</div>
+                </div>
+                <div class="dash-music-genres">
+                    <button class="music-genre active" data-genre="lofi">Lofi</button>
+                    <button class="music-genre" data-genre="classical">Classical</button>
+                    <button class="music-genre" data-genre="nature">Nature</button>
+                </div>
+            </div>
+            <div class="dash-music-controls">
+                <button class="music-btn" onclick="prevTrack()">
+                    <i class="bi bi-skip-backward-fill"></i>
+                </button>
+                <button class="music-btn music-btn-primary" id="musicToggle" onclick="toggleMusic()">
+                    <i class="bi bi-play-fill" id="musicIcon"></i>
+                </button>
+                <button class="music-btn" onclick="nextTrack()">
+                    <i class="bi bi-skip-forward-fill"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Widget 4: AI Recommendations -->
+        <div class="dash-widget dash-widget-ai">
+            <div class="dash-widget-header">
+                <div class="dash-widget-icon ai-icon">
+                    <i class="bi bi-stars"></i>
+                </div>
+                <span class="dash-widget-label">AI Suggests</span>
+            </div>
+            <div class="dash-widget-body">
+                <div class="dash-ai-recommendation" id="aiRecommendation">
+                    <div class="ai-rec-tag">Based on your progress</div>
+                    <h4 class="ai-rec-title" id="aiRecTitle">Try Neural Networks next!</h4>
+                    <p class="ai-rec-desc" id="aiRecDesc">
+                        You've mastered ML basics. Time to explore deep learning fundamentals.
+                    </p>
+                </div>
+                <div class="dash-ai-stats">
+                    <div class="ai-stat">
+                        <span class="ai-stat-value">92%</span>
+                        <span class="ai-stat-label">Match</span>
+                    </div>
+                    <div class="ai-stat">
+                        <span class="ai-stat-value">5h</span>
+                        <span class="ai-stat-label">Est.</span>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'learning:roadmap_create' %}" class="dash-widget-action ai-action">
+                <span>Explore now</span>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        
+    </div>
+    
+    <!-- ============================================
+         ACTIVITY HEATMAP + TIMELINE - Phase 4
+         ============================================ -->
+    <div class="dash-activity-section">
+        
+        <!-- Activity Heatmap Card -->
+        <div class="dash-heatmap-card">
+            <div class="dash-heatmap-header">
+                <div>
+                    <div class="dash-heatmap-eyebrow">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Activity Overview</span>
+                    </div>
+                    <h2 class="dash-heatmap-title">Your learning consistency</h2>
+                </div>
+                
+                <div class="dash-heatmap-view-toggle">
+                    <button class="heatmap-view-btn active" data-view="year">Year</button>
+                    <button class="heatmap-view-btn" data-view="month">Month</button>
+                    <button class="heatmap-view-btn" data-view="week">Week</button>
+                </div>
+            </div>
+            
+            <!-- Summary Stats -->
+            <div class="dash-heatmap-summary">
+                <div class="heatmap-summary-item">
+                    <div class="heatmap-summary-value" id="totalActiveDays">127</div>
+                    <div class="heatmap-summary-label">Active Days</div>
+                </div>
+                <div class="heatmap-summary-divider"></div>
+                <div class="heatmap-summary-item">
+                    <div class="heatmap-summary-value">{{ total_hours|default:84 }}h</div>
+                    <div class="heatmap-summary-label">Total Time</div>
+                </div>
+                <div class="heatmap-summary-divider"></div>
+                <div class="heatmap-summary-item">
+                    <div class="heatmap-summary-value">{{ current_streak|default:12 }}</div>
+                    <div class="heatmap-summary-label">Current Streak</div>
+                </div>
+                <div class="heatmap-summary-divider"></div>
+                <div class="heatmap-summary-item">
+                    <div class="heatmap-summary-value">42</div>
+                    <div class="heatmap-summary-label">Longest Streak</div>
+                </div>
+            </div>
+            
+            <!-- Heatmap Grid -->
+            <div class="dash-heatmap-container">
+                <!-- Month labels -->
+                <div class="heatmap-months" id="heatmapMonths">
+                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+                    <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+                    <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+                </div>
+                
+                <div class="heatmap-wrapper">
+                    <!-- Day labels -->
+                    <div class="heatmap-days">
+                        <span></span>
+                        <span>Mon</span>
+                        <span></span>
+                        <span>Wed</span>
+                        <span></span>
+                        <span>Fri</span>
+                        <span></span>
+                    </div>
+                    
+                    <!-- The actual heatmap grid -->
+                    <div class="heatmap-grid" id="heatmapGrid"></div>
+                </div>
+                
+                <!-- Legend -->
+                <div class="heatmap-legend">
+                    <span class="heatmap-legend-label">Less</span>
+                    <div class="heatmap-legend-cells">
+                        <div class="heatmap-cell heatmap-level-0"></div>
+                        <div class="heatmap-cell heatmap-level-1"></div>
+                        <div class="heatmap-cell heatmap-level-2"></div>
+                        <div class="heatmap-cell heatmap-level-3"></div>
+                        <div class="heatmap-cell heatmap-level-4"></div>
+                    </div>
+                    <span class="heatmap-legend-label">More</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity Timeline -->
+        <div class="dash-timeline-card">
+            <div class="dash-timeline-header">
+                <div>
+                    <div class="dash-timeline-eyebrow">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Recent Activity</span>
+                    </div>
+                    <h2 class="dash-timeline-title">What you've been up to</h2>
+                </div>
+                <a href="#" class="btn-spec btn-spec-outline btn-spec-sm">
+                    View All
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="dash-timeline">
+                <!-- Timeline Item 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot timeline-dot-success"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-icon timeline-icon-success">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div class="timeline-info">
+                                <div class="timeline-title">Completed Day 5 of ML Roadmap</div>
+                                <div class="timeline-meta">
+                                    <span>2 hours ago</span>
+                                    <span class="timeline-separator">·</span>
+                                    <span class="timeline-xp">+50 XP</span>
+                                    <span class="timeline-separator">·</span>
+                                    <span class="timeline-badge-earned">
+                                        <i class="bi bi-trophy-fill"></i>
+                                        Badge unlocked!
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline Item 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot timeline-dot-warning"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-icon timeline-icon-warning">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </div>
+                            <div class="timeline-info">
+                                <div class="timeline-title">Solved daily coding challenge</div>
+                                <div class="timeline-meta">
+                                    <span>4 hours ago</span>
+                                    <span class="timeline-separator">·</span>
+                                    <span class="timeline-xp">+30 XP</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline Item 3 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot timeline-dot-info"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-icon timeline-icon-info">
+                                <i class="bi bi-chat-dots-fill"></i>
+                            </div>
+                            <div class="timeline-info">
+                                <div class="timeline-title">Chatted with AI Study Buddy</div>
+                                <div class="timeline-meta">
+                                    <span>Yesterday</span>
+                                    <span class="timeline-separator">·</span>
+                                    <span>12 messages</span>
+                                </div>
+                                <div class="timeline-desc">Deep dive into recursion concepts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline Item 4 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot timeline-dot-purple"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-icon timeline-icon-purple">
+                                <i class="bi bi-play-btn-fill"></i>
+                            </div>
+                            <div class="timeline-info">
+                                <div class="timeline-title">Watched "Machine Learning Basics"</div>
+                                <div class="timeline-meta">
+                                    <span>Yesterday</span>
+                                    <span class="timeline-separator">·</span>
+                                    <span>45 minutes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline Item 5 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot timeline-dot-accent"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-icon timeline-icon-accent">
+                                <i class="bi bi-clipboard-check-fill"></i>
+                            </div>
+                            <div class="timeline-info">
+                                <div class="timeline-title">Completed Python Basics Test</div>
+                                <div class="timeline-meta">
+                                    <span>2 days ago</span>
+                                    <span class="timeline-separator">·</span>
+                                    <span class="timeline-score">Score: 92%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Coming next placeholder -->
+    <div class="dash-coming-soon">
+        <i class="bi bi-hourglass-split"></i>
+        <h3>Phase 4 Complete! 🎉</h3>
+        <p>Activity Heatmap + Timeline done - Real activity tracking + Beautiful heatmap!</p>
+        <div class="next-steps">
+            <span class="step-badge">🎯 Final Phase: Omnitrix Dial</span>
+            <span class="step-badge">Iron Man Vibes</span>
+            <span class="step-badge">Ben 10 Style</span>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Dashboard Mode Toggle
+    (function() {
+        const modeButtons = document.querySelectorAll('.dash-mode-btn');
+        const html = document.documentElement;
+        
+        // Load saved mode
+        const savedMode = localStorage.getItem('codelabx-dash-mode') || 'focus';
+        html.setAttribute('data-dash-mode', savedMode);
+        updateActiveButton(savedMode);
+        applyModeContent(savedMode);
+        
+        function updateActiveButton(mode) {
+            modeButtons.forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        function applyModeContent(mode) {
+            const greeting = document.getElementById('greeting');
+            const subtitle = document.getElementById('subtitle');
+            const username = '{{ user.username }}';
+            
+            const hour = new Date().getHours();
+            let timeOfDay = 'morning';
+            if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
+            else if (hour >= 17) timeOfDay = 'evening';
+            
+            if (mode === 'focus') {
+                greeting.innerHTML = `Good ${timeOfDay}, <span class="dash-greeting-accent">${username}</span>`;
+                subtitle.textContent = 'Ready to continue your learning journey? Let\'s make today count.';
+            } else if (mode === 'student') {
+                greeting.innerHTML = `Hey ${username}! <span class="dash-greeting-accent">Let's learn something amazing today</span> 🚀`;
+                subtitle.textContent = 'Your progress is looking great! Keep up the momentum and unlock new achievements.';
+            } else if (mode === 'beginner') {
+                greeting.innerHTML = `Welcome back, <span class="dash-greeting-accent">${username}</span>! 👋`;
+                subtitle.textContent = 'Take it one step at a time. Every expert was once a beginner. You\'re doing great!';
+            }
+        }
+        
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const newMode = this.dataset.mode;
+                html.setAttribute('data-dash-mode', newMode);
+                localStorage.setItem('codelabx-dash-mode', newMode);
+                updateActiveButton(newMode);
+                applyModeContent(newMode);
+            });
+        });
+    })();
+    
+    // Update date
+    (function() {
+        const dateEl = document.getElementById('currentDate');
+        if (dateEl) {
+            const now = new Date();
+            const options = { month: 'short', day: 'numeric', weekday: 'short' };
+            dateEl.textContent = now.toLocaleDateString('en-US', options).toUpperCase();
+        }
+    })();
+
+    
+    // ==================== DAILY QUOTES ====================
+    const quotes = [
+        { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+        { text: "Code is like humor. When you have to explain it, it's bad.", author: "Cory House" },
+        { text: "First, solve the problem. Then, write the code.", author: "John Johnson" },
+        { text: "Learning never exhausts the mind.", author: "Leonardo da Vinci" },
+        { text: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+        { text: "Success is the sum of small efforts repeated day-in and day-out.", author: "Robert Collier" },
+        { text: "Programs must be written for people to read.", author: "Harold Abelson" },
+        { text: "Simplicity is the soul of efficiency.", author: "Austin Freeman" },
+        { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+        { text: "The best way to predict the future is to create it.", author: "Peter Drucker" },
+    ];
+    
+    let currentQuoteIndex = 0;
+    
+    function newQuote() {
+        currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
+        const quote = quotes[currentQuoteIndex];
+        document.getElementById('quoteText').textContent = `"${quote.text}"`;
+        document.getElementById('quoteAuthor').textContent = `— ${quote.author}`;
+    }
+    
+    // Load daily quote based on date
+    (function() {
+        const today = new Date().getDate();
+        currentQuoteIndex = today % quotes.length;
+        newQuote();
+        currentQuoteIndex = (currentQuoteIndex - 1 + quotes.length) % quotes.length;
+    })();
+    
+    // ==================== STUDY TIMER ====================
+    let timerInterval = null;
+    let timerMinutes = 25;
+    let timerSeconds = 0;
+    let totalSeconds = 25 * 60;
+    let currentSeconds = totalSeconds;
+    let isTimerRunning = false;
+    let currentTimerName = 'Focus';
+    
+    function updateTimerDisplay() {
+        const mins = Math.floor(currentSeconds / 60);
+        const secs = currentSeconds % 60;
+        document.getElementById('timerDisplay').textContent = 
+            `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        const progress = ((totalSeconds - currentSeconds) / totalSeconds) * 100;
+        document.getElementById('timerProgressFill').style.width = progress + '%';
+    }
+    
+    function toggleTimer() {
+        const btn = document.getElementById('timerToggle');
+        const display = document.getElementById('timerDisplay');
+        const status = document.getElementById('timerStatus');
+        
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            btn.innerHTML = '<i class="bi bi-play-fill"></i><span>Resume</span>';
+            display.classList.remove('active');
+            status.textContent = 'Paused';
+        } else {
+            isTimerRunning = true;
+            btn.innerHTML = '<i class="bi bi-pause-fill"></i><span>Pause</span>';
+            display.classList.add('active');
+            status.textContent = currentTimerName + ' in progress';
+            
+            timerInterval = setInterval(() => {
+                if (currentSeconds > 0) {
+                    currentSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    btn.innerHTML = '<i class="bi bi-play-fill"></i><span>Start</span>';
+                    display.classList.remove('active');
+                    status.textContent = 'Complete! Great work! 🎉';
+                    
+                    // Show toast if available
+                    if (typeof showToast === 'function') {
+                        showToast('xp', 'Timer Complete!', 'Great focus session!', '⏰');
+                    }
+                }
+            }, 1000);
+        }
+    }
+    
+    function resetTimer() {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        currentSeconds = totalSeconds;
+        updateTimerDisplay();
+        document.getElementById('timerToggle').innerHTML = '<i class="bi bi-play-fill"></i><span>Start</span>';
+        document.getElementById('timerDisplay').classList.remove('active');
+        document.getElementById('timerStatus').textContent = 'Ready to focus';
+    }
+    
+    // Timer mode selection
+    document.querySelectorAll('.timer-mode').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.timer-mode').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const minutes = parseInt(this.dataset.time);
+            currentTimerName = this.dataset.name;
+            totalSeconds = minutes * 60;
+            currentSeconds = totalSeconds;
+            
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            updateTimerDisplay();
+            document.getElementById('timerToggle').innerHTML = '<i class="bi bi-play-fill"></i><span>Start</span>';
+            document.getElementById('timerDisplay').classList.remove('active');
+            document.getElementById('timerStatus').textContent = 'Ready to ' + currentTimerName.toLowerCase();
+        });
+    });
+    
+    updateTimerDisplay();
+    
+    // ==================== MUSIC PLAYER ====================
+    let isMusicPlaying = false;
+    let currentGenre = 'lofi';
+    
+    const musicTracks = {
+        lofi: [
+            { title: 'Lofi Beats to Study', artist: 'Chill Focus Vibes' },
+            { title: 'Rainy Day Coding', artist: 'Ambient Sounds' },
+            { title: 'Late Night Study', artist: 'Lofi Girl' },
+        ],
+        classical: [
+            { title: 'Für Elise', artist: 'Beethoven' },
+            { title: 'Moonlight Sonata', artist: 'Beethoven' },
+            { title: 'Canon in D', artist: 'Pachelbel' },
+        ],
+        nature: [
+            { title: 'Forest Ambience', artist: 'Nature Sounds' },
+            { title: 'Ocean Waves', artist: 'Peaceful Nature' },
+            { title: 'Mountain Stream', artist: 'Wilderness' },
+        ],
+    };
+    
+    let currentTrackIndex = 0;
+    
+    function updateMusicDisplay() {
+        const track = musicTracks[currentGenre][currentTrackIndex];
+        document.getElementById('musicTitle').textContent = track.title;
+        document.getElementById('musicArtist').textContent = track.artist;
+    }
+    
+    function toggleMusic() {
+        const visualizer = document.getElementById('musicVisualizer');
+        const icon = document.getElementById('musicIcon');
+        
+        isMusicPlaying = !isMusicPlaying;
+        
+        if (isMusicPlaying) {
+            visualizer.classList.add('playing');
+            icon.className = 'bi bi-pause-fill';
+        } else {
+            visualizer.classList.remove('playing');
+            icon.className = 'bi bi-play-fill';
+        }
+    }
+    
+    function nextTrack() {
+        currentTrackIndex = (currentTrackIndex + 1) % musicTracks[currentGenre].length;
+        updateMusicDisplay();
+    }
+    
+    function prevTrack() {
+        currentTrackIndex = (currentTrackIndex - 1 + musicTracks[currentGenre].length) % musicTracks[currentGenre].length;
+        updateMusicDisplay();
+    }
+    
+    // Genre selection
+    document.querySelectorAll('.music-genre').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.music-genre').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentGenre = this.dataset.genre;
+            currentTrackIndex = 0;
+            updateMusicDisplay();
+        });
+    });
+    
+    // ==================== AI RECOMMENDATIONS ====================
+    const recommendations = [
+        {
+            tag: 'Based on your progress',
+            title: 'Try Neural Networks next!',
+            desc: "You've mastered ML basics. Time to explore deep learning fundamentals.",
+            match: '92%',
+            time: '5h',
+        },
+        {
+            tag: 'Perfect for you',
+            title: 'Master Data Structures',
+            desc: 'Strengthen your problem-solving with essential DSA concepts.',
+            match: '88%',
+            time: '3h',
+        },
+        {
+            tag: 'Recommended today',
+            title: 'Explore Web Development',
+            desc: 'Build real-world projects with modern web frameworks.',
+            match: '85%',
+            time: '6h',
+        },
+        {
+            tag: 'Trending now',
+            title: 'AI & Machine Learning',
+            desc: 'The hottest field right now - start building AI models today.',
+            match: '95%',
+            time: '10h',
+        },
+    ];
+    
+    let currentRecIndex = 0;
+    
+    function rotateRecommendation() {
+        currentRecIndex = (currentRecIndex + 1) % recommendations.length;
+        const rec = recommendations[currentRecIndex];
+        document.querySelector('.ai-rec-tag').textContent = rec.tag;
+        document.getElementById('aiRecTitle').textContent = rec.title;
+        document.getElementById('aiRecDesc').textContent = rec.desc;
+        document.querySelectorAll('.ai-stat-value')[0].textContent = rec.match;
+        document.querySelectorAll('.ai-stat-value')[1].textContent = rec.time;
+    }
+    
+    // Auto-rotate recommendations every 8 seconds
+    setInterval(rotateRecommendation, 8000);
+
+
+    
+    // ==================== ACTIVITY HEATMAP ====================
+    (function() {
+        const grid = document.getElementById('heatmapGrid');
+        if (!grid) return;
+        
+        const today = new Date();
+        const daysToShow = 365;
+        const startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - daysToShow);
+        
+        // Start from Sunday
+        const dayOfWeek = startDate.getDay();
+        startDate.setDate(startDate.getDate() - dayOfWeek);
+        
+        let totalActive = 0;
+        
+        for (let i = 0; i <= daysToShow + 6; i++) {
+            const date = new Date(startDate);
+            date.setDate(date.getDate() + i);
+            
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
+            
+            // Random activity level for demo (in real app, get from backend)
+            let level = 0;
+            if (date <= today) {
+                const rand = Math.random();
+                if (rand > 0.75) level = 4;
+                else if (rand > 0.55) level = 3;
+                else if (rand > 0.4) level = 2;
+                else if (rand > 0.25) level = 1;
+                
+                if (level > 0) totalActive++;
+            }
+            
+            cell.classList.add('heatmap-level-' + level);
+            
+            // Format date for tooltip
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            const dateStr = date.toLocaleDateString('en-US', options);
+            
+            let activityText = 'No activity';
+            if (level === 1) activityText = '< 30 mins';
+            else if (level === 2) activityText = '30-60 mins';
+            else if (level === 3) activityText = '1-2 hours';
+            else if (level === 4) activityText = '2+ hours';
+            
+            cell.setAttribute('data-tooltip', dateStr + ' · ' + activityText);
+            
+            grid.appendChild(cell);
+        }
+        
+        // Update total active days
+        const totalEl = document.getElementById('totalActiveDays');
+        if (totalEl) totalEl.textContent = totalActive;
+    })();
+    
+    // View toggle for heatmap
+    document.querySelectorAll('.heatmap-view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.heatmap-view-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            // In real app, would filter heatmap based on view
+        });
+    });
+
+</script>
+{% endblock %}

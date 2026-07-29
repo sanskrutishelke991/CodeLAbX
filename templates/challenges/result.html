@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Result - {{ challenge.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .result-hero {
+        background: {% if attempt.is_correct %}linear-gradient(135deg, #00D4AA 0%, #00a685 100%){% else %}var(--bg-secondary){% endif %};
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+    
+    .result-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+    }
+    
+    .stat-box {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+    }
+    
+    .content-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="result-hero">
+    <div class="result-icon">
+        {% if attempt.is_correct %}🎉{% else %}💪{% endif %}
+    </div>
+    <h1>{% if attempt.is_correct %}Correct!{% else %}Good Try!{% endif %}</h1>
+    <p style="font-size: 1.2rem; opacity: 0.9;">
+        {% if attempt.is_correct %}
+            Excellent work! You earned {{ attempt.xp_earned }} XP
+        {% else %}
+            Keep practicing! You still earned {{ attempt.xp_earned }} XP for trying
+        {% endif %}
+    </p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-box">
+            <div class="stat-value">{{ attempt.xp_earned }}</div>
+            <small style="color: #a0a0a0;">XP Earned</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-box">
+            <div class="stat-value">{{ attempt.time_taken_seconds }}s</div>
+            <small style="color: #a0a0a0;">Time Taken</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-box">
+            <div class="stat-value">{{ challenge.get_difficulty_display }}</div>
+            <small style="color: #a0a0a0;">Difficulty</small>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <h4 style="color: white;">{{ challenge.title }}</h4>
+    <p>{{ challenge.description|linebreaks }}</p>
+</div>
+
+{% if challenge.challenge_type == 'theory' %}
+<div class="content-card">
+    <h5 style="color: white;">Correct Answer</h5>
+    <p style="color: #00D4AA; font-weight: 600;">
+        {% for opt in challenge.options %}
+            {% if forloop.counter0 == challenge.correct_option %}
+                {{ forloop.counter0|add:65|stringformat:"c" }}. {{ opt.text }}
+            {% endif %}
+        {% endfor %}
+    </p>
+    {% if challenge.explanation %}
+    <hr>
+    <strong style="color: white;">Explanation:</strong>
+    <p>{{ challenge.explanation }}</p>
+    {% endif %}
+</div>
+{% else %}
+<div class="content-card">
+    <h5 style="color: white;">Your Code</h5>
+    <pre style="background: #0A0A0A; padding: 15px; border-radius: 8px; color: #00D4AA;">{{ attempt.user_answer }}</pre>
+</div>
+{% endif %}
+
+<div class="text-center mt-4">
+    <a href="{% url 'challenges:dashboard' %}" class="btn btn-primary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Challenges
+    </a>
+    <a href="{% url 'challenges:history' %}" class="btn btn-outline-light">
+        <i class="bi bi-clock-history me-1"></i>View History
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Test Results - CodeLabX{% endblock %}
+{% block extra_css %}
+<style>
+body { background: #0A0A0A; color: #e0e0e0; }
+.result-header { background: var(--accent); border-radius: 8px; padding: 30px; margin-bottom: 25px; color: white; text-align: center; }
+.score-circle { width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,0.1); display: inline-flex; align-items: center; justify-content: center; margin: 20px auto; border: 4px solid #00D4AA; }
+.score-number {font-size: 2.5rem; font-weight: 700; color: #00D4AA; }
+.score-label { font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+.grade-badge { font-size: 3rem; font-weight: 700; color: #14B8A6; }
+.result-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+.question-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+.question-item.correct { border-left: 4px solid #00D4AA; }
+.question-item.incorrect { border-left: 4px solid #FF6B6B; }
+.option-item { padding: 10px 15px; margin: 8px 0; border-radius: 8px; background: rgba(255,255,255,0.05); }
+.option-item.user-correct { background: rgba(0,212,170,0.2); border: 1px solid #00D4AA; }
+.option-item.user-wrong { background: rgba(255,107,107,0.2); border: 1px solid #FF6B6B; }
+.option-item.correct-answer { background: rgba(0,212,170,0.15); border: 1px solid #00D4AA; }
+.explanation-box { background: rgba(108,99,255,0.1); border-left: 4px solid #14B8A6; padding: 15px; margin-top: 15px; border-radius: 0 8px 8px 0; }
+.btn-action { background: var(--accent); border: none; color: white; padding: 12px 30px; border-radius: 12px; font-weight: 600; }
+.btn-action:hover { transform: translateY(-2px); color: white; }
+.btn-secondary-action { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 30px; border-radius: 12px; }
+.btn-secondary-action:hover { background: rgba(108,99,255,0.2); color: white; }
+.confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+.confetti-piece { position: absolute; width: 10px; height: 10px; background: #14B8A6; animation: confetti-fall 3s linear forwards; }
+@keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="result-header">
+    <h2 class="mb-2"><i class="bi bi-trophy me-2"></i>Test Results</h2>
+    <p class="mb-0" style="opacity: 0.9;">{{ test.title }}</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="result-card text-center">
+            <div class="score-circle">
+                <div>
+                    <div class="score-number">{{ test.percentage }}%</div>
+                    <div class="score-label">{{ test.score }}/{{ test.total_marks }}</div>
+                </div>
+            </div>
+            <div class="grade-badge mt-3">{{ test.grade }}</div>
+            <p class="text-muted mt-2">Time taken: {{ attempt.time_taken_seconds }} seconds</p>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="result-card">
+            <h4 style="color: white; margin-bottom: 20px;">Performance Summary</h4>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <div style="color: #a0a0a0; font-size: 0.9rem;">Total Questions</div>
+                    <div style="color: white; font-size: 1.5rem; font-weight: 700;">{{ test.num_questions }}</div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div style="color: #a0a0a0; font-size: 0.9rem;">Correct Answers</div>
+                    <div style="color: #00D4AA; font-size: 1.5rem; font-weight: 700;">{% widthratio test.score test.total_marks test.num_questions %}</div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div style="color: #a0a0a0; font-size: 0.9rem;">Difficulty</div>
+                    <div style="color: white; font-size: 1.2rem; font-weight: 600;">{{ test.get_difficulty_display }}</div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div style="color: #a0a0a0; font-size: 0.9rem;">Topic</div>
+                    <div style="color: white; font-size: 1.2rem; font-weight: 600;">{{ test.topic }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="result-card">
+    <h4 style="color: white; margin-bottom: 20px;">Question-by-Question Breakdown</h4>
+    
+    {% for item in question_breakdown %}
+    <div class="question-item {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
+        <div class="d-flex align-items-start mb-3">
+            <span class="badge" style="background: #14B8A6; color: white; margin-right: 10px;">{{ forloop.counter }}</span>
+            <h5 style="color: white; margin: 0;">{{ item.question }}</h5>
+        </div>
+        
+        <div class="options-list">
+            {% for option in item.options %}
+            <div class="option-item 
+                {% if forloop.counter0 == item.user_answer %}{% if item.is_correct %}user-correct{% else %}user-wrong{% endif %}{% endif %}
+                {% if forloop.counter0 == item.correct_answer %}correct-answer{% endif %}">
+                <span style="color: #a0a0a0; margin-right: 10px;">{{ forloop.counter0|add:65 }}.</span>
+                <span style="color: #e0e0e0;">{{ option }}</span>
+                {% if forloop.counter0 == item.user_answer %}
+                    <i class="bi bi-check-circle float-end" style="color: {% if item.is_correct %}#00D4AA{% else %}#FF6B6B{% endif %};"></i>
+                {% endif %}
+                {% if forloop.counter0 == item.correct_answer and forloop.counter0 != item.user_answer %}
+                    <i class="bi bi-check-circle float-end" style="color: #00D4AA;"></i>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if item.explanation %}
+        <div class="explanation-box">
+            <strong style="color: #14B8A6;"><i class="bi bi-lightbulb me-2"></i>Explanation:</strong>
+            <p class="mb-0" style="color: #e0e0e0; margin-top: 5px;">{{ item.explanation }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="text-center mt-4">
+    <a href="{% url 'assessments:create' %}" class="btn-action me-3">
+        <i class="bi bi-plus-circle me-2"></i>Create New Test
+    </a>
+    <a href="{% url 'assessments:quiz_list' %}" class="btn-secondary-action">
+        <i class="bi bi-list me-2"></i>Back to Tests
+    </a>
+</div>
+
+<div id="confettiContainer" class="confetti"></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Confetti animation for scores > 80%
+{% if test.percentage >= 80 %}
+function createConfetti() {
+    const container = document.getElementById('confettiContainer');
+    const colors = ['#14B8A6', '#00D4AA', '#FF6B6B', '#ffc107', '#4a90e2'];
+    
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + 'vw';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            piece.style.width = (Math.random() * 10 + 5) + 'px';
+            piece.style.height = piece.style.width;
+            container.appendChild(piece);
+            
+            setTimeout(() => piece.remove(), 4000);
+        }, i * 30);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(createConfetti, 500);
+});
+{% endif %}
+</script>
+{% endblock %}

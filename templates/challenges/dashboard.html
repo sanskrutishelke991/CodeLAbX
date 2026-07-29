@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Challenges - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .challenges-header {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .streak-display {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-weight: 600;
+    }
+    
+    .challenge-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 25px;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .challenge-card:hover {
+        transform: translateY(-5px);
+        border-color: #14B8A6;
+        box-shadow: 0 15px 40px rgba(20, 184, 166, 0.3);
+    }
+    
+    .challenge-card.coding {
+        border-color: rgba(20, 184, 166, 0.5);
+    }
+    
+    .challenge-card.theory {
+        border-color: rgba(0, 212, 170, 0.5);
+    }
+    
+    .challenge-card.completed {
+        border-color: rgba(0, 212, 170, 0.8);
+        background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 212, 170, 0.05) 100%);
+    }
+    
+    .challenge-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+    
+    .badge-coding {
+        background: rgba(20, 184, 166, 0.2);
+        color: #14B8A6;
+    }
+    
+    .badge-theory {
+        background: rgba(0, 212, 170, 0.2);
+        color: #00D4AA;
+    }
+    
+    .badge-difficulty {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+        padding: 5px 15px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+    
+    .badge-difficulty.easy { background: rgba(0, 212, 170, 0.2); color: #00D4AA; }
+    .badge-difficulty.hard { background: rgba(255, 107, 107, 0.2); color: #FF6B6B; }
+    
+    .challenge-title {
+        color: white;
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    
+    .challenge-description {
+        color: #e0e0e0;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    
+    .xp-badge {
+        display: inline-flex;
+        align-items: center;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    
+    .btn-start-challenge {
+        background: var(--accent);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .btn-start-challenge:hover {
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+    }
+    
+    .completed-check {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #00D4AA;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .sidebar-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .sidebar-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .leaderboard-item:last-child { border-bottom: none; }
+    
+    .rank-num {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(20, 184, 166, 0.2);
+        color: #14B8A6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 10px;
+    }
+    
+    .rank-num.top {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        color: white;
+    }
+    
+    .completion-item {
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(0, 212, 170, 0.05);
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="challenges-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap">
+        <div>
+            <h1 class="mb-2"><i class="bi bi-lightning-charge-fill me-2"></i>Daily Challenges</h1>
+            <p class="mb-0" style="opacity: 0.9;">{{ today|date:"l, F d, Y" }}</p>
+            <div class="streak-display">
+                <i class="bi bi-fire me-2"></i>
+                <span>{{ streak.current_streak }} Day Streak</span>
+            </div>
+        </div>
+        <a href="{% url 'challenges:history' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-clock-history me-1"></i>History
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Content - Today's Challenges -->
+    <div class="col-lg-8">
+        <h3 style="color: white;" class="mb-3">
+            <i class="bi bi-calendar-check me-2" style="color: #14B8A6;"></i>Today's Challenges
+        </h3>
+        
+        {% if challenges_with_status %}
+            {% for item in challenges_with_status %}
+            <div class="challenge-card {{ item.challenge.challenge_type }} {% if item.completed %}completed{% endif %}">
+                {% if item.completed %}
+                    <div class="completed-check">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                {% endif %}
+                
+                <span class="challenge-badge badge-{{ item.challenge.challenge_type }}">
+                    {% if item.challenge.challenge_type == 'coding' %}
+                        💻 Coding Challenge
+                    {% else %}
+                        📚 Theory MCQ
+                    {% endif %}
+                </span>
+                <span class="badge-difficulty {{ item.challenge.difficulty }}">
+                    {{ item.challenge.get_difficulty_display }}
+                </span>
+                
+                <h4 class="challenge-title">{{ item.challenge.title }}</h4>
+                <p class="challenge-description">{{ item.challenge.description|truncatewords:30 }}</p>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="xp-badge">
+                        <i class="bi bi-lightning-charge me-1"></i>+{{ item.challenge.xp_reward }} XP
+                    </span>
+                    
+                    {% if item.completed %}
+                        <a href="{% url 'challenges:result' item.challenge.id %}" class="btn btn-outline-light">
+                            <i class="bi bi-eye me-1"></i>View Result
+                        </a>
+                    {% else %}
+                        <a href="{% url 'challenges:attempt' item.challenge.id %}" class="btn-start-challenge">
+                            <i class="bi bi-play-fill me-1"></i>Start Challenge
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="challenge-card">
+                <div class="text-center py-4">
+                    <i class="bi bi-hourglass-split" style="font-size: 3rem; color: #14B8A6;"></i>
+                    <h4 class="mt-3" style="color: white;">Generating Challenges...</h4>
+                    <p class="text-muted">AI is preparing today's challenges. Refresh in a moment.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Streak Stats -->
+        <div class="sidebar-card">
+            <h5 class="sidebar-title">
+                <i class="bi bi-fire me-2" style="color: #FF6B6B;"></i>Your Stats
+            </h5>
+            <div class="row text-center g-3">
+                <div class="col-6">
+                    <div style="font-size: 2rem; font-weight: 700; color: white;">{{ streak.current_streak }}</div>
+                    <small style="color: #a0a0a0;">Current Streak</small>
+                </div>
+                <div class="col-6">
+                    <div style="font-size: 2rem; font-weight: 700; color: white;">{{ streak.longest_streak }}</div>
+                    <small style="color: #a0a0a0;">Longest Streak</small>
+                </div>
+                <div class="col-12 mt-3">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #00D4AA;">{{ streak.total_challenges_completed }}</div>
+                    <small style="color: #a0a0a0;">Total Completed</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leaderboard -->
+        <div class="sidebar-card">
+            <h5 class="sidebar-title">
+                <i class="bi bi-trophy me-2" style="color: #f59e0b;"></i>Top Solvers
+            </h5>
+            {% for entry in leaderboard %}
+            <div class="leaderboard-item">
+                <div class="d-flex align-items-center">
+                    <span class="rank-num {% if forloop.counter <= 3 %}top{% endif %}">
+                        {{ forloop.counter }}
+                    </span>
+                    <span style="color: white;">{{ entry.user.username }}</span>
+                </div>
+                <span style="color: #00D4AA; font-weight: 600;">{{ entry.total_challenges_completed }}</span>
+            </div>
+            {% empty %}
+                <p class="text-muted text-center">No entries yet</p>
+            {% endfor %}
+        </div>
+        
+        <!-- Recent Completions -->
+        {% if recent_completions %}
+        <div class="sidebar-card">
+            <h5 class="sidebar-title">
+                <i class="bi bi-check-circle me-2" style="color: #00D4AA;"></i>Recent Completions
+            </h5>
+            {% for completion in recent_completions %}
+            <div class="completion-item">
+                <div style="color: white; font-weight: 600;">{{ completion.challenge.title|truncatechars:40 }}</div>
+                <small style="color: #a0a0a0;">
+                    {{ completion.challenge.get_challenge_type_display }} • +{{ completion.xp_earned }} XP
+                </small>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

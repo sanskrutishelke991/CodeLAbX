@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ roadmap.title }} - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .roadmap-header {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+    }
+    
+    .progress-custom {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 15px 0;
+    }
+    
+    .progress-bar-custom {
+        height: 100%;
+        background: white;
+        border-radius: 10px;
+    }
+    
+    .day-card {
+        background: var(--bg-secondary);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 12px;
+        transition: all 0.3s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .day-card:hover {
+        border-color: #14B8A6;
+        transform: translateX(5px);
+        color: inherit;
+        text-decoration: none;
+    }
+    
+    .day-card.completed {
+        border-color: rgba(0, 212, 170, 0.3);
+        background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 212, 170, 0.02) 100%);
+    }
+    
+    .day-number {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-right: 15px;
+        flex-shrink: 0;
+        background: rgba(20, 184, 166, 0.2);
+        color: #14B8A6;
+    }
+    
+    .day-card.completed .day-number {
+        background: rgba(0, 212, 170, 0.2);
+        color: #00D4AA;
+    }
+    
+    .day-info { flex-grow: 1; }
+    
+    .day-info h5 { color: white; margin-bottom: 5px; }
+    
+    .day-meta { color: #a0a0a0; font-size: 0.85rem; }
+    
+    .day-status i { font-size: 1.5rem; }
+    
+    .completed .day-status i { color: #00D4AA; }
+    .pending .day-status i { color: #a0a0a0; opacity: 0.3; }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .stat-box {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .stat-box .value { font-size: 1.8rem; font-weight: 700; }
+    .stat-box .label { font-size: 0.85rem; opacity: 0.8; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="roadmap-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap">
+        <div>
+            <h1>{% if roadmap.topic == 'ML' %}🤖{% else %}💻{% endif %} {{ roadmap.title }}</h1>
+            <p class="mb-0 opacity-75">{{ roadmap.description }}</p>
+        </div>
+        <a href="{% url 'learning:roadmaps' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="value">{{ roadmap.total_days }}</div>
+            <div class="label">Total Days</div>
+        </div>
+        <div class="stat-box">
+            <div class="value">{{ roadmap.completed_days }}</div>
+            <div class="label">Completed</div>
+        </div>
+        <div class="stat-box">
+            <div class="value">{{ roadmap.daily_hours }}h</div>
+            <div class="label">Daily Hours</div>
+        </div>
+        <div class="stat-box">
+            <div class="value">{{ roadmap.progress_percentage }}%</div>
+            <div class="label">Progress</div>
+        </div>
+    </div>
+    
+    <div class="progress-custom">
+        <div class="progress-bar-custom" style="width: {{ roadmap.progress_percentage }}%"></div>
+    </div>
+</div>
+
+<h3 class="mb-3" style="color: white;">
+    <i class="bi bi-list-check me-2" style="color: #14B8A6;"></i>Learning Timeline
+</h3>
+
+{% for day in days %}
+<a href="{% url 'learning:day_detail' roadmap.id day.day_number %}" class="day-card {% if day.is_completed %}completed{% else %}pending{% endif %}">
+    <div class="day-number">{{ day.day_number }}</div>
+    <div class="day-info">
+        <h5>{{ day.title }}</h5>
+        <div class="day-meta">
+            <i class="bi bi-clock me-1"></i>{{ day.estimated_hours }} hours
+            {% if day.is_completed %}
+                <span class="ms-3"><i class="bi bi-check-circle-fill me-1" style="color: #00D4AA;"></i>Completed</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="day-status">
+        {% if day.is_completed %}
+            <i class="bi bi-check-circle-fill"></i>
+        {% else %}
+            <i class="bi bi-circle"></i>
+        {% endif %}
+    </div>
+</a>
+{% empty %}
+<div class="text-center py-5">
+    <p class="text-muted">No days generated yet.</p>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,37 @@
+<div class="cmdk-backdrop" id="commandPaletteBackdrop"></div>
+<div class="cmdk-modal" id="commandPalette" role="dialog" aria-modal="true" aria-label="Command palette">
+    <input id="commandPaletteInput" class="cmdk-input" type="text" placeholder="Jump to a workspace" autocomplete="off" />
+    <div class="cmdk-groups">
+        <div class="cmdk-group">
+            <div class="cmdk-group-label">Actions</div>
+            <a href="{% url 'dashboard:home' %}" class="cmdk-item">
+                <span>Open dashboard</span>
+                <span class="meta">⌘/Ctrl K</span>
+            </a>
+            <a href="{% url 'learning:roadmaps' %}" class="cmdk-item">
+                <span>Go to roadmaps</span>
+                <span class="meta">Roadmaps</span>
+            </a>
+            <a href="{% url 'practice:home' %}" class="cmdk-item">
+                <span>Practice coding</span>
+                <span class="meta">Practice</span>
+            </a>
+        </div>
+        <div class="cmdk-group">
+            <div class="cmdk-group-label">Quick links</div>
+            <a href="{% url 'content:library' %}" class="cmdk-item">
+                <span>Browse content</span>
+                <span class="meta">Library</span>
+            </a>
+            <a href="{% url 'progress:achievements' %}" class="cmdk-item">
+                <span>View achievements</span>
+                <span class="meta">Progress</span>
+            </a>
+            <a href="{% url 'accounts:profile' %}" class="cmdk-item">
+                <span>Open profile</span>
+                <span class="meta">Account</span>
+            </a>
+        </div>
+    </div>
+    <div class="cmdk-hint">Press Esc to close</div>
+</div>

@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Roadmap - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .create-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 40px;
+    }
+    
+    .form-label { color: #e0e0e0; font-weight: 500; margin-bottom: 8px; }
+    
+    .form-control, .form-select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #14B8A6;
+        color: white;
+        box-shadow: 0 0 0 0.2rem rgba(20, 184, 166, 0.25);
+    }
+    
+    .topic-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .topic-option {
+        background: rgba(255, 255, 255, 0.03);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .topic-option:hover {
+        border-color: #14B8A6;
+        background: rgba(20, 184, 166, 0.1);
+    }
+    
+    .topic-option.selected {
+        border-color: #14B8A6;
+        background: rgba(20, 184, 166, 0.15);
+    }
+    
+    .topic-option i { font-size: 2.5rem; margin-bottom: 10px; color: #14B8A6; }
+    
+    .level-radio {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .level-option input[type="radio"] { display: none; }
+    
+    .level-option label {
+        padding: 10px 20px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #e0e0e0;
+    }
+    
+    .level-option input[type="radio"]:checked + label {
+        background: rgba(20, 184, 166, 0.15);
+        border-color: #14B8A6;
+        color: white;
+    }
+    
+    .btn-submit {
+        background: var(--accent);
+        border: none;
+        color: white;
+        padding: 14px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        width: 100%;
+    }
+    
+    .btn-submit:hover { transform: translateY(-2px); color: white; }
+    
+    .help-text { color: #a0a0a0; font-size: 0.85rem; margin-top: 5px; }
+    
+    .header-section {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .header-section h2 { color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="header-section">
+            <h2><i class="bi bi-rocket-takeoff me-2" style="color: #14B8A6;"></i>Create Your Learning Path</h2>
+            <p class="text-muted">Design a personalized roadmap tailored to your goals</p>
+        </div>
+        
+        <div class="create-card">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Topic Selection -->
+                <div class="mb-4">
+                    <label class="form-label">Choose Your Topic</label>
+                    <div class="topic-selector">
+                        <div class="topic-option" onclick="selectTopic('ML')">
+                            <i class="bi bi-robot"></i>
+                            <h5 class="mb-1" style="color: white;">Machine Learning</h5>
+                            <small class="text-muted">AI, ML algorithms, models</small>
+                        </div>
+                        <div class="topic-option" onclick="selectTopic('DSA')">
+                            <i class="bi bi-code-square"></i>
+                            <h5 class="mb-1" style="color: white;">DSA</h5>
+                            <small class="text-muted">Data structures & algorithms</small>
+                        </div>
+                    </div>
+                    <select name="topic" id="topicSelect" class="d-none" required>
+                        <option value="">Select</option>
+                        <option value="ML">Machine Learning</option>
+                        <option value="DSA">DSA</option>
+                    </select>
+                </div>
+                
+                <!-- Duration & Hours -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Duration (Months)</label>
+                        <input type="number" name="duration_months" class="form-control" min="1" max="12" value="3" required>
+                        <div class="help-text">How many months you want to study</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Daily Study Hours</label>
+                        <input type="number" name="daily_hours" class="form-control" min="0.5" max="8" step="0.5" value="2" required>
+                        <div class="help-text">How many hours per day</div>
+                    </div>
+                </div>
+                
+                <!-- Level -->
+                <div class="mb-4">
+                    <label class="form-label">Difficulty Level</label>
+                    <div class="level-radio">
+                        <div class="level-option">
+                            <input type="radio" name="level" id="beginner" value="beginner" checked>
+                            <label for="beginner">🌱 Beginner</label>
+                        </div>
+                        <div class="level-option">
+                            <input type="radio" name="level" id="intermediate" value="intermediate">
+                            <label for="intermediate">⚡ Intermediate</label>
+                        </div>
+                        <div class="level-option">
+                            <input type="radio" name="level" id="advanced" value="advanced">
+                            <label for="advanced">🔥 Advanced</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Start Date -->
+                <div class="mb-4">
+                    <label class="form-label">Start Date (Optional)</label>
+                    <input type="date" name="start_date" class="form-control">
+                    <div class="help-text">Leave empty to start today</div>
+                </div>
+                
+                <!-- Description -->
+                <div class="mb-4">
+                    <label class="form-label">Description (Optional)</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Add notes about your goals..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-submit">
+                    <i class="bi bi-magic me-2"></i>Generate My Roadmap
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectTopic(topic) {
+        document.querySelectorAll('.topic-option').forEach(el => el.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        document.getElementById('topicSelect').value = topic;
+    }
+</script>
+{% endblock %}

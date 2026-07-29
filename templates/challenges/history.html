@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Challenge History - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .header-card {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 30px;
+        color: white;
+        margin-bottom: 25px;
+    }
+    
+    .stat-mini {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+    }
+    
+    .attempt-row {
+        background: var(--bg-secondary);
+        border: 1px solid rgba(20, 184, 166, 0.15);
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .attempt-row.correct { border-color: rgba(0, 212, 170, 0.4); }
+    .attempt-row.incorrect { border-color: rgba(255, 107, 107, 0.4); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-card">
+    <h2><i class="bi bi-clock-history me-2"></i>Challenge History</h2>
+    <div class="row g-3 mt-2">
+        <div class="col-md-3">
+            <div class="stat-mini">
+                <div style="font-size: 1.8rem; font-weight: 700;">{{ completed_count }}</div>
+                <small>Completed</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-mini">
+                <div style="font-size: 1.8rem; font-weight: 700;">{{ accuracy }}%</div>
+                <small>Accuracy</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-mini">
+                <div style="font-size: 1.8rem; font-weight: 700;">{{ total_xp }}</div>
+                <small>Total XP</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-mini">
+                <div style="font-size: 1.8rem; font-weight: 700;">{{ streak.current_streak }}</div>
+                <small>Streak</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 style="color: white;" class="mb-3">Recent Attempts</h4>
+
+{% for attempt in attempts %}
+<div class="attempt-row {% if attempt.is_correct %}correct{% else %}incorrect{% endif %}">
+    <div>
+        <div style="color: white; font-weight: 600;">
+            {% if attempt.challenge.challenge_type == 'coding' %}💻{% else %}📚{% endif %}
+            {{ attempt.challenge.title }}
+        </div>
+        <small style="color: #a0a0a0;">
+            {{ attempt.completed_at|date:"M d, Y H:i" }} • 
+            {{ attempt.time_taken_seconds }}s • 
+            {{ attempt.challenge.get_difficulty_display }}
+        </small>
+    </div>
+    <div class="text-end">
+        {% if attempt.is_correct %}
+            <span style="color: #00D4AA;"><i class="bi bi-check-circle-fill"></i> Correct</span>
+        {% else %}
+            <span style="color: #FF6B6B;"><i class="bi bi-x-circle-fill"></i> Wrong</span>
+        {% endif %}
+        <div style="color: #f59e0b; font-weight: 600;">+{{ attempt.xp_earned }} XP</div>
+    </div>
+</div>
+{% empty %}
+    <p class="text-center text-muted">No attempts yet. Start your first challenge!</p>
+{% endfor %}
+
+<div class="text-center mt-4">
+    <a href="{% url 'challenges:dashboard' %}" class="btn btn-primary">
+        <i class="bi bi-lightning-charge me-1"></i>Today's Challenges
+    </a>
+</div>
+{% endblock %}

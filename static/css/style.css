@@ -1,0 +1,385 @@
+/* ============================================
+   CODELABX - PROFESSIONAL DESIGN
+   Minimal, Clean, Ocean Teal Accent
+   ============================================ */
+
+/* Cards - Clean & Elegant */
+.stat-card,
+.section-card,
+.code-card,
+.profile-card,
+.edit-card,
+.roadmap-card,
+.day-card,
+.content-card,
+.create-card,
+.feature-card,
+.badge-card,
+.note-card,
+.tool-card,
+.image-card,
+.analysis-card,
+.form-card,
+.chart-card,
+.sidebar-card,
+.challenge-card,
+.video-card,
+.upload-card {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: none !important;
+    padding: 20px !important;
+    transition: all var(--transition) !important;
+}
+
+.stat-card:hover,
+.roadmap-card:hover,
+.video-card:hover,
+.challenge-card:hover,
+.feature-card:hover,
+.tool-card:hover,
+.note-card:hover {
+    background: var(--bg-tertiary) !important;
+    border-color: var(--border-default) !important;
+    transform: none !important;
+}
+
+/* Page Headers - MINIMAL */
+.analyzer-header,
+.practice-header,
+.library-header,
+.examiner-header,
+.notes-header,
+.bookmark-header,
+.challenges-header,
+.leaderboard-header,
+.day-header,
+.roadmap-header,
+.header-card {
+    background: transparent !important;
+    border: none !important;
+    padding: 24px 0 !important;
+    margin-bottom: 24px !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    border-radius: 0 !important;
+    color: var(--text-primary) !important;
+}
+
+.analyzer-header h1, .practice-header h1, .library-header h1,
+.examiner-header h1, .notes-header h1, .bookmark-header h1,
+.challenges-header h1, .leaderboard-header h1, .day-header h1,
+.roadmap-header h1, .header-card h1 {
+    color: var(--text-primary) !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
+}
+
+.analyzer-header p, .practice-header p, .library-header p,
+.examiner-header p, .notes-header p, .bookmark-header p,
+.challenges-header p, .leaderboard-header p, .header-card p {
+    color: var(--text-secondary) !important;
+    opacity: 1 !important;
+    font-size: 0.875rem !important;
+    margin: 0 !important;
+}
+
+/* Buttons - Consistent */
+.btn-primary,
+.btn-check-code,
+.btn-analyze,
+.btn-submit,
+.btn-save,
+.btn-generate,
+.btn-complete,
+.btn-create-note,
+.btn-create,
+.btn-start-challenge,
+.btn-edit-profile {
+    background: var(--accent) !important;
+    color: white !important;
+    border: none !important;
+    padding: 8px 16px !important;
+    border-radius: var(--radius-sm) !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    box-shadow: none !important;
+    transition: all var(--transition) !important;
+}
+
+.btn-primary:hover, .btn-check-code:hover {
+    background: var(--accent-hover) !important;
+    color: white !important;
+}
+
+.btn-outline-light, .btn-secondary {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-default) !important;
+    padding: 8px 16px !important;
+    border-radius: var(--radius-sm) !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+}
+
+.btn-outline-light:hover {
+    background: var(--bg-hover) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+/* Badges - Clean */
+.type-tag, .badge-difficulty, .difficulty-tag,
+.challenge-badge, .topic-badge, .status-badge {
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    background: var(--bg-tertiary) !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid var(--border-default) !important;
+    display: inline-block !important;
+}
+
+.badge-difficulty.easy, .difficulty-tag.easy { 
+    color: var(--success) !important; 
+    border-color: var(--success) !important; 
+}
+.badge-difficulty.medium, .difficulty-tag.medium { 
+    color: var(--warning) !important; 
+    border-color: var(--warning) !important; 
+}
+.badge-difficulty.hard, .difficulty-tag.hard { 
+    color: var(--error) !important; 
+    border-color: var(--error) !important; 
+}
+.status-badge.active { 
+    color: var(--accent) !important; 
+    border-color: var(--accent) !important; 
+}
+
+/* Category chips - Clean */
+.category-chip {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-default) !important;
+    color: var(--text-secondary) !important;
+    padding: 6px 14px !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 3px !important;
+    transition: all var(--transition) !important;
+}
+
+.category-chip:hover {
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+.category-chip.active {
+    background: var(--accent) !important;
+    color: white !important;
+    border-color: var(--accent) !important;
+}
+
+.category-chip .category-icon { display: none !important; }
+
+/* Progress bars */
+.progress-custom, .progress-mini {
+    background: var(--bg-tertiary) !important;
+    height: 4px !important;
+    border-radius: 2px !important;
+}
+
+.progress-bar-custom, .progress-mini-bar {
+    background: var(--accent) !important;
+    border-radius: 2px !important;
+}
+
+/* Stats */
+.stat-value {
+    color: var(--text-primary) !important;
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    margin-bottom: 4px !important;
+}
+
+.stat-label {
+    color: var(--text-secondary) !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.stat-icon { display: none !important; }
+
+/* Section titles */
+.section-title {
+    color: var(--text-primary) !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 16px !important;
+    padding-bottom: 12px !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.section-title i { display: none !important; }
+
+/* XP badge */
+.xp-badge {
+    background: var(--accent-light) !important;
+    color: var(--accent) !important;
+    border: 1px solid var(--accent) !important;
+    padding: 3px 8px !important;
+    font-size: 0.75rem !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+/* Empty states */
+.empty-state {
+    background: transparent !important;
+    border: 1px dashed var(--border-default) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 48px 24px !important;
+    text-align: center !important;
+    color: var(--text-secondary) !important;
+}
+
+.empty-state i {
+    font-size: 32px !important;
+    color: var(--text-tertiary) !important;
+    margin-bottom: 12px !important;
+    display: block !important;
+}
+
+.empty-state h4, .empty-state h5 {
+    color: var(--text-primary) !important;
+    font-size: 15px !important;
+    margin-bottom: 8px !important;
+}
+
+.empty-state p {
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem !important;
+    margin-bottom: 16px !important;
+}
+
+/* Form controls */
+.form-control, .form-select, input, textarea, select {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-default) !important;
+    color: var(--text-primary) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 10px 14px !important;
+    font-size: 0.875rem !important;
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--bg-secondary) !important;
+    border-color: var(--accent) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 0 0 3px var(--accent-light) !important;
+    outline: none !important;
+}
+
+.form-label, label {
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+}
+
+/* Search */
+.search-bar, .search-input {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-default) !important;
+    color: var(--text-primary) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 10px 14px !important;
+    font-size: 0.875rem !important;
+}
+
+/* Video thumbnails */
+.video-thumbnail {
+    border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+}
+
+.video-body { padding: 12px !important; }
+
+.video-title {
+    font-size: 0.875rem !important;
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+}
+
+.video-channel {
+    color: var(--text-secondary) !important;
+    font-size: 0.75rem !important;
+    margin-top: 4px !important;
+}
+
+/* Featured badge */
+.featured-badge {
+    background: var(--warning) !important;
+    color: white !important;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+}
+
+.watched-badge {
+    background: var(--accent) !important;
+    color: white !important;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+}
+
+/* Streak display */
+.streak-display {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-default) !important;
+    color: var(--text-primary) !important;
+    padding: 4px 12px !important;
+    border-radius: 4px !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+}
+
+/* Avatar */
+.avatar-large {
+    background: var(--accent) !important;
+    border: 3px solid var(--border-default) !important;
+    box-shadow: none !important;
+}
+
+/* Skills tags */
+.skill-tag {
+    background: var(--accent-light) !important;
+    color: var(--accent) !important;
+    border: 1px solid var(--accent) !important;
+    padding: 4px 10px !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+}
+
+/* Text colors */
+.text-muted { color: var(--text-tertiary) !important; }
+
+/* Row gaps */
+.row.g-3 { --bs-gutter-x: 12px !important; --bs-gutter-y: 12px !important; }
+.row.g-4 { --bs-gutter-x: 16px !important; --bs-gutter-y: 16px !important; }

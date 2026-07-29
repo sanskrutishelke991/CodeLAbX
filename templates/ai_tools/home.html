@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Tools - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .ai-header {
+        background: linear-gradient(135deg, #14B8A6 0%, #14B8A6 100%);
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+    
+    .ai-header i {
+        font-size: 4rem;
+        margin-bottom: 15px;
+    }
+    
+    .tool-card {
+        background: var(--bg-secondary);
+        border: 2px solid rgba(20, 184, 166, 0.2);
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+    
+    .tool-card:hover {
+        transform: translateY(-8px);
+        border-color: #14B8A6;
+        box-shadow: 0 20px 50px rgba(20, 184, 166, 0.3);
+        color: inherit;
+    }
+    
+    .tool-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+    }
+    
+    .icon-purple { background: rgba(20, 184, 166, 0.15); }
+    .icon-red { background: rgba(255, 107, 107, 0.15); }
+    .icon-green { background: rgba(0, 212, 170, 0.15); }
+    .icon-orange { background: rgba(245, 158, 11, 0.15); }
+    
+    .tool-card h4 {
+        color: white;
+        margin-bottom: 10px;
+    }
+    
+    .tool-card p {
+        color: #a0a0a0;
+    }
+    
+    .new-badge {
+        background: linear-gradient(135deg, #FF6B6B, #f59e0b);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-left: 8px;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-header">
+    <i class="bi bi-robot"></i>
+    <h1>AI Tools</h1>
+    <p class="mb-0" style="opacity: 0.9;">Powerful AI features to accelerate your learning</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <a href="#" class="tool-card" onclick="document.getElementById('chatToggleBtn').click(); return false;">
+            <div class="tool-icon icon-purple">💬</div>
+            <h4>AI Study Buddy</h4>
+            <p>Chat with AI about any topic. Get instant answers and explanations.</p>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'ai_tools:image_analyzer' %}" class="tool-card">
+            <div class="tool-icon icon-red">🖼️</div>
+            <h4>Image Analyzer <span class="new-badge">NEW</span></h4>
+            <p>Upload photos of notes, code, math, or diagrams. AI explains everything!</p>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'practice:examiner' %}" class="tool-card">
+            <div class="tool-icon icon-green">💻</div>
+            <h4>Code Examiner</h4>
+            <p>Get instant AI feedback on your code with detailed analysis.</p>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'learning:roadmap_create' %}" class="tool-card">
+            <div class="tool-icon icon-orange">🗺️</div>
+            <h4>AI Roadmap Generator</h4>
+            <p>Personalized learning paths tailored to your goals.</p>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'challenges:dashboard' %}" class="tool-card">
+            <div class="tool-icon icon-purple">⚡</div>
+            <h4>Daily Challenges</h4>
+            <p>AI-generated coding and theory challenges every day.</p>
+        </a>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'assessments:quiz_list' %}" class="tool-card">
+            <div class="tool-icon icon-green">📝</div>
+            <h4>AI Test Generator</h4>
+            <p>Custom tests with auto-grading and detailed explanations.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

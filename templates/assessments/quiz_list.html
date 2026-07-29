@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Assessments - CodeLabX{% endblock %}
+{% block extra_css %}
+<style>
+body { background: #0A0A0A; color: #e0e0e0; }
+.quiz-header { background: var(--accent); border-radius: 8px; padding: 25px; margin-bottom: 25px; color: white; }
+.quiz-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 25px; margin-bottom: 20px; transition: transform 0.2s, box-shadow 0.2s; }
+.quiz-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(108,99,255,0.3); }
+.btn-create-quiz { background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle); border: none; color: white; padding: 12px 30px; border-radius: 12px; font-weight: 600; }
+.btn-create-quiz:hover { transform: translateY(-2px); color: white; }
+.status-badge { padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+.status-created { background: rgba(108,99,255,0.2); color: #14B8A6; }
+.status-in_progress { background: rgba(255,193,7,0.2); color: #ffc107; }
+.status-completed { background: rgba(0,212,170,0.2); color: #00D4AA; }
+.difficulty-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; }
+.difficulty-easy { background: rgba(0,212,170,0.2); color: #00D4AA; }
+.difficulty-medium { background: rgba(255,193,7,0.2); color: #ffc107; }
+.difficulty-hard { background: rgba(255,107,107,0.2); color: #FF6B6B; }
+.empty-state { text-align: center; padding: 60px 20px; color: #a0a0a0; }
+.empty-state i { font-size: 4rem; color: #14B8A6; opacity: 0.5; }
+.filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e0e0e0; padding: 8px 16px; border-radius: 8px; margin-right: 8px; }
+.filter-btn:hover, .filter-btn.active { background: #14B8A6; border-color: #14B8A6; color: white; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="quiz-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-clipboard-check me-2"></i>Assessments</h2>
+            <p class="mb-0" style="opacity: 0.9;">Test your knowledge with AI-generated quizzes</p>
+        </div>
+        <a href="{% url 'assessments:create' %}" class="btn btn-create-quiz">
+            <i class="bi bi-plus-circle me-2"></i>Create New Test
+        </a>
+    </div>
+</div>
+
+<div class="mb-4">
+    <button class="filter-btn {% if status_filter == 'all' %}active{% endif %}" onclick="filterTests('all')">All</button>
+    <button class="filter-btn {% if status_filter == 'created' %}active{% endif %}" onclick="filterTests('created')">Created</button>
+    <button class="filter-btn {% if status_filter == 'in_progress' %}active{% endif %}" onclick="filterTests('in_progress')">In Progress</button>
+    <button class="filter-btn {% if status_filter == 'completed' %}active{% endif %}" onclick="filterTests('completed')">Completed</button>
+</div>
+
+{% if tests %}
+    <div class="row">
+        {% for test in tests %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="quiz-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="mb-0" style="color: white;">{{ test.title }}</h5>
+                    <span class="status-badge status-{{ test.status }}">{{ test.get_status_display }}</span>
+                </div>
+                <p class="text-muted mb-3">{{ test.topic }}</p>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="difficulty-badge difficulty-{{ test.difficulty }}">{{ test.get_difficulty_display }}</span>
+                    <small class="text-muted">{{ test.num_questions }} questions</small>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    {% if test.status == 'completed' %}
+                        <div>
+                            <span style="color: #00D4AA; font-weight: 700;">{{ test.score }}/{{ test.total_marks }}</span>
+                            <small class="text-muted ms-2">({{ test.percentage }}%)</small>
+                        </div>
+                        <a href="{% url 'assessments:result' test_id=test.id %}" class="btn btn-sm btn-outline-light">View Results</a>
+                    {% elif test.status == 'in_progress' %}
+                        <small class="text-muted">{{ test.time_limit_minutes }} min limit</small>
+                        <a href="{% url 'assessments:take' test_id=test.id %}" class="btn btn-sm btn-primary">Continue</a>
+                    {% else %}
+                        <small class="text-muted">{{ test.time_limit_minutes }} min limit</small>
+                        <a href="{% url 'assessments:take' test_id=test.id %}" class="btn btn-sm btn-primary">Start Test</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="bi bi-clipboard-check"></i>
+        <h4 style="color: white;">No Tests Yet</h4>
+        <p>Create your first AI-generated test to get started!</p>
+        <a href="{% url 'assessments:create' %}" class="btn btn-create-quiz mt-3">
+            <i class="bi bi-plus-circle me-2"></i>Create Test
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+function filterTests(status) {
+    window.location.href = "{% url 'assessments:quiz_list' %}?status=" + status;
+}
+</script>
+{% endblock %}

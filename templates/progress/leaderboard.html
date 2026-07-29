@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .leaderboard-header {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        text-align: center;
+    }
+    
+    .leaderboard-table {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .leaderboard-table table {
+        margin: 0;
+        color: #e0e0e0;
+    }
+    
+    .leaderboard-table thead {
+        background: rgba(20, 184, 166, 0.15);
+    }
+    
+    .leaderboard-table th {
+        color: white;
+        font-weight: 600;
+        padding: 15px;
+        border: none;
+    }
+    
+    .leaderboard-table td {
+        padding: 15px;
+        border-color: rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+    }
+    
+    .rank-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .rank-1 { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; }
+    .rank-2 { background: linear-gradient(135deg, #94a3b8, #cbd5e1); color: white; }
+    .rank-3 { background: linear-gradient(135deg, #b45309, #d97706); color: white; }
+    .rank-other { background: rgba(20, 184, 166, 0.2); color: #14B8A6; }
+    
+    .user-row-current {
+        background: rgba(20, 184, 166, 0.1) !important;
+        border-left: 4px solid #14B8A6;
+    }
+    
+    .avatar-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #14B8A6, #4a90e2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        margin-right: 12px;
+    }
+    
+    .level-badge {
+        background: rgba(20, 184, 166, 0.2);
+        color: #14B8A6;
+        padding: 5px 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .xp-value {
+        color: #00D4AA;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .badge-count {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+        padding: 5px 12px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #a0a0a0;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #14B8A6;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leaderboard-header">
+    <h1><i class="bi bi-trophy-fill me-2"></i>Leaderboard</h1>
+    <p class="mb-0" style="opacity: 0.9;">Top learners on CodeLabX</p>
+</div>
+
+{% if users %}
+<div class="leaderboard-table">
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Rank</th>
+                <th>User</th>
+                <th class="text-center">Level</th>
+                <th class="text-center">Total XP</th>
+                <th class="text-center">Badges</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user_data in users %}
+            <tr {% if user_data.user == request.user %}class="user-row-current"{% endif %}>
+                <td>
+                    {% if forloop.counter == 1 %}
+                        <span class="rank-badge rank-1">🥇</span>
+                    {% elif forloop.counter == 2 %}
+                        <span class="rank-badge rank-2">🥈</span>
+                    {% elif forloop.counter == 3 %}
+                        <span class="rank-badge rank-3">🥉</span>
+                    {% else %}
+                        <span class="rank-badge rank-other">{{ forloop.counter }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="avatar-circle">{{ user_data.user.username|first|upper }}</span>
+                    <strong>{{ user_data.user.username }}</strong>
+                    {% if user_data.user == request.user %}
+                        <span class="badge bg-primary ms-2">You</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <span class="level-badge">Lvl {{ user_data.current_level }}</span>
+                </td>
+                <td class="text-center">
+                    <span class="xp-value">{{ user_data.total_xp_earned }} XP</span>
+                </td>
+                <td class="text-center">
+                    <span class="badge-count">
+                        <i class="bi bi-trophy-fill me-1"></i>{{ user_data.badge_count }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-trophy"></i>
+    <h4 class="mt-3">No Leaderboard Data Yet</h4>
+    <p>Start learning to appear on the leaderboard!</p>
+</div>
+{% endif %}
+
+<div class="text-center mt-4">
+    <a href="{% url 'progress:achievements' %}" class="btn btn-outline-light">
+        <i class="bi bi-award me-1"></i>View Your Achievements
+    </a>
+</div>
+{% endblock %}
