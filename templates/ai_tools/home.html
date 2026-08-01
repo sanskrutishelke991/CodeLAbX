@@ -1,137 +1,729 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}AI Tools - CodeLabX{% endblock %}
 
 {% block extra_css %}
 <style>
-    body { background: #0A0A0A; color: #e0e0e0; }
+    body { background: var(--bg-primary); }
     
-    .ai-header {
-        background: linear-gradient(135deg, #14B8A6 0%, #14B8A6 100%);
-        border-radius: 8px;
-        padding: 40px;
-        text-align: center;
-        color: white;
-        margin-bottom: 30px;
+    .ai-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
     }
     
-    .ai-header i {
-        font-size: 4rem;
-        margin-bottom: 15px;
+    /* HERO - Compact */
+    .ai-hero {
+        position: relative;
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 20px;
+        overflow: hidden;
     }
     
-    .tool-card {
-        background: var(--bg-secondary);
-        border: 2px solid rgba(20, 184, 166, 0.2);
-        border-radius: 8px;
-        padding: 30px;
-        text-align: center;
-        transition: all 0.3s;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        height: 100%;
+    .ai-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroPulse 6s ease-in-out infinite;
     }
     
-    .tool-card:hover {
-        transform: translateY(-8px);
-        border-color: #14B8A6;
-        box-shadow: 0 20px 50px rgba(20, 184, 166, 0.3);
-        color: inherit;
+    .ai-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        left: -5%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroPulse 8s ease-in-out infinite reverse;
     }
     
-    .tool-icon {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        margin: 0 auto 20px;
+    @keyframes heroPulse {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+        50% { transform: translate(30px, 20px) scale(1.1); opacity: 1; }
+    }
+    
+    .ai-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .ai-hero-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #8B5CF6, #14B8A6);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 3rem;
-    }
-    
-    .icon-purple { background: rgba(20, 184, 166, 0.15); }
-    .icon-red { background: rgba(255, 107, 107, 0.15); }
-    .icon-green { background: rgba(0, 212, 170, 0.15); }
-    .icon-orange { background: rgba(245, 158, 11, 0.15); }
-    
-    .tool-card h4 {
         color: white;
-        margin-bottom: 10px;
+        font-size: 1.75rem;
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
     }
     
-    .tool-card p {
-        color: #a0a0a0;
+    .ai-hero-icon::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3));
+        animation: iconRotate 4s linear infinite;
     }
     
-    .new-badge {
-        background: linear-gradient(135deg, #FF6B6B, #f59e0b);
-        color: white;
+    @keyframes iconRotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .ai-hero-text {
+        flex: 1;
+    }
+    
+    .ai-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         padding: 4px 10px;
-        border-radius: 10px;
-        font-size: 0.75rem;
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 999px;
+        color: #A78BFA;
+        font-size: 0.7rem;
         font-weight: 700;
-        margin-left: 8px;
-        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 4px;
+    }
+    
+    .ai-hero h1 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin: 0 0 4px 0;
+    }
+    
+    .ai-hero h1 span {
+        background: linear-gradient(135deg, #A855F7, #14B8A6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .ai-hero p {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .ai-hero-stats {
+        display: flex;
+        gap: 24px;
+        padding: 16px 24px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+    }
+    
+    .hero-stat {
+        text-align: center;
+    }
+    
+    .hero-stat-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+    
+    .hero-stat-label {
+        font-size: 0.65rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+    }
+    
+    /* FEATURED TOOL - Study Buddy */
+    .featured-tool {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 24px;
+        align-items: center;
+    }
+    
+    .featured-tool::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.15), transparent 60%);
+        filter: blur(60px);
+        pointer-events: none;
+    }
+    
+    .featured-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        padding: 4px 10px;
+        background: linear-gradient(135deg, #F59E0B, #EF4444);
+        color: white;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        z-index: 2;
+    }
+    
+    .featured-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #14B8A6, #06B6D4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        box-shadow: 0 8px 24px rgba(20, 184, 166, 0.4);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .featured-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .featured-content h2 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 4px 0;
+    }
+    
+    .featured-content p {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .featured-launch {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #14B8A6, #06B6D4);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 14px rgba(20, 184, 166, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .featured-launch:hover {
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 8px 24px rgba(20, 184, 166, 0.4);
+    }
+    
+    /* CATEGORY TABS */
+    .category-tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 4px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+    }
+    
+    .cat-tab {
+        padding: 8px 16px;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .cat-tab:hover {
+        color: var(--text-primary);
+    }
+    
+    .cat-tab.active {
+        background: linear-gradient(135deg, #8B5CF6, #14B8A6);
+        color: white;
+    }
+    
+    /* TOOLS GRID - COMPACT */
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    
+    /* TOOL CARD - COMPACT & COLORFUL */
+    .tool-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 14px;
+        padding: 20px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 200px;
+    }
+    
+    .tool-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, var(--tool-color), transparent 60%);
+        filter: blur(50px);
+        opacity: 0.1;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    
+    .tool-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--tool-color);
+        color: inherit;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tool-card:hover::before {
+        opacity: 0.25;
+    }
+    
+    .tool-card:hover .tool-icon {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    
+    /* Tool Colors */
+    .tool-card.chat { --tool-color: #14B8A6; }
+    .tool-card.image { --tool-color: #EC4899; }
+    .tool-card.code { --tool-color: #10B981; }
+    .tool-card.roadmap { --tool-color: #0EA5E9; }
+    .tool-card.challenges { --tool-color: #F59E0B; }
+    .tool-card.test { --tool-color: #A855F7; }
+    
+    /* Card Header */
+    .tool-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .tool-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--tool-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .tool-icon::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    }
+    
+    .tool-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .tool-status.new {
+        background: linear-gradient(135deg, #F59E0B, #EF4444);
+        color: white;
+    }
+    
+    .tool-status.beta {
+        background: rgba(139, 92, 246, 0.15);
+        color: #A78BFA;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    
+    .tool-status.popular {
+        background: rgba(14, 165, 233, 0.15);
+        color: #38BDF8;
+        border: 1px solid rgba(14, 165, 233, 0.3);
+    }
+    
+    /* Card Body */
+    .tool-body {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .tool-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 6px 0;
+        letter-spacing: -0.01em;
+    }
+    
+    .tool-desc {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Card Footer */
+    .tool-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-subtle);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .tool-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+    }
+    
+    .tool-meta i {
+        color: var(--tool-color);
+    }
+    
+    .tool-launch {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--tool-color);
+        font-size: 0.8rem;
+        font-weight: 700;
+        transition: gap 0.2s;
+    }
+    
+    .tool-card:hover .tool-launch {
+        gap: 8px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .tools-grid { grid-template-columns: repeat(3, 1fr); }
+        .featured-tool { grid-template-columns: 1fr; text-align: center; }
+        .featured-launch { justify-self: center; }
+    }
+    
+    @media (max-width: 768px) {
+        .tools-grid { grid-template-columns: repeat(2, 1fr); }
+        .ai-hero-content { flex-direction: column; align-items: flex-start; }
+        .ai-hero-stats { width: 100%; justify-content: space-around; }
+    }
+    
+    @media (max-width: 480px) {
+        .ai-container { padding: 16px; }
+        .ai-hero { padding: 20px; }
+        .tools-grid { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ai-header">
-    <i class="bi bi-robot"></i>
-    <h1>AI Tools</h1>
-    <p class="mb-0" style="opacity: 0.9;">Powerful AI features to accelerate your learning</p>
-</div>
-
-<div class="row g-4">
-    <div class="col-md-6 col-lg-4">
-        <a href="#" class="tool-card" onclick="document.getElementById('chatToggleBtn').click(); return false;">
-            <div class="tool-icon icon-purple">💬</div>
-            <h4>AI Study Buddy</h4>
-            <p>Chat with AI about any topic. Get instant answers and explanations.</p>
-        </a>
+<div class="ai-container">
+    
+    <!-- COMPACT HERO -->
+    <div class="ai-hero">
+        <div class="ai-hero-content">
+            <div class="ai-hero-icon">
+                <i class="bi bi-robot"></i>
+            </div>
+            
+            <div class="ai-hero-text">
+                <div class="ai-hero-eyebrow">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    <span>Powered by Gemini AI</span>
+                </div>
+                <h1>AI <span>Toolbox</span></h1>
+                <p>Powerful AI features to supercharge your learning journey.</p>
+            </div>
+            
+            <div class="ai-hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">6</div>
+                    <div class="hero-stat-label">Tools</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">24/7</div>
+                    <div class="hero-stat-label">Available</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">∞</div>
+                    <div class="hero-stat-label">Queries</div>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <div class="col-md-6 col-lg-4">
-        <a href="{% url 'ai_tools:image_analyzer' %}" class="tool-card">
-            <div class="tool-icon icon-red">🖼️</div>
-            <h4>Image Analyzer <span class="new-badge">NEW</span></h4>
-            <p>Upload photos of notes, code, math, or diagrams. AI explains everything!</p>
-        </a>
+    <!-- FEATURED TOOL - Study Buddy -->
+    <div class="featured-tool">
+        <span class="featured-badge">⭐ Featured</span>
+        <div class="featured-icon">
+            <i class="bi bi-chat-heart-fill"></i>
+        </div>
+        <div class="featured-content">
+            <h2>AI Study Buddy</h2>
+            <p>Your personal AI tutor available 24/7. Ask anything, get instant answers.</p>
+        </div>
+        <button class="featured-launch" onclick="if(typeof toggleChat === 'function') toggleChat();">
+            <i class="bi bi-chat-dots"></i>
+            <span>Start Chatting</span>
+        </button>
     </div>
     
-    <div class="col-md-6 col-lg-4">
-        <a href="{% url 'practice:examiner' %}" class="tool-card">
-            <div class="tool-icon icon-green">💻</div>
-            <h4>Code Examiner</h4>
-            <p>Get instant AI feedback on your code with detailed analysis.</p>
-        </a>
+    <!-- CATEGORY TABS -->
+    <div class="category-tabs">
+        <button class="cat-tab active">
+            <i class="bi bi-grid-fill"></i>
+            All Tools
+        </button>
+        <button class="cat-tab">
+            <i class="bi bi-magic"></i>
+            AI Generation
+        </button>
+        <button class="cat-tab">
+            <i class="bi bi-code-slash"></i>
+            Coding
+        </button>
+        <button class="cat-tab">
+            <i class="bi bi-image"></i>
+            Vision AI
+        </button>
+        <button class="cat-tab">
+            <i class="bi bi-star-fill"></i>
+            Popular
+        </button>
     </div>
     
-    <div class="col-md-6 col-lg-4">
-        <a href="{% url 'learning:roadmap_create' %}" class="tool-card">
-            <div class="tool-icon icon-orange">🗺️</div>
-            <h4>AI Roadmap Generator</h4>
-            <p>Personalized learning paths tailored to your goals.</p>
+    <!-- TOOLS GRID -->
+    <div class="tools-grid">
+        
+        <!-- AI Study Buddy -->
+        <a href="#" onclick="if(typeof toggleChat === 'function') toggleChat(); return false;" class="tool-card chat">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="bi bi-chat-dots-fill"></i>
+                </div>
+                <span class="tool-status popular">Popular</span>
+            </div>
+            <div class="tool-body">
+                <h3 class="tool-title">Study Buddy</h3>
+                <p class="tool-desc">Chat with AI about any topic. Get instant answers and explanations.</p>
+            </div>
+            <div class="tool-footer">
+                <div class="tool-meta">
+                    <i class="bi bi-lightning-fill"></i>
+                    <span>Instant</span>
+                </div>
+                <span class="tool-launch">
+                    Open <i class="bi bi-arrow-right"></i>
+                </span>
+            </div>
         </a>
-    </div>
-    
-    <div class="col-md-6 col-lg-4">
-        <a href="{% url 'challenges:dashboard' %}" class="tool-card">
-            <div class="tool-icon icon-purple">⚡</div>
-            <h4>Daily Challenges</h4>
-            <p>AI-generated coding and theory challenges every day.</p>
+        
+        <!-- Image Analyzer -->
+        <a href="{% url 'ai_tools:image_analyzer' %}" class="tool-card image">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="bi bi-image-fill"></i>
+                </div>
+                <span class="tool-status new">New</span>
+            </div>
+            <div class="tool-body">
+                <h3 class="tool-title">Image Analyzer</h3>
+                <p class="tool-desc">Upload photos of notes, code, math or diagrams. AI explains everything!</p>
+            </div>
+            <div class="tool-footer">
+                <div class="tool-meta">
+                    <i class="bi bi-camera"></i>
+                    <span>Vision AI</span>
+                </div>
+                <span class="tool-launch">
+                    Open <i class="bi bi-arrow-right"></i>
+                </span>
+            </div>
         </a>
-    </div>
-    
-    <div class="col-md-6 col-lg-4">
-        <a href="{% url 'assessments:quiz_list' %}" class="tool-card">
-            <div class="tool-icon icon-green">📝</div>
-            <h4>AI Test Generator</h4>
-            <p>Custom tests with auto-grading and detailed explanations.</p>
+        
+        <!-- Code Examiner -->
+        <a href="{% url 'practice:examiner' %}" class="tool-card code">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="bi bi-code-slash"></i>
+                </div>
+            </div>
+            <div class="tool-body">
+                <h3 class="tool-title">Code Examiner</h3>
+                <p class="tool-desc">Get instant AI feedback on your code with detailed analysis.</p>
+            </div>
+            <div class="tool-footer">
+                <div class="tool-meta">
+                    <i class="bi bi-bug"></i>
+                    <span>Debug</span>
+                </div>
+                <span class="tool-launch">
+                    Open <i class="bi bi-arrow-right"></i>
+                </span>
+            </div>
         </a>
+        
+        <!-- AI Roadmap Generator -->
+        <a href="{% url 'learning:roadmap_create' %}" class="tool-card roadmap">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="bi bi-map-fill"></i>
+                </div>
+            </div>
+            <div class="tool-body">
+                <h3 class="tool-title">Roadmap AI</h3>
+                <p class="tool-desc">Personalized learning paths tailored to your goals and pace.</p>
+            </div>
+            <div class="tool-footer">
+                <div class="tool-meta">
+                    <i class="bi bi-bullseye"></i>
+                    <span>Custom</span>
+                </div>
+                <span class="tool-launch">
+                    Open <i class="bi bi-arrow-right"></i>
+                </span>
+            </div>
+        </a>
+        
+        <!-- Daily Challenges -->
+        <a href="{% url 'challenges:dashboard' %}" class="tool-card challenges">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <span class="tool-status popular">Popular</span>
+            </div>
+            <div class="tool-body">
+                <h3 class="tool-title">Daily Challenges</h3>
+                <p class="tool-desc">AI-generated coding and theory challenges every single day.</p>
+            </div>
+            <div class="tool-footer">
+                <div class="tool-meta">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Daily</span>
+                </div>
+                <span class="tool-launch">
+                    Open <i class="bi bi-arrow-right"></i>
+                </span>
+            </div>
+        </a>
+        
+        <!-- AI Test Generator -->
+        <a href="{% url 'assessments:create' %}" class="tool-card test">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                </div>
+            </div>
+            <div class="tool-body">
+                <h3 class="tool-title">Test Generator</h3>
+                <p class="tool-desc">Custom tests with auto-grading and detailed explanations.</p>
+            </div>
+            <div class="tool-footer">
+                <div class="tool-meta">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Auto-grade</span>
+                </div>
+                <span class="tool-launch">
+                    Open <i class="bi bi-arrow-right"></i>
+                </span>
+            </div>
+        </a>
+        
     </div>
 </div>
 {% endblock %}

@@ -12,19 +12,106 @@ from ai_tools.services import GeminiService
 
 @login_required
 def quiz_list(request):
-    """Display all tests for the current user."""
+    """Enhanced quiz list with stats and filters"""
+    from django.db.models import Avg, Count, Q, Sum
+    from .models import Test, TestAttempt
+    
+    # Get filter params
     status_filter = request.GET.get('status', 'all')
+    difficulty_filter = request.GET.get('difficulty', 'all')
+    search_query = request.GET.get('search', '')
+    sort_by = request.GET.get('sort', 'recent')
+    view_mode = request.GET.get('view', 'grid')
+    
+    # Get user tests
     tests = Test.objects.filter(user=request.user)
     
+    # Apply filters
     if status_filter != 'all':
         tests = tests.filter(status=status_filter)
     
-    tests = tests.order_by('-created_at')
+    if difficulty_filter != 'all':
+        tests = tests.filter(difficulty=difficulty_filter)
     
-    return render(request, 'assessments/quiz_list.html', {
+    if search_query:
+        tests = tests.filter(
+            Q(title__icontains=search_query) | 
+            Q(topic__icontains=search_query)
+        )
+    
+    # Apply sorting
+    if sort_by == 'recent':
+        tests = tests.order_by('-created_at')
+    elif sort_by == 'score':
+        tests = tests.order_by('-score')
+    elif sort_by == 'name':
+        tests = tests.order_by('title')
+    elif sort_by == 'difficulty':
+        tests = tests.order_by('difficulty')
+    
+    # Calculate stats
+    all_tests = Test.objects.filter(user=request.user)
+    total_tests = all_tests.count()
+    completed_tests = all_tests.filter(status='completed').count()
+    in_progress = all_tests.filter(status='in_progress').count()
+    created_tests = all_tests.filter(status='created').count()
+    
+    # Score stats
+    completed_qs = all_tests.filter(status='completed')
+    if completed_qs.exists():
+        avg_score_calc = 0
+        total_score_pct = 0
+        best_score = 0
+        for test in completed_qs:
+            if test.total_marks > 0:
+                pct = (test.score / test.total_marks) * 100
+                total_score_pct += pct
+                if pct > best_score:
+                    best_score = pct
+        avg_score = round(total_score_pct / completed_qs.count(), 1) if completed_qs.count() > 0 else 0
+        best_score = round(best_score, 1)
+    else:
+        avg_score = 0
+        best_score = 0
+    
+    # Difficulty distribution
+    easy_count = all_tests.filter(difficulty='easy').count()
+    medium_count = all_tests.filter(difficulty='medium').count()
+    hard_count = all_tests.filter(difficulty='hard').count()
+    
+    # Recent completed tests (for performance chart)
+    recent_completed = completed_qs.order_by('-completed_at')[:5]
+    
+    # Time stats
+    total_time_seconds = 0
+    for test in all_tests:
+        if hasattr(test, 'time_limit_minutes') and test.time_limit_minutes:
+            total_time_seconds += test.time_limit_minutes * 60
+    
+    total_hours = round(total_time_seconds / 3600, 1)
+    
+    context = {
         'tests': tests,
-        'status_filter': status_filter
-    })
+        'total_tests': total_tests,
+        'completed_tests': completed_tests,
+        'in_progress': in_progress,
+        'created_tests': created_tests,
+        'avg_score': avg_score,
+        'best_score': best_score,
+        'easy_count': easy_count,
+        'medium_count': medium_count,
+        'hard_count': hard_count,
+        'total_hours': total_hours,
+        'recent_completed': recent_completed,
+        'status_filter': status_filter,
+        'difficulty_filter': difficulty_filter,
+        'search_query': search_query,
+        'sort_by': sort_by,
+        'view_mode': view_mode,
+    }
+    
+    return render(request, 'assessments/quiz_list.html', context)
+
 
 
 @login_required

@@ -1,96 +1,1138 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Assessments - CodeLabX{% endblock %}
+
 {% block extra_css %}
 <style>
-body { background: #0A0A0A; color: #e0e0e0; }
-.quiz-header { background: var(--accent); border-radius: 8px; padding: 25px; margin-bottom: 25px; color: white; }
-.quiz-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 25px; margin-bottom: 20px; transition: transform 0.2s, box-shadow 0.2s; }
-.quiz-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(108,99,255,0.3); }
-.btn-create-quiz { background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle); border: none; color: white; padding: 12px 30px; border-radius: 12px; font-weight: 600; }
-.btn-create-quiz:hover { transform: translateY(-2px); color: white; }
-.status-badge { padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
-.status-created { background: rgba(108,99,255,0.2); color: #14B8A6; }
-.status-in_progress { background: rgba(255,193,7,0.2); color: #ffc107; }
-.status-completed { background: rgba(0,212,170,0.2); color: #00D4AA; }
-.difficulty-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; }
-.difficulty-easy { background: rgba(0,212,170,0.2); color: #00D4AA; }
-.difficulty-medium { background: rgba(255,193,7,0.2); color: #ffc107; }
-.difficulty-hard { background: rgba(255,107,107,0.2); color: #FF6B6B; }
-.empty-state { text-align: center; padding: 60px 20px; color: #a0a0a0; }
-.empty-state i { font-size: 4rem; color: #14B8A6; opacity: 0.5; }
-.filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e0e0e0; padding: 8px 16px; border-radius: 8px; margin-right: 8px; }
-.filter-btn:hover, .filter-btn.active { background: #14B8A6; border-color: #14B8A6; color: white; }
+    body { background: var(--bg-primary); }
+    
+    .as-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    /* HERO */
+    .as-hero {
+        position: relative;
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    
+    .as-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroGlow 8s ease-in-out infinite;
+    }
+    
+    .as-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.12), transparent 60%);
+        filter: blur(60px);
+        animation: heroGlow 10s ease-in-out infinite reverse;
+    }
+    
+    @keyframes heroGlow {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+        50% { transform: translate(50px, 30px) scale(1.1); opacity: 1; }
+    }
+    
+    .as-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+    
+    .as-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: rgba(236, 72, 153, 0.15);
+        border: 1px solid rgba(236, 72, 153, 0.3);
+        border-radius: 999px;
+        color: #EC4899;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 16px;
+    }
+    
+    .as-hero h1 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.03em;
+        margin-bottom: 8px;
+        line-height: 1.1;
+    }
+    
+    .as-hero h1 span {
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .as-hero p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        max-width: 500px;
+    }
+    
+    .btn-create-test {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        text-decoration: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+    }
+    
+    .btn-create-test::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transition: left 0.6s ease;
+    }
+    
+    .btn-create-test:hover::before { left: 150%; }
+    
+    .btn-create-test:hover {
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.45);
+    }
+    
+    /* STATS GRID */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, var(--stat-color), transparent 60%);
+        filter: blur(40px);
+        opacity: 0.15;
+        pointer-events: none;
+    }
+    
+    .stat-card:hover {
+        border-color: var(--stat-color);
+        transform: translateY(-2px);
+    }
+    
+    .stat-card.total { --stat-color: #EC4899; }
+    .stat-card.done { --stat-color: #10B981; }
+    .stat-card.avg { --stat-color: #0EA5E9; }
+    .stat-card.best { --stat-color: #F59E0B; }
+    .stat-card.time { --stat-color: #8B5CF6; }
+    
+    .stat-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--stat-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+    }
+    
+    .stat-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .stat-suffix {
+        font-size: 1rem;
+        color: var(--text-tertiary);
+        font-weight: 600;
+    }
+    
+    /* DIFFICULTY OVERVIEW */
+    .difficulty-bar {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+    }
+    
+    .difficulty-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+    
+    .difficulty-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .difficulty-total {
+        color: var(--text-tertiary);
+        font-size: 0.85rem;
+    }
+    
+    .difficulty-bars {
+        display: flex;
+        gap: 8px;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+    
+    .diff-bar {
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .diff-bar:hover { opacity: 0.8; }
+    
+    .diff-bar.easy { background: linear-gradient(90deg, #10B981, #14B8A6); }
+    .diff-bar.medium { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+    .diff-bar.hard { background: linear-gradient(90deg, #EF4444, #F87171); }
+    
+    .difficulty-legend {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .diff-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    
+    .diff-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+    }
+    
+    .diff-legend-dot.easy { background: linear-gradient(90deg, #10B981, #14B8A6); }
+    .diff-legend-dot.medium { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+    .diff-legend-dot.hard { background: linear-gradient(90deg, #EF4444, #F87171); }
+    
+    /* FILTERS */
+    .as-filters {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        padding: 3px;
+    }
+    
+    .filter-tab {
+        padding: 8px 16px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+    
+    .filter-tab:hover { color: var(--text-primary); }
+    
+    .filter-tab.active {
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        color: white;
+    }
+    
+    .filter-tab .count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 18px;
+        padding: 0 5px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    
+    .filter-tab:not(.active) .count {
+        background: var(--bg-elevated);
+        color: var(--text-tertiary);
+    }
+    
+    .filter-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .search-box {
+        position: relative;
+        min-width: 240px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 8px 14px 8px 36px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #EC4899;
+        background: var(--bg-elevated);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-tertiary);
+    }
+    
+    .sort-select {
+        padding: 8px 14px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    
+    /* TESTS GRID */
+    .tests-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 20px;
+    }
+    
+    /* TEST CARD */
+    .test-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 300px;
+    }
+    
+    .test-card::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, var(--card-color), transparent 60%);
+        filter: blur(60px);
+        opacity: 0.15;
+        pointer-events: none;
+    }
+    
+    .test-card.easy { --card-color: #10B981; }
+    .test-card.medium { --card-color: #F59E0B; }
+    .test-card.hard { --card-color: #EF4444; }
+    
+    .test-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--card-color);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Card Header */
+    .test-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .test-badges {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    
+    .badge-difficulty {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .badge-difficulty.easy {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10B981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .badge-difficulty.medium {
+        background: rgba(245, 158, 11, 0.15);
+        color: #F59E0B;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .badge-difficulty.hard {
+        background: rgba(239, 68, 68, 0.15);
+        color: #EF4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    
+    .badge-status {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .badge-status.completed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10B981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .badge-status.in_progress {
+        background: rgba(245, 158, 11, 0.15);
+        color: #F59E0B;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .badge-status.created {
+        background: rgba(14, 165, 233, 0.15);
+        color: #0EA5E9;
+        border: 1px solid rgba(14, 165, 233, 0.3);
+    }
+    
+    /* Card Body */
+    .test-card-body {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .test-topic {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    
+    .test-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+    }
+    
+    /* Score Display */
+    .score-display {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 16px;
+        background: var(--bg-tertiary);
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .score-ring {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+    }
+    
+    .score-ring svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+    
+    .score-ring-bg {
+        fill: none;
+        stroke: var(--border-default);
+        stroke-width: 6;
+    }
+    
+    .score-ring-fill {
+        fill: none;
+        stroke: var(--card-color);
+        stroke-width: 6;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s ease;
+    }
+    
+    .score-ring-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .score-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .score-label {
+        font-size: 0.6rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .score-info {
+        flex: 1;
+    }
+    
+    .score-marks {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    
+    .score-marks .score-total {
+        color: var(--text-tertiary);
+        font-weight: 600;
+    }
+    
+    .score-grade {
+        font-size: 0.75rem;
+        color: var(--card-color);
+        font-weight: 700;
+    }
+    
+    /* Placeholder for in-progress/created */
+    .test-placeholder {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        background: var(--bg-tertiary);
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .placeholder-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--card-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .placeholder-text h4 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    
+    .placeholder-text p {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+    
+    /* Meta Info */
+    .test-meta {
+        display: flex;
+        gap: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-subtle);
+        margin-bottom: 16px;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+    
+    .meta-item i {
+        color: var(--card-color);
+    }
+    
+    /* Actions */
+    .test-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-test-primary {
+        flex: 1;
+        padding: 10px 16px;
+        background: var(--card-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    .btn-test-primary:hover {
+        opacity: 0.9;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .btn-test-secondary {
+        padding: 10px 16px;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    .btn-test-secondary:hover {
+        border-color: var(--card-color);
+        color: var(--card-color);
+    }
+    
+    /* CREATE NEW TEST CARD */
+    .create-test-card {
+        background: var(--bg-secondary);
+        border: 2px dashed var(--border-default);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 300px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .create-test-card:hover {
+        border-color: #EC4899;
+        background: rgba(236, 72, 153, 0.05);
+        transform: translateY(-4px);
+        color: inherit;
+    }
+    
+    .create-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
+    }
+    
+    .create-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    
+    .create-desc {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+    
+    .test-templates {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .template-chip {
+        padding: 4px 10px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+    
+    /* EMPTY STATE */
+    .empty-state {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 20px;
+        padding: 80px 40px;
+        text-align: center;
+    }
+    
+    .empty-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 24px;
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #EC4899;
+    }
+    
+    .empty-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+    
+    .empty-desc {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        max-width: 500px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+    }
+    
+    /* Responsive */
+    @media (max-width: 900px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .as-hero-content { flex-direction: column; align-items: flex-start; }
+        .filter-right { width: 100%; justify-content: space-between; }
+    }
+    
+    @media (max-width: 640px) {
+        .as-container { padding: 16px; }
+        .as-hero { padding: 24px; }
+        .as-hero h1 { font-size: 1.75rem; }
+        .stats-grid { grid-template-columns: 1fr; }
+        .tests-grid { grid-template-columns: 1fr; }
+    }
 </style>
 {% endblock %}
+
 {% block content %}
-<div class="quiz-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-clipboard-check me-2"></i>Assessments</h2>
-            <p class="mb-0" style="opacity: 0.9;">Test your knowledge with AI-generated quizzes</p>
+<div class="as-container">
+    
+    <!-- HERO -->
+    <div class="as-hero">
+        <div class="as-hero-content">
+            <div>
+                <div class="as-hero-eyebrow">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                    <span>Test Your Knowledge</span>
+                </div>
+                <h1>Your <span>Assessments</span></h1>
+                <p>Challenge yourself with AI-generated tests. Track your progress and identify areas for improvement.</p>
+            </div>
+            <a href="{% url 'assessments:create' %}" class="btn-create-test">
+                <i class="bi bi-plus-lg"></i>
+                Create New Test
+            </a>
         </div>
-        <a href="{% url 'assessments:create' %}" class="btn btn-create-quiz">
-            <i class="bi bi-plus-circle me-2"></i>Create New Test
-        </a>
     </div>
-</div>
-
-<div class="mb-4">
-    <button class="filter-btn {% if status_filter == 'all' %}active{% endif %}" onclick="filterTests('all')">All</button>
-    <button class="filter-btn {% if status_filter == 'created' %}active{% endif %}" onclick="filterTests('created')">Created</button>
-    <button class="filter-btn {% if status_filter == 'in_progress' %}active{% endif %}" onclick="filterTests('in_progress')">In Progress</button>
-    <button class="filter-btn {% if status_filter == 'completed' %}active{% endif %}" onclick="filterTests('completed')">Completed</button>
-</div>
-
-{% if tests %}
-    <div class="row">
+    
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+        <div class="stat-card total">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-clipboard-check-fill"></i></div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat-value">{{ total_tests }}</div>
+        </div>
+        
+        <div class="stat-card done">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-value">{{ completed_tests }}</div>
+        </div>
+        
+        <div class="stat-card avg">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
+                <div class="stat-label">Avg Score</div>
+            </div>
+            <div class="stat-value">{{ avg_score }}<span class="stat-suffix">%</span></div>
+        </div>
+        
+        <div class="stat-card best">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-trophy-fill"></i></div>
+                <div class="stat-label">Best Score</div>
+            </div>
+            <div class="stat-value">{{ best_score }}<span class="stat-suffix">%</span></div>
+        </div>
+        
+        <div class="stat-card time">
+            <div class="stat-header">
+                <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
+                <div class="stat-label">Time Total</div>
+            </div>
+            <div class="stat-value">{{ total_hours }}<span class="stat-suffix">h</span></div>
+        </div>
+    </div>
+    
+    <!-- DIFFICULTY DISTRIBUTION -->
+    {% if total_tests > 0 %}
+    <div class="difficulty-bar">
+        <div class="difficulty-header">
+            <div class="difficulty-title">
+                <i class="bi bi-bar-chart-line-fill"></i>
+                Difficulty Distribution
+            </div>
+            <div class="difficulty-total">{{ total_tests }} tests total</div>
+        </div>
+        <div class="difficulty-bars">
+            {% if easy_count > 0 %}
+            <div class="diff-bar easy" style="width: {% widthratio easy_count total_tests 100 %}%;" title="{{ easy_count }} easy tests"></div>
+            {% endif %}
+            {% if medium_count > 0 %}
+            <div class="diff-bar medium" style="width: {% widthratio medium_count total_tests 100 %}%;" title="{{ medium_count }} medium tests"></div>
+            {% endif %}
+            {% if hard_count > 0 %}
+            <div class="diff-bar hard" style="width: {% widthratio hard_count total_tests 100 %}%;" title="{{ hard_count }} hard tests"></div>
+            {% endif %}
+        </div>
+        <div class="difficulty-legend">
+            <div class="diff-legend-item">
+                <div class="diff-legend-dot easy"></div>
+                <span><strong>{{ easy_count }}</strong> Easy</span>
+            </div>
+            <div class="diff-legend-item">
+                <div class="diff-legend-dot medium"></div>
+                <span><strong>{{ medium_count }}</strong> Medium</span>
+            </div>
+            <div class="diff-legend-item">
+                <div class="diff-legend-dot hard"></div>
+                <span><strong>{{ hard_count }}</strong> Hard</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- FILTERS -->
+    <div class="as-filters">
+        <div class="filter-tabs">
+            <a href="?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">
+                All <span class="count">{{ total_tests }}</span>
+            </a>
+            <a href="?status=created" class="filter-tab {% if status_filter == 'created' %}active{% endif %}">
+                <i class="bi bi-plus-circle"></i> Created <span class="count">{{ created_tests }}</span>
+            </a>
+            <a href="?status=in_progress" class="filter-tab {% if status_filter == 'in_progress' %}active{% endif %}">
+                <i class="bi bi-play-circle"></i> In Progress <span class="count">{{ in_progress }}</span>
+            </a>
+            <a href="?status=completed" class="filter-tab {% if status_filter == 'completed' %}active{% endif %}">
+                <i class="bi bi-check-circle"></i> Completed <span class="count">{{ completed_tests }}</span>
+            </a>
+        </div>
+        
+        <div class="filter-right">
+            <div class="search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search tests..." value="{{ search_query }}" onkeypress="if(event.key==='Enter')window.location.href='?search='+this.value">
+            </div>
+            <select class="sort-select" onchange="window.location.href='?sort='+this.value">
+                <option value="recent" {% if sort_by == 'recent' %}selected{% endif %}>Recent</option>
+                <option value="score" {% if sort_by == 'score' %}selected{% endif %}>Best Score</option>
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                <option value="difficulty" {% if sort_by == 'difficulty' %}selected{% endif %}>Difficulty</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- TESTS GRID -->
+    {% if tests %}
+    <div class="tests-grid">
         {% for test in tests %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="quiz-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h5 class="mb-0" style="color: white;">{{ test.title }}</h5>
-                    <span class="status-badge status-{{ test.status }}">{{ test.get_status_display }}</span>
+        <div class="test-card {{ test.difficulty }}">
+            <div class="test-card-header">
+                <div class="test-badges">
+                    <span class="badge-difficulty {{ test.difficulty }}">
+                        {% if test.difficulty == 'easy' %}<i class="bi bi-lightning"></i>
+                        {% elif test.difficulty == 'medium' %}<i class="bi bi-fire"></i>
+                        {% elif test.difficulty == 'hard' %}<i class="bi bi-lightning-charge-fill"></i>{% endif %}
+                        {{ test.difficulty }}
+                    </span>
+                    <span class="badge-status {{ test.status }}">
+                        {{ test.get_status_display }}
+                    </span>
                 </div>
-                <p class="text-muted mb-3">{{ test.topic }}</p>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="difficulty-badge difficulty-{{ test.difficulty }}">{{ test.get_difficulty_display }}</span>
-                    <small class="text-muted">{{ test.num_questions }} questions</small>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    {% if test.status == 'completed' %}
-                        <div>
-                            <span style="color: #00D4AA; font-weight: 700;">{{ test.score }}/{{ test.total_marks }}</span>
-                            <small class="text-muted ms-2">({{ test.percentage }}%)</small>
+            </div>
+            
+            <div class="test-card-body">
+                <div class="test-topic">{{ test.topic|default:"General Knowledge" }}</div>
+                <h3 class="test-title">{{ test.title }}</h3>
+                
+                {% if test.status == 'completed' and test.total_marks > 0 %}
+                <div class="score-display">
+                    <div class="score-ring">
+                        <svg viewBox="0 0 80 80">
+                            <circle class="score-ring-bg" cx="40" cy="40" r="35"></circle>
+                            <circle class="score-ring-fill" cx="40" cy="40" r="35"
+                                    style="stroke-dasharray: 220; stroke-dashoffset: calc(220 - (220 * {{ test.score }} / {{ test.total_marks }}));"></circle>
+                        </svg>
+                        <div class="score-ring-text">
+                            <div class="score-value">{% widthratio test.score test.total_marks 100 %}%</div>
+                            <div class="score-label">Score</div>
                         </div>
-                        <a href="{% url 'assessments:result' test_id=test.id %}" class="btn btn-sm btn-outline-light">View Results</a>
-                    {% elif test.status == 'in_progress' %}
-                        <small class="text-muted">{{ test.time_limit_minutes }} min limit</small>
-                        <a href="{% url 'assessments:take' test_id=test.id %}" class="btn btn-sm btn-primary">Continue</a>
-                    {% else %}
-                        <small class="text-muted">{{ test.time_limit_minutes }} min limit</small>
-                        <a href="{% url 'assessments:take' test_id=test.id %}" class="btn btn-sm btn-primary">Start Test</a>
+                    </div>
+                    <div class="score-info">
+                        <div class="score-marks">{{ test.score }}<span class="score-total">/{{ test.total_marks }}</span></div>
+                        <div class="score-grade">
+                            {% if test.score >= 90 %}Excellent!
+                            {% elif test.score >= 75 %}Great job!
+                            {% elif test.score >= 60 %}Good effort
+                            {% else %}Keep practicing{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="test-placeholder">
+                    <div class="placeholder-icon">
+                        {% if test.status == 'in_progress' %}<i class="bi bi-play-fill"></i>
+                        {% else %}<i class="bi bi-clock-history"></i>{% endif %}
+                    </div>
+                    <div class="placeholder-text">
+                        <h4>{% if test.status == 'in_progress' %}Resume Test{% else %}Ready to Start{% endif %}</h4>
+                        <p>{% if test.status == 'in_progress' %}Continue where you left off{% else %}Take this test now{% endif %}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="test-meta">
+                    <div class="meta-item">
+                        <i class="bi bi-question-circle-fill"></i>
+                        <span>{{ test.total_questions|default:0 }} questions</span>
+                    </div>
+                    {% if test.time_limit_minutes %}
+                    <div class="meta-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ test.time_limit_minutes }} min</span>
+                    </div>
                     {% endif %}
                 </div>
             </div>
+            
+            <div class="test-actions">
+                {% if test.status == 'completed' %}
+                <a href="{% url 'assessments:result' test.id %}" class="btn-test-primary">
+                    <i class="bi bi-eye-fill"></i> View Results
+                </a>
+                <a href="{% url 'assessments:take' test.id %}" class="btn-test-secondary" title="Retake">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+                {% elif test.status == 'in_progress' %}
+                <a href="{% url 'assessments:take' test.id %}" class="btn-test-primary">
+                    <i class="bi bi-play-fill"></i> Resume Test
+                </a>
+                {% else %}
+                <a href="{% url 'assessments:take' test.id %}" class="btn-test-primary">
+                    <i class="bi bi-play-fill"></i> Start Test
+                </a>
+                {% endif %}
+            </div>
         </div>
         {% endfor %}
-    </div>
-{% else %}
-    <div class="empty-state">
-        <i class="bi bi-clipboard-check"></i>
-        <h4 style="color: white;">No Tests Yet</h4>
-        <p>Create your first AI-generated test to get started!</p>
-        <a href="{% url 'assessments:create' %}" class="btn btn-create-quiz mt-3">
-            <i class="bi bi-plus-circle me-2"></i>Create Test
+        
+        <!-- Create New Card -->
+        <a href="{% url 'assessments:create' %}" class="create-test-card">
+            <div class="create-icon">
+                <i class="bi bi-plus-lg"></i>
+            </div>
+            <div class="create-title">Create Custom Test</div>
+            <div class="create-desc">Generate AI-powered tests on any topic</div>
+            <div class="test-templates">
+                <span class="template-chip">Python</span>
+                <span class="template-chip">ML</span>
+                <span class="template-chip">DSA</span>
+                <span class="template-chip">Web Dev</span>
+            </div>
         </a>
     </div>
-{% endif %}
-{% endblock %}
-{% block extra_js %}
-<script>
-function filterTests(status) {
-    window.location.href = "{% url 'assessments:quiz_list' %}?status=" + status;
-}
-</script>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon"><i class="bi bi-clipboard-plus"></i></div>
+        <h2 class="empty-title">
+            {% if search_query or status_filter != 'all' %}No tests match your filters
+            {% else %}Ready to test your knowledge?{% endif %}
+        </h2>
+        <p class="empty-desc">
+            {% if search_query or status_filter != 'all' %}Try adjusting your search or filters.
+            {% else %}Create your first AI-generated test. Choose a topic, set difficulty, and challenge yourself!{% endif %}
+        </p>
+        <a href="{% url 'assessments:create' %}" class="btn-create-test">
+            <i class="bi bi-plus-lg"></i> Create Your First Test
+        </a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

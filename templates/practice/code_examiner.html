@@ -1,161 +1,1102 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}AI Code Examiner - CodeLabX{% endblock %}
+
 {% block extra_css %}
 <style>
-body { background: #0A0A0A; color: #e0e0e0; }
-.examiner-header { background: var(--accent); border-radius: 8px; padding: 25px; margin-bottom: 25px; color: white; }
-.code-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 25px; margin-bottom: 20px; }
-.form-control, .form-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; }
-.form-control:focus, .form-select:focus { background: rgba(255,255,255,0.08); border-color: #14B8A6; color: white; }
-.code-editor { background: #0A0A0A; border: 1px solid rgba(108,99,255,0.3); border-radius: 10px; color: #00D4AA; font-family: monospace; font-size: 14px; min-height: 350px; padding: 20px; width: 100%; resize: vertical; }
-.btn-check-code { background: var(--accent); border: none; color: white; padding: 15px 40px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; width: 100%; margin-top: 15px; cursor: pointer; }
-.btn-check-code:hover:not(:disabled) { transform: translateY(-2px); color: white; }
-.btn-clear-code { background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); color: #FF6B6B; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
-#feedbackContent { color: #e0e0e0; line-height: 1.8; }
-#feedbackContent h1, #feedbackContent h2, #feedbackContent h3 { color: white; margin-top: 25px; }
-#feedbackContent h2 { border-bottom: 2px solid #14B8A6; padding-bottom: 10px; }
-#feedbackContent code { background: rgba(108,99,255,0.15); padding: 2px 8px; border-radius: 4px; color: #FF6B6B; }
-#feedbackContent pre { background: #0A0A0A; border: 1px solid rgba(108,99,255,0.3); border-radius: 10px; padding: 20px; overflow-x: auto; }
-#feedbackContent pre code { background: none; color: #00D4AA; }
-#feedbackContent strong { color: white; }
-.spinner-custom { width: 50px; height: 50px; border: 4px solid rgba(108,99,255,0.2); border-top-color: #14B8A6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty-state { text-align: center; padding: 40px 20px; color: #a0a0a0; }
-.empty-state i { font-size: 3.5rem; color: #14B8A6; opacity: 0.5; }
+    body { background: var(--bg-primary); }
+    
+    .ce-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    /* HERO */
+    .ce-hero {
+        position: relative;
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 24px 32px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    
+    .ce-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroFloat 6s ease-in-out infinite;
+    }
+    
+    .ce-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        left: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroFloat 8s ease-in-out infinite reverse;
+    }
+    
+    @keyframes heroFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(30px, 20px) scale(1.1); }
+    }
+    
+    .ce-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .ce-hero-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .ce-hero-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #8B5CF6, #EC4899);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ce-hero-icon::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.2));
+        animation: iconShine 3s ease-in-out infinite;
+    }
+    
+    @keyframes iconShine {
+        0%, 100% { transform: translateX(-100%) rotate(0deg); }
+        50% { transform: translateX(100%) rotate(180deg); }
+    }
+    
+    .ce-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 999px;
+        color: #A78BFA;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 4px;
+    }
+    
+    .ce-hero h1 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin: 0;
+    }
+    
+    .ce-hero h1 span {
+        background: linear-gradient(135deg, #A855F7, #EC4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .ce-hero p {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 4px 0 0 0;
+    }
+    
+    .btn-back {
+        padding: 10px 20px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    
+    .btn-back:hover {
+        background: var(--bg-tertiary);
+        border-color: #A855F7;
+        color: #A855F7;
+    }
+    
+    /* MAIN LAYOUT */
+    .ce-main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    /* PANEL - CODE EDITOR */
+    .code-panel {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Panel Header */
+    .panel-header {
+        padding: 16px 20px;
+        background: var(--bg-tertiary);
+        border-bottom: 1px solid var(--border-default);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .panel-title-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .panel-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .panel-icon.code {
+        background: linear-gradient(135deg, #10B981, #14B8A6);
+    }
+    
+    .panel-icon.feedback {
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+    }
+    
+    .panel-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+    
+    .panel-actions {
+        display: flex;
+        gap: 6px;
+    }
+    
+    .panel-action-btn {
+        width: 32px;
+        height: 32px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    
+    .panel-action-btn:hover {
+        color: var(--text-primary);
+        border-color: var(--accent);
+    }
+    
+    /* SETTINGS BAR */
+    .settings-bar {
+        padding: 16px 20px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-subtle);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    .settings-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .settings-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+    }
+    
+    .settings-select {
+        padding: 10px 12px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+    
+    .settings-select:focus, .settings-select:hover {
+        border-color: #10B981;
+        outline: none;
+    }
+    
+    /* PROBLEM AREA */
+    .problem-area {
+        padding: 16px 20px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .problem-input {
+        width: 100%;
+        min-height: 60px;
+        padding: 12px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        resize: vertical;
+        transition: all 0.2s;
+    }
+    
+    .problem-input:focus {
+        outline: none;
+        border-color: #10B981;
+    }
+    
+    .problem-input::placeholder {
+        color: var(--text-tertiary);
+    }
+    
+    /* CODE EDITOR */
+    .editor-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #0D1117;
+        min-height: 400px;
+    }
+    
+    .editor-tab-bar {
+        padding: 8px 16px;
+        background: #161B22;
+        border-bottom: 1px solid #21262D;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .editor-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        background: #0D1117;
+        border: 1px solid #21262D;
+        border-radius: 6px;
+        color: #C9D1D9;
+        font-size: 0.8rem;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .editor-tab .lang-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #FFD43B;
+    }
+    
+    .editor-stats {
+        display: flex;
+        gap: 12px;
+        color: #8B949E;
+        font-size: 0.75rem;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .editor-body {
+        display: flex;
+        flex: 1;
+        min-height: 400px;
+    }
+    
+    .line-numbers {
+        padding: 16px 12px 16px 16px;
+        background: #0D1117;
+        color: #6E7681;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        text-align: right;
+        user-select: none;
+        border-right: 1px solid #21262D;
+        min-width: 50px;
+    }
+    
+    .code-editor {
+        flex: 1;
+        padding: 16px;
+        background: #0D1117;
+        border: none;
+        color: #C9D1D9;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        resize: none;
+        outline: none;
+        min-height: 380px;
+        white-space: pre;
+        overflow-x: auto;
+    }
+    
+    .code-editor::placeholder {
+        color: #6E7681;
+    }
+    
+    /* SUBMIT BAR */
+    .submit-bar {
+        padding: 16px 20px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-default);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .btn-check {
+        flex: 1;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #10B981, #14B8A6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-check::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.6s;
+    }
+    
+    .btn-check:hover::before { left: 150%; }
+    
+    .btn-check:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-clear {
+        padding: 12px 20px;
+        background: var(--bg-tertiary);
+        color: #EF4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    
+    .btn-clear:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: #EF4444;
+    }
+    
+    /* FEEDBACK PANEL */
+    .feedback-panel {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .feedback-content-area {
+        flex: 1;
+        padding: 24px;
+        min-height: 500px;
+        overflow-y: auto;
+    }
+    
+    /* EMPTY STATE */
+    .empty-feedback {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 400px;
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .empty-feedback-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15));
+        border: 2px dashed rgba(139, 92, 246, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #A855F7;
+        margin-bottom: 20px;
+        animation: iconPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes iconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .empty-feedback h2 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    
+    .empty-feedback p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        max-width: 300px;
+        margin: 0 auto 24px;
+    }
+    
+    .empty-tips {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        max-width: 300px;
+        text-align: left;
+    }
+    
+    .tip-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    
+    .tip-item i {
+        color: #A855F7;
+        font-size: 0.9rem;
+    }
+    
+    /* LOADING STATE */
+    .loading-feedback {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 400px;
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .loading-feedback.active { display: flex; }
+    
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(139, 92, 246, 0.15);
+        border-top-color: #A855F7;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    
+    .loading-subtext {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+    
+    .loading-steps {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    .loading-step {
+        padding: 6px 12px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        font-weight: 600;
+        animation: stepPulse 1.5s ease-in-out infinite;
+    }
+    
+    .loading-step:nth-child(2) { animation-delay: 0.3s; }
+    .loading-step:nth-child(3) { animation-delay: 0.6s; }
+    
+    @keyframes stepPulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 1; color: #A855F7; border-color: #A855F7; }
+    }
+    
+    /* FEEDBACK RESULT */
+    .feedback-result {
+        display: none;
+    }
+    
+    .feedback-result.active { display: block; }
+    
+    .feedback-result h1, .feedback-result h2, .feedback-result h3 {
+        color: var(--text-primary);
+        font-family: 'Inter Tight', sans-serif;
+        margin: 20px 0 10px 0;
+    }
+    
+    .feedback-result h2 { font-size: 1.1rem; color: #A855F7; }
+    .feedback-result h3 { font-size: 1rem; }
+    
+    .feedback-result p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+    
+    .feedback-result ul, .feedback-result ol {
+        color: var(--text-secondary);
+        padding-left: 20px;
+        margin-bottom: 12px;
+    }
+    
+    .feedback-result li {
+        margin-bottom: 6px;
+    }
+    
+    .feedback-result code {
+        background: rgba(139, 92, 246, 0.15);
+        color: #A855F7;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85em;
+    }
+    
+    .feedback-result pre {
+        background: #0D1117;
+        border: 1px solid #21262D;
+        border-radius: 8px;
+        padding: 16px;
+        overflow-x: auto;
+        margin: 12px 0;
+    }
+    
+    .feedback-result pre code {
+        background: transparent;
+        color: #C9D1D9;
+        padding: 0;
+        display: block;
+    }
+    
+    .feedback-result strong {
+        color: var(--text-primary);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .ce-main {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 640px) {
+        .ce-container { padding: 16px; }
+        .ce-hero { padding: 20px; }
+        .settings-bar { grid-template-columns: 1fr; }
+        .ce-hero-content { flex-direction: column; align-items: flex-start; }
+    }
 </style>
 {% endblock %}
+
 {% block content %}
-<div class="examiner-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-robot me-2"></i>AI Code Examiner</h2>
-            <p class="mb-0" style="opacity: 0.9;">Get instant AI feedback on your code</p>
-        </div>
-        <a href="{% url 'practice:task_list' %}" class="btn btn-light btn-sm">Back</a>
-    </div>
-</div>
-<div class="row">
-    <div class="col-lg-6">
-        <div class="code-card">
-            <h5 style="color: white;">Your Code</h5>
-            <div class="row mb-3 mt-3">
-                <div class="col-md-6 mb-2">
-                    <label class="form-label">Language</label>
-                    <select id="languageSelect" class="form-select">
-                        <option value="python">Python</option>
-                        <option value="javascript">JavaScript</option>
-                        <option value="java">Java</option>
-                        <option value="cpp">C++</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-2">
-                    <label class="form-label">Load Template</label>
-                    <select id="templateSelect" class="form-select" onchange="loadTemplate()">
-                        <option value="">Choose...</option>
-                        <option value="two_sum">Two Sum</option>
-                        <option value="fibonacci">Fibonacci</option>
-                        <option value="palindrome">Palindrome</option>
-                    </select>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Problem Statement (Optional)</label>
-                <textarea id="problemStatement" class="form-control" rows="2"></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Code</label>
-                <textarea id="codeInput" class="code-editor" placeholder="Write code here..."></textarea>
-            </div>
-            <button type="button" class="btn-check-code" id="checkBtn" onclick="checkCode()">CHECK MY CODE WITH AI</button>
-            <div class="text-center mt-3">
-                <button type="button" class="btn-clear-code" onclick="clearCode()">Clear All</button>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="code-card">
-            <h5 style="color: white;">AI Feedback</h5>
-            <div id="feedbackArea" class="mt-3">
-                <div class="empty-state" id="emptyState">
+<div class="ce-container">
+    
+    <!-- HERO -->
+    <div class="ce-hero">
+        <div class="ce-hero-content">
+            <div class="ce-hero-left">
+                <div class="ce-hero-icon">
                     <i class="bi bi-robot"></i>
-                    <h5 style="color: white;">Ready to Review!</h5>
-                    <p>Click CHECK MY CODE to get AI feedback.</p>
+                </div>
+                <div>
+                    <div class="ce-hero-eyebrow">
+                        <i class="bi bi-magic"></i>
+                        <span>Powered by Gemini AI</span>
+                    </div>
+                    <h1>AI Code <span>Examiner</span></h1>
+                    <p>Get instant, intelligent feedback on your code — bugs, improvements, and best practices.</p>
                 </div>
             </div>
-            <div id="loadingState" style="display: none;">
-                <div class="text-center py-4">
-                    <div class="spinner-custom"></div>
-                    <h5 style="color: white;">AI is analyzing...</h5>
+            <a href="{% url 'practice:task_list' %}" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Back to Practice
+            </a>
+        </div>
+    </div>
+    
+    <!-- MAIN LAYOUT -->
+    <div class="ce-main">
+        
+        <!-- CODE PANEL -->
+        <div class="code-panel">
+            <div class="panel-header">
+                <div class="panel-title-group">
+                    <div class="panel-icon code">
+                        <i class="bi bi-code-slash"></i>
+                    </div>
+                    <div class="panel-title">Your Code</div>
                 </div>
+                <div class="panel-actions">
+                    <button class="panel-action-btn" onclick="copyCode()" title="Copy code">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                    <button class="panel-action-btn" onclick="toggleFullscreen()" title="Fullscreen">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Settings -->
+            <div class="settings-bar">
+                <div class="settings-field">
+                    <label class="settings-label">Language</label>
+                    <select class="settings-select" id="language" onchange="updateLanguage()">
+                        <option value="python">🐍 Python</option>
+                        <option value="javascript">📜 JavaScript</option>
+                        <option value="java">☕ Java</option>
+                        <option value="cpp">⚙️ C++</option>
+                        <option value="typescript">📘 TypeScript</option>
+                        <option value="go">🐹 Go</option>
+                        <option value="rust">🦀 Rust</option>
+                        <option value="ruby">💎 Ruby</option>
+                    </select>
+                </div>
+                
+                <div class="settings-field">
+                    <label class="settings-label">Quick Template</label>
+                    <select class="settings-select" id="template" onchange="loadTemplate()">
+                        <option value="">Choose template...</option>
+                        <option value="two_sum">✨ Two Sum Problem</option>
+                        <option value="fibonacci">🔢 Fibonacci Sequence</option>
+                        <option value="palindrome">📝 Palindrome Check</option>
+                        <option value="binary_search">🔍 Binary Search</option>
+                        <option value="reverse_string">🔄 Reverse String</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Problem Statement -->
+            <div class="problem-area">
+                <label class="settings-label" style="margin-bottom: 8px; display: block;">Problem Statement (Optional)</label>
+                <textarea class="problem-input" id="problem" placeholder="Describe what your code should do..."></textarea>
+            </div>
+            
+            <!-- Code Editor -->
+            <div class="editor-wrapper">
+                <div class="editor-tab-bar">
+                    <div class="editor-tab">
+                        <span class="lang-dot" id="langDot"></span>
+                        <span id="fileName">main.py</span>
+                    </div>
+                    <div class="editor-stats">
+                        <span id="lineCount">0 lines</span>
+                        <span id="charCount">0 chars</span>
+                    </div>
+                </div>
+                <div class="editor-body">
+                    <div class="line-numbers" id="lineNumbers">1</div>
+                    <textarea class="code-editor" id="code" 
+                              placeholder="# Write your code here...\n\ndef solution():\n    pass"
+                              oninput="updateEditor()"
+                              spellcheck="false"></textarea>
+                </div>
+            </div>
+            
+            <!-- Submit Bar -->
+            <div class="submit-bar">
+                <button class="btn-check" onclick="checkCode()" id="checkBtn">
+                    <i class="bi bi-magic"></i>
+                    <span>Analyze My Code</span>
+                </button>
+                <button class="btn-clear" onclick="clearCode()">
+                    <i class="bi bi-trash"></i>
+                    Clear
+                </button>
+            </div>
+        </div>
+        
+        <!-- FEEDBACK PANEL -->
+        <div class="code-panel feedback-panel">
+            <div class="panel-header">
+                <div class="panel-title-group">
+                    <div class="panel-icon feedback">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="panel-title">AI Feedback</div>
+                </div>
+                <div class="panel-actions">
+                    <button class="panel-action-btn" onclick="copyFeedback()" title="Copy feedback" id="copyFeedbackBtn" style="display: none;">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="feedback-content-area">
+                <!-- Empty State -->
+                <div class="empty-feedback" id="emptyFeedback">
+                    <div class="empty-feedback-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h2>Ready to Review!</h2>
+                    <p>Paste your code, click analyze, and get instant AI-powered feedback.</p>
+                    
+                    <div class="empty-tips">
+                        <div class="tip-item">
+                            <i class="bi bi-lightbulb-fill"></i>
+                            <span>Choose your programming language first</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="bi bi-code-slash"></i>
+                            <span>Use templates for quick start</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="bi bi-magic"></i>
+                            <span>AI reviews bugs, style & performance</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading State -->
+                <div class="loading-feedback" id="loadingFeedback">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Analyzing your code...</div>
+                    <div class="loading-subtext">AI is reviewing every line</div>
+                    <div class="loading-steps">
+                        <div class="loading-step">Parsing</div>
+                        <div class="loading-step">Analyzing</div>
+                        <div class="loading-step">Reviewing</div>
+                    </div>
+                </div>
+                
+                <!-- Result -->
+                <div class="feedback-result" id="feedbackResult"></div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
-const templates = {
-    two_sum: { problem: "Two Sum: return indices of two numbers that add to target", code: "def two_sum(nums, target):\n    for i in range(len(nums)):\n        for j in range(i+1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return []\n\nprint(two_sum([2,7,11,15], 9))" },
-    fibonacci: { problem: "Return nth Fibonacci number", code: "def fib(n):\n    if n <= 1: return n\n    return fib(n-1) + fib(n-2)\n\nprint(fib(10))" },
-    palindrome: { problem: "Check if string is palindrome", code: "def is_pal(s):\n    s = s.lower().replace(' ', '')\n    return s == s[::-1]\n\nprint(is_pal('racecar'))" }
-};
-function loadTemplate() {
-    const n = document.getElementById('templateSelect').value;
-    if (!n) return;
-    document.getElementById('problemStatement').value = templates[n].problem;
-    document.getElementById('codeInput').value = templates[n].code;
-}
-function clearCode() {
-    if (confirm('Clear all?')) {
-        document.getElementById('codeInput').value = '';
-        document.getElementById('problemStatement').value = '';
-        document.getElementById('templateSelect').value = '';
+    // Language configurations
+    const languageConfig = {
+        python: { ext: 'py', color: '#3776AB', comment: '#' },
+        javascript: { ext: 'js', color: '#FFD43B', comment: '//' },
+        java: { ext: 'java', color: '#ED8B00', comment: '//' },
+        cpp: { ext: 'cpp', color: '#00599C', comment: '//' },
+        typescript: { ext: 'ts', color: '#3178C6', comment: '//' },
+        go: { ext: 'go', color: '#00ADD8', comment: '//' },
+        rust: { ext: 'rs', color: '#DEA584', comment: '//' },
+        ruby: { ext: 'rb', color: '#CC342D', comment: '#' },
+    };
+    
+    // Templates
+    const templates = {
+        two_sum: {
+            problem: "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+            code: {
+                python: "def two_sum(nums, target):\n    for i in range(len(nums)):\n        for j in range(i+1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return []\n\n# Test\nprint(two_sum([2, 7, 11, 15], 9))",
+                javascript: "function twoSum(nums, target) {\n    for (let i = 0; i < nums.length; i++) {\n        for (let j = i + 1; j < nums.length; j++) {\n            if (nums[i] + nums[j] === target) {\n                return [i, j];\n            }\n        }\n    }\n    return [];\n}\n\nconsole.log(twoSum([2, 7, 11, 15], 9));"
+            }
+        },
+        fibonacci: {
+            problem: "Return the nth Fibonacci number.",
+            code: {
+                python: "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n\nprint(fibonacci(10))",
+                javascript: "function fibonacci(n) {\n    if (n <= 1) return n;\n    return fibonacci(n-1) + fibonacci(n-2);\n}\n\nconsole.log(fibonacci(10));"
+            }
+        },
+        palindrome: {
+            problem: "Check if a string is a palindrome.",
+            code: {
+                python: "def is_palindrome(s):\n    s = s.lower().replace(' ', '')\n    return s == s[::-1]\n\nprint(is_palindrome('A man a plan a canal Panama'))",
+                javascript: "function isPalindrome(s) {\n    s = s.toLowerCase().replace(/ /g, '');\n    return s === s.split('').reverse().join('');\n}\n\nconsole.log(isPalindrome('A man a plan a canal Panama'));"
+            }
+        },
+        binary_search: {
+            problem: "Implement binary search algorithm.",
+            code: {
+                python: "def binary_search(arr, target):\n    left, right = 0, len(arr) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1\n\nprint(binary_search([1, 3, 5, 7, 9, 11], 7))",
+                javascript: "function binarySearch(arr, target) {\n    let left = 0, right = arr.length - 1;\n    while (left <= right) {\n        let mid = Math.floor((left + right) / 2);\n        if (arr[mid] === target) return mid;\n        else if (arr[mid] < target) left = mid + 1;\n        else right = mid - 1;\n    }\n    return -1;\n}\n\nconsole.log(binarySearch([1, 3, 5, 7, 9, 11], 7));"
+            }
+        },
+        reverse_string: {
+            problem: "Reverse a string.",
+            code: {
+                python: "def reverse_string(s):\n    return s[::-1]\n\nprint(reverse_string('Hello, World!'))",
+                javascript: "function reverseString(s) {\n    return s.split('').reverse().join('');\n}\n\nconsole.log(reverseString('Hello, World!'));"
+            }
+        }
+    };
+    
+    // Update editor stats
+    function updateEditor() {
+        const code = document.getElementById('code').value;
+        const lines = code.split('\n');
+        const lineCount = lines.length;
+        const charCount = code.length;
+        
+        document.getElementById('lineCount').textContent = `${lineCount} lines`;
+        document.getElementById('charCount').textContent = `${charCount} chars`;
+        
+        // Update line numbers
+        let numbers = '';
+        for (let i = 1; i <= lineCount; i++) {
+            numbers += i + '\n';
+        }
+        document.getElementById('lineNumbers').textContent = numbers.trim();
     }
-}
-function getCookie(name) {
-    let v = null;
-    if (document.cookie) {
-        for (let c of document.cookie.split(';')) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) { v = decodeURIComponent(c.substring(name.length + 1)); break; }
+    
+    // Update language
+    function updateLanguage() {
+        const lang = document.getElementById('language').value;
+        const config = languageConfig[lang];
+        
+        document.getElementById('fileName').textContent = `main.${config.ext}`;
+        document.getElementById('langDot').style.background = config.color;
+    }
+    
+    // Load template
+    function loadTemplate() {
+        const templateName = document.getElementById('template').value;
+        const lang = document.getElementById('language').value;
+        
+        if (!templateName) return;
+        
+        const template = templates[templateName];
+        if (template) {
+            document.getElementById('problem').value = template.problem;
+            const code = template.code[lang] || template.code.python;
+            document.getElementById('code').value = code.replace(/\\n/g, '\n');
+            updateEditor();
         }
     }
-    return v;
-}
-async function checkCode() {
-    const code = document.getElementById('codeInput').value.trim();
-    const language = document.getElementById('languageSelect').value;
-    const problem = document.getElementById('problemStatement').value.trim();
-    if (!code) { alert('Write code first!'); return; }
-    const btn = document.getElementById('checkBtn');
-    const emptyState = document.getElementById('emptyState');
-    const loadingState = document.getElementById('loadingState');
-    const feedbackArea = document.getElementById('feedbackArea');
-    btn.disabled = true;
-    btn.innerHTML = 'ANALYZING...';
-    emptyState.style.display = 'none';
-    loadingState.style.display = 'block';
-    feedbackArea.innerHTML = '';
-    try {
-        const r = await fetch('/practice/api/check-code/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ code, language, problem })
-        });
-        const d = await r.json();
-        loadingState.style.display = 'none';
-        if (d.success) {
-            feedbackArea.innerHTML = '<div id="feedbackContent">' + d.feedback + '</div>';
+    
+    // Clear code
+    function clearCode() {
+        if (confirm('Clear all code and problem statement?')) {
+            document.getElementById('code').value = '';
+            document.getElementById('problem').value = '';
+            document.getElementById('template').value = '';
+            updateEditor();
+        }
+    }
+    
+    // Copy code
+    function copyCode() {
+        const code = document.getElementById('code').value;
+        navigator.clipboard.writeText(code);
+        
+        // Show toast if available
+        if (typeof showToast === 'function') {
+            showToast('xp', 'Copied!', 'Code copied to clipboard', '📋');
+        }
+    }
+    
+    // Copy feedback
+    function copyFeedback() {
+        const feedback = document.getElementById('feedbackResult').innerText;
+        navigator.clipboard.writeText(feedback);
+        if (typeof showToast === 'function') {
+            showToast('xp', 'Copied!', 'Feedback copied', '📋');
+        }
+    }
+    
+    // Toggle fullscreen (basic)
+    function toggleFullscreen() {
+        const wrapper = document.querySelector('.editor-wrapper');
+        if (!document.fullscreenElement) {
+            wrapper.requestFullscreen();
         } else {
-            feedbackArea.innerHTML = '<div class="alert alert-danger">Error: ' + d.error + '</div>';
+            document.exitFullscreen();
         }
-    } catch (e) {
-        loadingState.style.display = 'none';
-        feedbackArea.innerHTML = '<div class="alert alert-danger">Error: ' + e.message + '</div>';
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'CHECK MY CODE WITH AI';
     }
-}
+    
+    // Get CSRF token
+    function getCookie(name) {
+        let value = null;
+        if (document.cookie) {
+            for (let c of document.cookie.split(';')) {
+                c = c.trim();
+                if (c.startsWith(name + '=')) {
+                    value = decodeURIComponent(c.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return value;
+    }
+    
+    // Check code with AI
+    async function checkCode() {
+        const code = document.getElementById('code').value.trim();
+        const language = document.getElementById('language').value;
+        const problem = document.getElementById('problem').value.trim();
+        
+        if (!code) {
+            alert('Please write some code first!');
+            return;
+        }
+        
+        // Show loading
+        document.getElementById('emptyFeedback').style.display = 'none';
+        document.getElementById('feedbackResult').classList.remove('active');
+        document.getElementById('loadingFeedback').classList.add('active');
+        document.getElementById('checkBtn').disabled = true;
+        document.getElementById('checkBtn').innerHTML = '<i class="bi bi-hourglass-split"></i><span>Analyzing...</span>';
+        
+        try {
+            const response = await fetch('/practice/api/check-code/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ code, language, problem })
+            });
+            
+            const data = await response.json();
+            
+            document.getElementById('loadingFeedback').classList.remove('active');
+            
+            if (data.success) {
+                document.getElementById('feedbackResult').innerHTML = data.feedback;
+                document.getElementById('feedbackResult').classList.add('active');
+                document.getElementById('copyFeedbackBtn').style.display = 'flex';
+                
+                // Show XP toast if available
+                if (data.xp_earned && typeof handleProgressResponse === 'function') {
+                    handleProgressResponse(data);
+                }
+            } else {
+                document.getElementById('feedbackResult').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #EF4444;"></i>
+                        <h3 style="color: #EF4444; margin-top: 16px;">Error</h3>
+                        <p>${data.error || 'Something went wrong'}</p>
+                    </div>
+                `;
+                document.getElementById('feedbackResult').classList.add('active');
+            }
+        } catch (error) {
+            document.getElementById('loadingFeedback').classList.remove('active');
+            document.getElementById('feedbackResult').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <i class="bi bi-wifi-off" style="font-size: 3rem; color: #EF4444;"></i>
+                    <h3 style="color: #EF4444; margin-top: 16px;">Connection Error</h3>
+                    <p>${error.message}</p>
+                </div>
+            `;
+            document.getElementById('feedbackResult').classList.add('active');
+        } finally {
+            document.getElementById('checkBtn').disabled = false;
+            document.getElementById('checkBtn').innerHTML = '<i class="bi bi-magic"></i><span>Analyze My Code</span>';
+        }
+    }
+    
+    // Initialize
+    updateLanguage();
+    updateEditor();
 </script>
 {% endblock %}

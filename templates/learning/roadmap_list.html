@@ -1,178 +1,998 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}My Roadmaps - CodeLabX{% endblock %}
+{% block title %}My Learning Paths - CodeLabX{% endblock %}
 
 {% block extra_css %}
 <style>
-    body { background: #0A0A0A; color: #e0e0e0; }
+    /* ============================================
+       ROADMAP LIST - Premium Design
+       ============================================ */
     
-    .page-header {
-        background: var(--bg-secondary);
-        border-radius: 8px;
-        padding: 30px;
-        margin-bottom: 30px;
-        border: 1px solid var(--border-subtle);
+    body {
+        background: var(--bg-primary);
     }
     
-    .roadmap-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 25px;
-        margin-bottom: 20px;
-        transition: all 0.3s;
+    .roadmap-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
     }
     
-    .roadmap-card:hover {
-        transform: translateY(-3px);
-        border-color: #14B8A6;
-        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.2);
-    }
-    
-    .topic-badge {
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-    
-    .topic-badge.ml { background: rgba(20, 184, 166, 0.2); color: #14B8A6; }
-    .topic-badge.dsa { background: rgba(0, 212, 170, 0.2); color: #00D4AA; }
-    
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-    
-    .status-badge.active { background: rgba(0, 212, 170, 0.2); color: #00D4AA; }
-    .status-badge.completed { background: rgba(74, 144, 226, 0.2); color: #4a90e2; }
-    .status-badge.paused { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
-    
-    .progress-custom {
-        height: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
+    /* HERO SECTION */
+    .roadmap-hero {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 24px;
+        position: relative;
         overflow: hidden;
-        margin: 10px 0;
     }
     
-    .progress-bar-custom {
-        height: 100%;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 10px;
+    .roadmap-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.12), transparent 60%);
+        filter: blur(60px);
+        pointer-events: none;
     }
     
-    .btn-create {
+    .roadmap-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+    
+    .roadmap-hero-text h1 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.03em;
+        margin-bottom: 8px;
+        line-height: 1.1;
+    }
+    
+    .roadmap-hero-text h1 span {
+        background: linear-gradient(135deg, var(--accent), #06B6D4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .roadmap-hero-text p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        max-width: 500px;
+    }
+    
+    .btn-create-roadmap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
         background: var(--accent);
-        border: none;
         color: white;
-        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        text-decoration: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px rgba(20, 184, 166, 0.25);
+    }
+    
+    .btn-create-roadmap::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transition: left 0.6s ease;
+    }
+    
+    .btn-create-roadmap:hover::before { left: 150%; }
+    
+    .btn-create-roadmap:hover {
+        background: var(--accent-hover);
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 8px 24px rgba(20, 184, 166, 0.35);
+    }
+    
+    /* STATS OVERVIEW */
+    .roadmap-stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
         border-radius: 12px;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+    }
+    
+    .stat-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .stat-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+    }
+    
+    .stat-icon.total { background: rgba(20, 184, 166, 0.1); color: #14B8A6; }
+    .stat-icon.active { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+    .stat-icon.days { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+    .stat-icon.hours { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
+    .stat-icon.progress { background: rgba(14, 165, 233, 0.1); color: #0EA5E9; }
+    
+    .stat-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
         font-weight: 600;
     }
     
-    .btn-create:hover { color: white; transform: translateY(-2px); }
+    .stat-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
     
-    .empty-state {
+    .stat-suffix {
+        font-size: 1rem;
+        color: var(--text-tertiary);
+        font-weight: 600;
+    }
+    
+    /* FILTERS BAR */
+    .roadmap-filters {
         background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--bg-tertiary);
         border-radius: 8px;
-        padding: 60px 20px;
-        text-align: center;
-        border: 2px dashed rgba(20, 184, 166, 0.3);
+        padding: 3px;
     }
     
-    .empty-state i {
-        font-size: 5rem;
-        color: #14B8A6;
-        opacity: 0.5;
+    .filter-tab {
+        padding: 8px 16px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
     }
     
-    .meta-info {
-        color: #a0a0a0;
+    .filter-tab:hover { color: var(--text-primary); }
+    
+    .filter-tab.active {
+        background: var(--accent);
+        color: white;
+    }
+    
+    .filter-tab .count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 18px;
+        padding: 0 5px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    
+    .filter-tab:not(.active) .count {
+        background: var(--bg-elevated);
+        color: var(--text-tertiary);
+    }
+    
+    .filter-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .search-box {
+        position: relative;
+        min-width: 240px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 8px 14px 8px 36px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--bg-elevated);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-tertiary);
         font-size: 0.9rem;
     }
     
-    .meta-info i { color: #14B8A6; margin-right: 5px; }
+    .sort-select {
+        padding: 8px 14px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-family: inherit;
+    }
+    
+    .view-toggle {
+        display: flex;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        padding: 3px;
+    }
+    
+    .view-btn {
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border: none;
+        border-radius: 5px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .view-btn:hover { color: var(--text-primary); }
+    
+    .view-btn.active {
+        background: var(--accent);
+        color: white;
+    }
+    
+    /* ROADMAPS GRID */
+    .roadmaps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 20px;
+    }
+    
+    .roadmaps-grid.list-view {
+        grid-template-columns: 1fr;
+    }
+    
+    /* ROADMAP CARD */
+    .roadmap-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
+    }
+    
+    .roadmap-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, var(--card-color, rgba(20, 184, 166, 0.1)), transparent 60%);
+        filter: blur(60px);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .roadmap-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--card-accent, var(--accent));
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        color: inherit;
+    }
+    
+    .roadmap-card:hover::before { opacity: 1; }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .card-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: var(--card-icon-bg);
+        color: var(--card-accent);
+        transition: all 0.3s;
+    }
+    
+    .roadmap-card:hover .card-icon-wrapper {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    
+    .card-badges {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-end;
+    }
+    
+    .badge {
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .badge-status {
+        background: var(--status-bg);
+        color: var(--status-color);
+    }
+    
+    .badge-level {
+        background: var(--level-bg);
+        color: var(--level-color);
+    }
+    
+    .card-body {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .card-topic {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    
+    .card-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+    }
+    
+    .card-description {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 20px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: var(--bg-tertiary);
+        border-radius: 12px;
+    }
+    
+    .progress-ring {
+        position: relative;
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+    }
+    
+    .progress-ring svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+    
+    .progress-ring-bg {
+        fill: none;
+        stroke: var(--border-default);
+        stroke-width: 6;
+    }
+    
+    .progress-ring-fill {
+        fill: none;
+        stroke: var(--card-accent);
+        stroke-width: 6;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s ease;
+    }
+    
+    .progress-ring-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .progress-ring-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .progress-ring-label {
+        font-size: 0.6rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .progress-info { flex: 1; }
+    
+    .progress-days {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+    
+    .progress-remaining {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+    }
+    
+    .card-meta {
+        display: flex;
+        gap: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-subtle);
+        margin-bottom: 16px;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+    
+    .meta-item i { color: var(--card-accent); }
+    
+    .card-actions {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .btn-continue {
+        flex: 1;
+        padding: 10px 16px;
+        background: var(--card-accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    .btn-continue:hover {
+        opacity: 0.9;
+        color: white;
+        transform: translateX(2px);
+    }
+    
+    .btn-menu {
+        width: 40px;
+        height: 40px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .btn-menu:hover {
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+    }
+    
+    /* CREATE NEW CARD */
+    .create-card {
+        background: var(--bg-secondary);
+        border: 2px dashed var(--border-default);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 320px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .create-card:hover {
+        border-color: var(--accent);
+        background: rgba(20, 184, 166, 0.05);
+        color: inherit;
+        transform: translateY(-4px);
+    }
+    
+    .create-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--accent-light);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        transition: all 0.3s;
+    }
+    
+    .create-card:hover .create-icon {
+        background: var(--accent);
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .create-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+    
+    .create-desc {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+    
+    .create-templates {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .template-chip {
+        padding: 4px 10px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 6px;
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    /* LIST VIEW */
+    .roadmaps-grid.list-view .roadmap-card {
+        flex-direction: row;
+        min-height: auto;
+        padding: 20px 24px;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .roadmaps-grid.list-view .card-header {
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    
+    .roadmaps-grid.list-view .card-body { flex: 1; }
+    .roadmaps-grid.list-view .card-title { margin-bottom: 4px; }
+    .roadmaps-grid.list-view .card-description { display: none; }
+    
+    .roadmaps-grid.list-view .progress-container {
+        margin-bottom: 0;
+        padding: 12px;
+        background: transparent;
+        width: 180px;
+        flex-shrink: 0;
+    }
+    
+    .roadmaps-grid.list-view .card-meta { display: none; }
+    .roadmaps-grid.list-view .card-actions { flex-shrink: 0; }
+    .roadmaps-grid.list-view .create-card { display: none; }
+    
+    /* EMPTY STATE */
+    .empty-state {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 20px;
+        padding: 80px 40px;
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .empty-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 24px;
+        background: var(--accent-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--accent);
+    }
+    
+    .empty-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+    
+    .empty-desc {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        max-width: 500px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+    }
+    
+    .empty-templates {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+    
+    .template-quick {
+        padding: 12px 20px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 10px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    
+    .template-quick:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-2px);
+    }
+    
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+        .roadmap-stats { grid-template-columns: repeat(2, 1fr); }
+        .roadmap-hero-content { flex-direction: column; align-items: flex-start; }
+        .filter-right { width: 100%; justify-content: space-between; }
+        .search-box { min-width: auto; flex: 1; }
+    }
+    
+    @media (max-width: 640px) {
+        .roadmap-container { padding: 16px; }
+        .roadmap-hero { padding: 24px; }
+        .roadmap-hero-text h1 { font-size: 1.75rem; }
+        .roadmap-stats { grid-template-columns: repeat(2, 1fr); }
+        .roadmaps-grid { grid-template-columns: 1fr; }
+        .roadmaps-grid.list-view .roadmap-card { flex-direction: column; align-items: stretch; }
+        .roadmaps-grid.list-view .progress-container { width: 100%; }
+        .filter-tabs { width: 100%; overflow-x: auto; }
+        .filter-right { flex-direction: column; align-items: stretch; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h2 class="mb-2"><i class="bi bi-map-fill me-2" style="color: #14B8A6;"></i>My Learning Paths</h2>
-            <p class="text-muted mb-0">Manage and continue your personalized learning journeys</p>
+<div class="roadmap-container">
+    
+    <!-- HERO -->
+    <div class="roadmap-hero">
+        <div class="roadmap-hero-content">
+            <div class="roadmap-hero-text">
+                <h1>My Learning <span>Paths</span></h1>
+                <p>Journey through your personalized roadmaps. Track progress, celebrate milestones, and never lose momentum.</p>
+            </div>
+            <a href="{% url 'learning:roadmap_create' %}" class="btn-create-roadmap">
+                <i class="bi bi-plus-lg"></i>
+                Create New Path
+            </a>
         </div>
-        <a href="{% url 'learning:roadmap_create' %}" class="btn btn-create">
-            <i class="bi bi-plus-lg me-2"></i>Create New Path
-        </a>
     </div>
-</div>
-
-{% if roadmaps %}
-    <div class="row">
-        {% for roadmap in roadmaps %}
-        <div class="col-lg-6">
-            <div class="roadmap-card">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <span class="topic-badge {{ roadmap.topic|lower }}">
-                        {% if roadmap.topic == 'ML' %}🤖 Machine Learning{% else %}💻 DSA{% endif %}
-                    </span>
-                    <span class="status-badge {{ roadmap.status }}">{{ roadmap.get_status_display }}</span>
-                </div>
-                
-                <h4 class="mb-2" style="color: white;">{{ roadmap.title }}</h4>
-                <p class="text-muted small">{{ roadmap.description|truncatewords:15 }}</p>
-                
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <div class="meta-info">
-                            <i class="bi bi-calendar3"></i>{{ roadmap.total_days }} Days
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="meta-info">
-                            <i class="bi bi-clock"></i>{{ roadmap.daily_hours }} hrs/day
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="meta-info">
-                            <i class="bi bi-bar-chart"></i>{{ roadmap.get_level_display }}
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="meta-info">
-                            <i class="bi bi-check2-circle"></i>{{ roadmap.completed_days }}/{{ roadmap.total_days }}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="progress-custom">
-                    <div class="progress-bar-custom" style="width: {{ roadmap.progress_percentage }}%"></div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">{{ roadmap.progress_percentage }}% Complete</small>
-                    <a href="{% url 'learning:roadmap_detail' roadmap.id %}" class="btn btn-sm btn-outline-light">
-                        Continue <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
+    
+    <!-- STATS -->
+    <div class="roadmap-stats">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-icon total"><i class="bi bi-collection-fill"></i></div>
+                <div class="stat-label">Total Paths</div>
+            </div>
+            <div class="stat-value">{{ total_paths }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-icon active"><i class="bi bi-lightning-fill"></i></div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-value">{{ active_paths }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-icon days"><i class="bi bi-calendar-check-fill"></i></div>
+                <div class="stat-label">Days Done</div>
+            </div>
+            <div class="stat-value">{{ total_days_completed }}<span class="stat-suffix">/{{ total_days_planned }}</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-icon hours"><i class="bi bi-clock-fill"></i></div>
+                <div class="stat-label">Hours Total</div>
+            </div>
+            <div class="stat-value">{{ total_hours_studied }}<span class="stat-suffix">h</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-icon progress"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="stat-label">Avg Progress</div>
+            </div>
+            <div class="stat-value">{{ avg_progress }}<span class="stat-suffix">%</span></div>
+        </div>
+    </div>
+    
+    <!-- FILTERS -->
+    <div class="roadmap-filters">
+        <div class="filter-tabs">
+            <a href="?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">
+                All <span class="count">{{ total_paths }}</span>
+            </a>
+            <a href="?status=active" class="filter-tab {% if status_filter == 'active' %}active{% endif %}">
+                <i class="bi bi-lightning-fill"></i> Active <span class="count">{{ active_paths }}</span>
+            </a>
+            <a href="?status=paused" class="filter-tab {% if status_filter == 'paused' %}active{% endif %}">
+                <i class="bi bi-pause-fill"></i> Paused <span class="count">{{ paused_paths }}</span>
+            </a>
+            <a href="?status=completed" class="filter-tab {% if status_filter == 'completed' %}active{% endif %}">
+                <i class="bi bi-check-circle-fill"></i> Completed <span class="count">{{ completed_paths }}</span>
+            </a>
+        </div>
+        
+        <div class="filter-right">
+            <div class="search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search paths..." value="{{ search_query }}" onkeypress="if(event.key==='Enter')window.location.href='?search='+this.value+'&status={{ status_filter }}'">
+            </div>
+            <select class="sort-select" onchange="window.location.href='?sort='+this.value+'&status={{ status_filter }}'">
+                <option value="recent" {% if sort_by == 'recent' %}selected{% endif %}>Recent</option>
+                <option value="progress" {% if sort_by == 'progress' %}selected{% endif %}>Progress</option>
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Duration</option>
+            </select>
+            <div class="view-toggle">
+                <button class="view-btn {% if view_mode == 'grid' %}active{% endif %}" onclick="setView('grid')" title="Grid view">
+                    <i class="bi bi-grid-fill"></i>
+                </button>
+                <button class="view-btn {% if view_mode == 'list' %}active{% endif %}" onclick="setView('list')" title="List view">
+                    <i class="bi bi-list-ul"></i>
+                </button>
             </div>
         </div>
-        {% endfor %}
     </div>
-{% else %}
+    
+    <!-- ROADMAPS -->
+    {% if roadmaps %}
+    <div class="roadmaps-grid {% if view_mode == 'list' %}list-view{% endif %}">
+        {% for roadmap in roadmaps %}
+        <a href="{% url 'learning:roadmap_detail' roadmap.id %}" class="roadmap-card"
+           style="--card-accent: {{ roadmap.topic_color }}; --card-icon-bg: {{ roadmap.topic_color }}20; --card-color: {{ roadmap.topic_color }}15; --status-bg: {{ roadmap.status_color }}20; --status-color: {{ roadmap.status_color }}; --level-bg: {{ roadmap.level_color }}20; --level-color: {{ roadmap.level_color }};">
+            <div class="card-header">
+                <div class="card-icon-wrapper"><i class="bi {{ roadmap.topic_icon }}"></i></div>
+                <div class="card-badges">
+                    <span class="badge badge-status">
+                        {% if roadmap.status == 'active' %}<i class="bi bi-lightning-fill"></i>
+                        {% elif roadmap.status == 'completed' %}<i class="bi bi-check-circle-fill"></i>
+                        {% elif roadmap.status == 'paused' %}<i class="bi bi-pause-fill"></i>{% endif %}
+                        {{ roadmap.get_status_display }}
+                    </span>
+                    <span class="badge badge-level">{{ roadmap.get_level_display }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-topic">{{ roadmap.get_topic_display }}</div>
+                <h3 class="card-title">{{ roadmap.title }}</h3>
+                <p class="card-description">{{ roadmap.description|default:"A personalized learning path to master this topic step by step." }}</p>
+                <div class="progress-container">
+                    <div class="progress-ring">
+                        <svg viewBox="0 0 70 70">
+                            <circle class="progress-ring-bg" cx="35" cy="35" r="30"></circle>
+                            <circle class="progress-ring-fill" cx="35" cy="35" r="30" style="stroke-dasharray: 188.4; stroke-dashoffset: calc(188.4 - (188.4 * {{ roadmap.progress_percentage|default:0 }} / 100));"></circle>
+                        </svg>
+                        <div class="progress-ring-text">
+                            <div class="progress-ring-value">{{ roadmap.progress_percentage|floatformat:0 }}%</div>
+                            <div class="progress-ring-label">Done</div>
+                        </div>
+                    </div>
+                    <div class="progress-info">
+                        <div class="progress-days">{{ roadmap.completed_days }}/{{ roadmap.total_days }} days</div>
+                        <div class="progress-remaining">{{ roadmap.remaining_days }} days remaining</div>
+                    </div>
+                </div>
+                <div class="card-meta">
+                    <div class="meta-item"><i class="bi bi-clock"></i><span>{{ roadmap.daily_hours }}h/day</span></div>
+                    <div class="meta-item"><i class="bi bi-calendar3"></i><span>{{ roadmap.total_days }} days</span></div>
+                    <div class="meta-item"><i class="bi bi-hourglass-split"></i><span>{{ roadmap.total_hours|floatformat:0 }}h total</span></div>
+                </div>
+            </div>
+            <div class="card-actions">
+                <span class="btn-continue">
+                    {% if roadmap.status == 'completed' %}<i class="bi bi-check-circle-fill"></i> View Path
+                    {% else %}Continue <i class="bi bi-arrow-right"></i>{% endif %}
+                </span>
+                <button class="btn-menu" onclick="event.preventDefault(); event.stopPropagation();" title="More options">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+            </div>
+        </a>
+        {% endfor %}
+        
+        {% if view_mode != 'list' %}
+        <a href="{% url 'learning:roadmap_create' %}" class="create-card">
+            <div class="create-icon"><i class="bi bi-plus-lg"></i></div>
+            <div class="create-title">Start Something New</div>
+            <div class="create-desc">Create your next personalized learning path</div>
+            <div class="create-templates">
+                <span class="template-chip">Machine Learning</span>
+                <span class="template-chip">DSA</span>
+                <span class="template-chip">Web Dev</span>
+            </div>
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
     <div class="empty-state">
-        <i class="bi bi-map"></i>
-        <h4 class="mt-3">No Learning Paths Yet</h4>
-        <p class="text-muted mb-4">Start your learning journey by creating your first personalized roadmap</p>
-        <a href="{% url 'learning:roadmap_create' %}" class="btn btn-create">
-            <i class="bi bi-plus-lg me-2"></i>Create Your First Path
+        <div class="empty-icon"><i class="bi bi-map"></i></div>
+        <h2 class="empty-title">
+            {% if search_query or status_filter != 'all' %}No paths match your filters
+            {% else %}Start your learning journey{% endif %}
+        </h2>
+        <p class="empty-desc">
+            {% if search_query or status_filter != 'all' %}Try adjusting your search or filters.
+            {% else %}Create your first personalized learning roadmap. Choose a topic, set your pace, and let AI guide your journey.{% endif %}
+        </p>
+        <a href="{% url 'learning:roadmap_create' %}" class="btn-create-roadmap">
+            <i class="bi bi-plus-lg"></i> Create Your First Path
         </a>
     </div>
-{% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function setView(mode) {
+        const url = new URL(window.location);
+        url.searchParams.set('view', mode);
+        window.location.href = url.toString();
+    }
+</script>
 {% endblock %}

@@ -1742,5 +1742,378 @@
     </div>
     {% endif %}
     
+
+
+<style>
+/* ============================================
+   OMNITRIX DIAL - FIXED SEMI-CIRCLE
+   ============================================ */
+
+/* Backdrop */
+.omni-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 500;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.omni-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Main Dial Container */
+.omni-dial {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.5);
+    width: 600px;
+    height: 400px;
+    z-index: 501;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    pointer-events: none;
+}
+
+.omni-dial.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) scale(1);
+    pointer-events: auto;
+}
+
+/* Background Rings */
+.omni-ring {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    border: 1px solid rgba(20, 184, 166, 0.15);
+    pointer-events: none;
+}
+
+.omni-ring-1 {
+    width: 500px;
+    height: 500px;
+    animation: omniRingRotate 30s linear infinite;
+}
+
+.omni-ring-2 {
+    width: 400px;
+    height: 400px;
+    border-style: dashed;
+    animation: omniRingRotate 20s linear infinite reverse;
+}
+
+.omni-ring-3 {
+    width: 320px;
+    height: 320px;
+    animation: omniRingRotate 15s linear infinite;
+}
+
+@keyframes omniRingRotate {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to { transform: translateX(-50%) rotate(360deg); }
+}
+
+/* Center Avatar */
+.omni-center {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    width: 200px;
+}
+
+.omni-avatar-glow {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(20, 184, 166, 0.5) 0%, transparent 70%);
+    animation: omniPulse 2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes omniPulse {
+    0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+    50% { transform: translateX(-50%) scale(1.4); opacity: 1; }
+}
+
+.omni-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #14B8A6, #06B6D4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    border: 3px solid #14B8A6;
+    box-shadow: 0 0 30px rgba(20, 184, 166, 0.5);
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+}
+
+.omni-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.omni-label {
+    margin-top: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+    min-height: 40px;
+}
+
+.omni-label-name {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.omni-label-desc {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+}
+
+/* ============================================
+   SEMI-CIRCLE POSITIONING - FIXED
+   Using calculated positions
+   Center point: 50% bottom, 50px above
+   Radius: 200px
+   Arc: 180 degrees (top half circle)
+   9 buttons spread across 180deg
+   Each 22.5deg apart
+   ============================================ */
+
+.omni-btn {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(30, 30, 35, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin-left: -30px;
+    margin-bottom: -30px;
+}
+
+/* Positions: Bottom is 50px, radius 200px */
+/* Using left% and bottom with math */
+
+.omni-btn-1 { left: 50%; bottom: 50px; transform: translate(-200px, -0px); }
+.omni-btn-2 { left: 50%; bottom: 50px; transform: translate(-185px, -77px); }
+.omni-btn-3 { left: 50%; bottom: 50px; transform: translate(-141px, -141px); }
+.omni-btn-4 { left: 50%; bottom: 50px; transform: translate(-77px, -185px); }
+.omni-btn-5 { left: 50%; bottom: 50px; transform: translate(0px, -200px); }
+.omni-btn-6 { left: 50%; bottom: 50px; transform: translate(77px, -185px); }
+.omni-btn-7 { left: 50%; bottom: 50px; transform: translate(141px, -141px); }
+.omni-btn-8 { left: 50%; bottom: 50px; transform: translate(185px, -77px); }
+.omni-btn-9 { left: 50%; bottom: 50px; transform: translate(200px, -0px); }
+
+/* Hover - scale + push out slightly */
+.omni-btn-1:hover { transform: translate(-215px, -0px) scale(1.15); }
+.omni-btn-2:hover { transform: translate(-200px, -82px) scale(1.15); }
+.omni-btn-3:hover { transform: translate(-152px, -152px) scale(1.15); }
+.omni-btn-4:hover { transform: translate(-82px, -200px) scale(1.15); }
+.omni-btn-5:hover { transform: translate(0px, -215px) scale(1.15); }
+.omni-btn-6:hover { transform: translate(82px, -200px) scale(1.15); }
+.omni-btn-7:hover { transform: translate(152px, -152px) scale(1.15); }
+.omni-btn-8:hover { transform: translate(200px, -82px) scale(1.15); }
+.omni-btn-9:hover { transform: translate(215px, -0px) scale(1.15); }
+
+/* Feature colors on hover */
+.omni-btn-1:hover { background: #F59E0B; border-color: #F59E0B; box-shadow: 0 0 30px rgba(245, 158, 11, 0.6); color: white; }
+.omni-btn-2:hover { background: #0EA5E9; border-color: #0EA5E9; box-shadow: 0 0 30px rgba(14, 165, 233, 0.6); color: white; }
+.omni-btn-3:hover { background: #8B5CF6; border-color: #8B5CF6; box-shadow: 0 0 30px rgba(139, 92, 246, 0.6); color: white; }
+.omni-btn-4:hover { background: #EF4444; border-color: #EF4444; box-shadow: 0 0 30px rgba(239, 68, 68, 0.6); color: white; }
+.omni-btn-5:hover { background: #10B981; border-color: #10B981; box-shadow: 0 0 30px rgba(16, 185, 129, 0.6); color: white; }
+.omni-btn-6:hover { background: #EC4899; border-color: #EC4899; box-shadow: 0 0 30px rgba(236, 72, 153, 0.6); color: white; }
+.omni-btn-7:hover { background: #14B8A6; border-color: #14B8A6; box-shadow: 0 0 30px rgba(20, 184, 166, 0.6); color: white; }
+.omni-btn-8:hover { background: #6366F1; border-color: #6366F1; box-shadow: 0 0 30px rgba(99, 102, 241, 0.6); color: white; }
+.omni-btn-9:hover { background: #EF4444; border-color: #EF4444; box-shadow: 0 0 30px rgba(239, 68, 68, 0.6); color: white; }
+
+/* Stagger entrance animation */
+.omni-dial.show .omni-btn-1 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.1s both; }
+.omni-dial.show .omni-btn-2 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.15s both; }
+.omni-dial.show .omni-btn-3 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.2s both; }
+.omni-dial.show .omni-btn-4 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.25s both; }
+.omni-dial.show .omni-btn-5 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.3s both; }
+.omni-dial.show .omni-btn-6 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.35s both; }
+.omni-dial.show .omni-btn-7 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.4s both; }
+.omni-dial.show .omni-btn-8 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.45s both; }
+.omni-dial.show .omni-btn-9 { animation: omniPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.5s both; }
+
+@keyframes omniPop {
+    from {
+        opacity: 0;
+        transform: translate(0, 0) scale(0);
+    }
+}
+
+/* Active state for "More" button */
+.nav-btn-more.active {
+    background: #14B8A6 !important;
+    color: white !important;
+    transform: rotate(180deg);
+}
+
+/* Mobile - Smaller version */
+@media (max-width: 640px) {
+    .omni-dial {
+        width: 380px;
+        height: 300px;
+        bottom: 100px;
+    }
+    
+    .omni-ring-1 { width: 380px; height: 380px; }
+    .omni-ring-2 { width: 300px; height: 300px; }
+    .omni-ring-3 { width: 240px; height: 240px; }
+    
+    .omni-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1.1rem;
+        margin-left: -24px;
+        margin-bottom: -24px;
+    }
+    
+    .omni-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.4rem;
+    }
+    
+    /* Adjusted radius for mobile: 150px */
+    .omni-btn-1 { transform: translate(-150px, -0px); }
+    .omni-btn-2 { transform: translate(-139px, -58px); }
+    .omni-btn-3 { transform: translate(-106px, -106px); }
+    .omni-btn-4 { transform: translate(-58px, -139px); }
+    .omni-btn-5 { transform: translate(0px, -150px); }
+    .omni-btn-6 { transform: translate(58px, -139px); }
+    .omni-btn-7 { transform: translate(106px, -106px); }
+    .omni-btn-8 { transform: translate(139px, -58px); }
+    .omni-btn-9 { transform: translate(150px, -0px); }
+    
+    .omni-btn-1:hover { transform: translate(-160px, -0px) scale(1.15); }
+    .omni-btn-2:hover { transform: translate(-149px, -63px) scale(1.15); }
+    .omni-btn-3:hover { transform: translate(-113px, -113px) scale(1.15); }
+    .omni-btn-4:hover { transform: translate(-63px, -149px) scale(1.15); }
+    .omni-btn-5:hover { transform: translate(0px, -160px) scale(1.15); }
+    .omni-btn-6:hover { transform: translate(63px, -149px) scale(1.15); }
+    .omni-btn-7:hover { transform: translate(113px, -113px) scale(1.15); }
+    .omni-btn-8:hover { transform: translate(149px, -63px) scale(1.15); }
+    .omni-btn-9:hover { transform: translate(160px, -0px) scale(1.15); }
+}
+</style>
+
+
+<script>
+// GLOBAL Omnitrix Functions - Guaranteed to work
+window.toggleOmnitrixNew = function() {
+    var backdrop = document.getElementById('omnitrixBackdrop');
+    var dial = document.getElementById('omnitrixDial');
+    var btn = document.querySelector('.nav-btn-more');
+    
+    if (!backdrop) {
+        console.error('Backdrop not found!');
+        alert('Omnitrix backdrop element missing');
+        return;
+    }
+    if (!dial) {
+        console.error('Dial not found!');
+        alert('Omnitrix dial element missing');
+        return;
+    }
+    
+    if (dial.classList.contains('show')) {
+        backdrop.classList.remove('show');
+        dial.classList.remove('show');
+        if (btn) btn.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        backdrop.classList.add('show');
+        dial.classList.add('show');
+        if (btn) btn.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeOmnitrixNew = function() {
+    var backdrop = document.getElementById('omnitrixBackdrop');
+    var dial = document.getElementById('omnitrixDial');
+    var btn = document.querySelector('.nav-btn-more');
+    if (backdrop) backdrop.classList.remove('show');
+    if (dial) dial.classList.remove('show');
+    if (btn) btn.classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+// Setup hover on buttons
+document.addEventListener('DOMContentLoaded', function() {
+    var buttons = document.querySelectorAll('.omni-btn');
+    var labelName = document.querySelector('.omni-label-name');
+    var labelDesc = document.querySelector('.omni-label-desc');
+    
+    buttons.forEach(function(btn) {
+        btn.addEventListener('mouseenter', function() {
+            if (labelName) labelName.textContent = this.dataset.name || 'Feature';
+            if (labelDesc) labelDesc.textContent = this.dataset.desc || 'Click';
+        });
+    });
+    
+    var dial = document.getElementById('omnitrixDial');
+    if (dial) {
+        dial.addEventListener('mouseleave', function() {
+            if (labelName) labelName.textContent = 'Select Feature';
+            if (labelDesc) labelDesc.textContent = 'Hover any icon';
+        });
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeOmnitrixNew();
+    });
+    
+    console.log('✅ Omnitrix ready');
+});
+</script>
+
 </body>
 </html>

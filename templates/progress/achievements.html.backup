@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Achievements - CodeLabX{% endblock %}
+{% block extra_css %}
+<style>
+body { background: #0A0A0A; color: #e0e0e0; }
+.achievements-header { background: var(--accent); border-radius: 8px; padding: 30px; margin-bottom: 25px; color: white; }
+.stats-bar { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 12px; padding: 20px; margin-bottom: 25px; }
+.level-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 25px; margin-bottom: 25px; }
+.badge-card { background: var(--bg-secondary); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 25px; transition: all 0.3s ease; height: 100%; }
+.badge-card:hover { transform: translateY(-5px); }
+.badge-card.earned { border-color: #14B8A6; box-shadow: 0 10px 30px rgba(108,99,255,0.2); }
+.badge-card.locked { opacity: 0.5; filter: grayscale(100%); }
+.badge-icon { font-size: 3rem; margin-bottom: 15px; }
+.badge-name { color: white; font-weight: 600; margin-bottom: 8px; }
+.badge-desc { color: #a0a0a0; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.5; }
+.badge-rarity { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 10px; display: inline-block; }
+.rarity-common { background: #a0a0a0; color: white; }
+.rarity-rare { background: #4a90e2; color: white; }
+.rarity-epic { background: #14B8A6; color: white; }
+.rarity-legendary { background: #f59e0b; color: white; }
+.badge-xp { color: #00D4AA; font-size: 0.85rem; font-weight: 600; }
+.filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e0e0e0; padding: 8px 16px; border-radius: 10px; margin-right: 8px; margin-bottom: 8px; transition: all 0.3s; }
+.filter-btn:hover, .filter-btn.active { background: #14B8A6; border-color: #14B8A6; color: white; }
+.progress-bar-custom { height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle); border-radius: 10px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="achievements-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-trophy me-2"></i>Your Achievements</h2>
+            <p class="mb-0" style="opacity: 0.9;">Earn badges and level up as you learn!</p>
+        </div>
+        <a href="{% url 'progress:leaderboard' %}" class="btn btn-light btn-sm">
+            <i class="bi bi-bar-chart me-1"></i>Leaderboard
+        </a>
+    </div>
+</div>
+
+<div class="stats-bar">
+    <div class="row text-center">
+        <div class="col-3">
+            <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ earned_count }}/{{ total_badges }}</div>
+            <div style="color: #a0a0a0; font-size: 0.85rem;">Badges Earned</div>
+        </div>
+        <div class="col-3">
+            <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ user_level.total_xp_earned }}</div>
+            <div style="color: #a0a0a0; font-size: 0.85rem;">Total XP</div>
+        </div>
+        <div class="col-3">
+            <div style="font-size: 1.5rem; font-weight: 700; color: white;">Level {{ user_level.current_level }}</div>
+            <div style="color: #a0a0a0; font-size: 0.85rem;">Current Level</div>
+        </div>
+        <div class="col-3">
+            <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ longest_streak }}</div>
+            <div style="color: #a0a0a0; font-size: 0.85rem;">Longest Streak</div>
+        </div>
+    </div>
+</div>
+
+<div class="level-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 style="color: white; margin: 0;">
+            <i class="bi bi-star-fill me-2" style="color: #f59e0b;"></i>
+            Level {{ user_level.current_level }}
+        </h4>
+        <span style="color: #a0a0a0;">{{ user_level.total_xp_earned }} XP Earned</span>
+    </div>
+    <div class="progress-bar-custom mb-2">
+        <div class="progress-fill" style="width: {{ user_level.level_progress_percentage }}%"></div>
+    </div>
+    <small style="color: #a0a0a0;">{{ user_level.current_xp }}/{{ user_level.xp_for_next_level }} XP to Level {{ user_level.current_level|add:1 }}</small>
+</div>
+
+<div class="mb-4">
+    <button class="filter-btn active" onclick="filterBadges('all')">All</button>
+    <button class="filter-btn" onclick="filterBadges('earned')">Earned</button>
+    <button class="filter-btn" onclick="filterBadges('locked')">Locked</button>
+    <button class="filter-btn" onclick="filterBadges('streak')">Streak</button>
+    <button class="filter-btn" onclick="filterBadges('learning')">Learning</button>
+    <button class="filter-btn" onclick="filterBadges('practice')">Practice</button>
+    <button class="filter-btn" onclick="filterBadges('test')">Test</button>
+    <button class="filter-btn" onclick="filterBadges('special')">Special</button>
+</div>
+
+<div class="row g-4" id="badgeGrid">
+    {% for badge in earned_badges %}
+    <div class="col-md-4 col-sm-6 badge-item earned" data-category="{{ badge.category }}">
+        <div class="badge-card earned">
+            <div class="badge-icon">{{ badge.icon }}</div>
+            <h5 class="badge-name">{{ badge.name }}</h5>
+            <p class="badge-desc">{{ badge.description }}</p>
+            <span class="badge-rarity rarity-{{ badge.rarity }}">{{ badge.get_rarity_display }}</span>
+            <div class="mt-2">
+                <span class="badge-xp">+{{ badge.xp_reward }} XP</span>
+            </div>
+            <small style="color: #00D4AA; display: block; margin-top: 8px;">
+                <i class="bi bi-check-circle me-1"></i>Earned
+            </small>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% for badge in locked_badges %}
+    <div class="col-md-4 col-sm-6 badge-item locked" data-category="{{ badge.category }}">
+        <div class="badge-card locked">
+            <div class="badge-icon">{{ badge.icon }}</div>
+            <h5 class="badge-name">{{ badge.name }}</h5>
+            <p class="badge-desc">{{ badge.description }}</p>
+            <span class="badge-rarity rarity-{{ badge.rarity }}">{{ badge.get_rarity_display }}</span>
+            <div class="mt-2">
+                <span class="badge-xp">+{{ badge.xp_reward }} XP</span>
+            </div>
+            <div style="margin-top: 12px;">
+                <i class="bi bi-lock me-1" style="color: #a0a0a0;"></i>
+                <small style="color: #a0a0a0;">Locked</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function filterBadges(filter) {
+    const items = document.querySelectorAll('.badge-item');
+    const buttons = document.querySelectorAll('.filter-btn');
+    
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    items.forEach(item => {
+        const category = item.dataset.category;
+        const isEarned = item.classList.contains('earned');
+        
+        if (filter === 'all') {
+            item.style.display = 'block';
+        } else if (filter === 'earned') {
+            item.style.display = isEarned ? 'block' : 'none';
+        } else if (filter === 'locked') {
+            item.style.display = !isEarned ? 'block' : 'none';
+        } else {
+            item.style.display = category === filter ? 'block' : 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,179 +1,911 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Create Test - CodeLabX{% endblock %}
+
 {% block extra_css %}
 <style>
-body { background: #0A0A0A; color: #e0e0e0; }
-.create-header { background: var(--accent); border-radius: 8px; padding: 25px; margin-bottom: 25px; color: white; }
-.form-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 30px; }
-.form-control, .form-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; }
-.form-control:focus, .form-select:focus { background: rgba(255,255,255,0.08); border-color: #14B8A6; color: white; }
-.form-label { color: #e0e0e0; font-weight: 500; }
-.form-check-input { background-color: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
-.form-check-input:checked { background-color: #14B8A6; border-color: #14B8A6; }
-.btn-generate { background: var(--accent); border: none; color: white; padding: 15px 40px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; width: 100%; cursor: pointer; }
-.btn-generate:hover:not(:disabled) { transform: translateY(-2px); color: white; }
-.btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
-.spinner-custom { width: 50px; height: 50px; border: 4px solid rgba(108,99,255,0.2); border-top-color: #14B8A6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.radio-group { display: flex; gap: 15px; }
-.radio-option { flex: 1; }
-.radio-option input[type="radio"] { display: none; }
-.radio-option label { display: block; padding: 15px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
-.radio-option input[type="radio"]:checked + label { border-color: #14B8A6; background: rgba(108,99,255,0.15); }
-.radio-option label:hover { border-color: rgba(108,99,255,0.5); }
+    body { background: var(--bg-primary); }
+    
+    .ct-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    /* HERO - Beautiful gradient */
+    .ct-hero {
+        position: relative;
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    
+    .ct-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.2), transparent 60%);
+        filter: blur(60px);
+        animation: heroGlow 6s ease-in-out infinite;
+    }
+    
+    .ct-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        left: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroGlow 8s ease-in-out infinite reverse;
+    }
+    
+    @keyframes heroGlow {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+        50% { transform: translate(30px, 20px) scale(1.1); opacity: 1; }
+    }
+    
+    .ct-hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .ct-hero-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .ct-hero-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.35);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ct-hero-icon::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3));
+        animation: iconShine 3s ease-in-out infinite;
+    }
+    
+    @keyframes iconShine {
+        0%, 100% { transform: translateX(-100%); }
+        50% { transform: translateX(100%); }
+    }
+    
+    .ct-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(236, 72, 153, 0.15);
+        border: 1px solid rgba(236, 72, 153, 0.3);
+        border-radius: 999px;
+        color: #F472B6;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 4px;
+    }
+    
+    .ct-hero h1 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 4px 0;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+    
+    .ct-hero h1 span {
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .ct-hero p {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .btn-back {
+        padding: 10px 20px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    
+    .btn-back:hover {
+        background: var(--bg-tertiary);
+        border-color: #EC4899;
+        color: #EC4899;
+    }
+    
+    /* FORM CONTAINER */
+    .form-wrapper {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    /* FORM SECTION */
+    .form-section {
+        padding: 24px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .form-section:last-of-type {
+        border-bottom: none;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    
+    .section-number {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter Tight', sans-serif;
+        font-weight: 800;
+        font-size: 0.85rem;
+        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+    }
+    
+    .section-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+    
+    .section-subtitle {
+        color: var(--text-tertiary);
+        font-size: 0.8rem;
+        margin: 0 0 16px 0;
+    }
+    
+    /* TOPIC INPUT */
+    .topic-input-wrapper {
+        position: relative;
+        margin-bottom: 16px;
+    }
+    
+    .topic-input {
+        width: 100%;
+        padding: 14px 16px 14px 44px;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-default);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+    }
+    
+    .topic-input:focus {
+        outline: none;
+        border-color: #EC4899;
+        background: var(--bg-elevated);
+        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+    }
+    
+    .topic-input::placeholder {
+        color: var(--text-tertiary);
+    }
+    
+    .topic-input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-tertiary);
+        font-size: 1.1rem;
+    }
+    
+    /* SUGGESTED TOPICS */
+    .suggested-topics {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .topic-chip {
+        padding: 6px 12px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 999px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .topic-chip:hover {
+        background: rgba(236, 72, 153, 0.15);
+        border-color: #EC4899;
+        color: #EC4899;
+        transform: translateY(-1px);
+    }
+    
+    .topic-chip.trending::before {
+        content: '🔥';
+        font-size: 0.8rem;
+    }
+    
+    /* DIFFICULTY CARDS */
+    .difficulty-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .difficulty-card {
+        padding: 20px 16px;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-default);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+    
+    .difficulty-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, var(--diff-color), transparent 60%);
+        filter: blur(40px);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    
+    .difficulty-card:hover::before {
+        opacity: 0.3;
+    }
+    
+    .difficulty-card.easy { --diff-color: #10B981; }
+    .difficulty-card.medium { --diff-color: #F59E0B; }
+    .difficulty-card.hard { --diff-color: #EF4444; }
+    
+    .difficulty-card:hover {
+        border-color: var(--diff-color);
+        transform: translateY(-3px);
+    }
+    
+    .difficulty-card.selected {
+        border-color: var(--diff-color);
+        background: linear-gradient(135deg, var(--bg-tertiary), rgba(0,0,0,0.1));
+    }
+    
+    .difficulty-card.selected::before {
+        opacity: 0.4;
+    }
+    
+    .diff-emoji {
+        font-size: 2rem;
+        margin-bottom: 8px;
+        display: block;
+        position: relative;
+        z-index: 1;
+        transition: transform 0.3s;
+    }
+    
+    .difficulty-card:hover .diff-emoji {
+        transform: scale(1.15) rotate(-5deg);
+    }
+    
+    .diff-name {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .diff-desc {
+        color: var(--text-tertiary);
+        font-size: 0.7rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .diff-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 3px 8px;
+        background: var(--diff-color);
+        color: white;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 8px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* SETTINGS ROW */
+    .settings-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .setting-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* QUESTION COUNT */
+    .count-slider-wrapper {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 10px;
+        padding: 16px;
+    }
+    
+    .count-display {
+        text-align: center;
+        margin-bottom: 12px;
+    }
+    
+    .count-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 4px;
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .count-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+    }
+    
+    .count-slider {
+        width: 100%;
+        height: 6px;
+        background: var(--bg-elevated);
+        border-radius: 3px;
+        outline: none;
+        -webkit-appearance: none;
+        margin: 8px 0;
+    }
+    
+    .count-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+        transition: transform 0.2s;
+    }
+    
+    .count-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+    
+    .count-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        border-radius: 50%;
+        cursor: pointer;
+        border: none;
+    }
+    
+    .count-range {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        font-weight: 600;
+    }
+    
+    /* TIME PRESETS */
+    .time-presets {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    
+    .time-preset {
+        padding: 12px 10px;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-default);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+    }
+    
+    .time-preset:hover {
+        border-color: #A855F7;
+        transform: translateY(-2px);
+    }
+    
+    .time-preset.selected {
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15));
+        border-color: #A855F7;
+    }
+    
+    .time-preset-icon {
+        font-size: 1.25rem;
+        margin-bottom: 4px;
+    }
+    
+    .time-preset-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .time-preset-label {
+        font-size: 0.65rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        margin-top: 2px;
+    }
+    
+    /* AI PREVIEW */
+    .ai-preview {
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(168, 85, 247, 0.08));
+        border: 1px solid rgba(236, 72, 153, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .preview-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .preview-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+    
+    .preview-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .preview-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .preview-stat {
+        text-align: center;
+        padding: 10px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+    }
+    
+    .preview-stat-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .preview-stat-label {
+        font-size: 0.65rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 3px;
+        font-weight: 600;
+    }
+    
+    /* SUBMIT SECTION */
+    .submit-section {
+        padding: 24px;
+        background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+        border-top: 1px solid var(--border-default);
+    }
+    
+    .btn-generate {
+        width: 100%;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #EC4899, #A855F7);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s;
+        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.35);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-generate::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: left 0.6s;
+    }
+    
+    .btn-generate:hover::before { left: 150%; }
+    
+    .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(236, 72, 153, 0.45);
+    }
+    
+    .btn-generate:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    .generate-info {
+        text-align: center;
+        margin-top: 12px;
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+    }
+    
+    .generate-info i {
+        color: #EC4899;
+    }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+        .ct-container { padding: 16px; }
+        .ct-hero { padding: 20px; }
+        .difficulty-grid { grid-template-columns: 1fr; }
+        .settings-row { grid-template-columns: 1fr; }
+        .time-presets { grid-template-columns: 1fr; }
+        .ct-hero-content { flex-direction: column; align-items: flex-start; }
+    }
 </style>
 {% endblock %}
-{% block content %}
-<div class="create-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-plus-circle me-2"></i>Create New Test</h2>
-            <p class="mb-0" style="opacity: 0.9;">Generate AI-powered quizzes on any topic</p>
-        </div>
-        <a href="{% url 'assessments:quiz_list' %}" class="btn btn-light btn-sm">Back to Tests</a>
-    </div>
-</div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="form-card">
-            <form id="createTestForm">
-                <div class="mb-4">
-                    <label class="form-label">Topic</label>
-                    <input type="text" class="form-control" id="topic" placeholder="e.g., Python Basics, Arrays, Machine Learning" required>
-                    <small class="text-muted">Enter the topic you want to test your knowledge on</small>
+{% block content %}
+<div class="ct-container">
+    
+    <!-- HERO -->
+    <div class="ct-hero">
+        <div class="ct-hero-content">
+            <div class="ct-hero-left">
+                <div class="ct-hero-icon">
+                    <i class="bi bi-magic"></i>
                 </div>
-                
-                <div class="mb-4">
-                    <label class="form-label">Difficulty Level</label>
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" name="difficulty" id="diff-easy" value="easy" checked>
-                            <label for="diff-easy">
-                                <i class="bi bi-emoji-smile d-block mb-2" style="font-size: 1.5rem;"></i>
-                                Easy
-                            </label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="difficulty" id="diff-medium" value="medium">
-                            <label for="diff-medium">
-                                <i class="bi bi-emoji-neutral d-block mb-2" style="font-size: 1.5rem;"></i>
-                                Medium
-                            </label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="difficulty" id="diff-hard" value="hard">
-                            <label for="diff-hard">
-                                <i class="bi bi-emoji-frown d-block mb-2" style="font-size: 1.5rem;"></i>
-                                Hard
-                            </label>
-                        </div>
+                <div>
+                    <div class="ct-hero-eyebrow">
+                        <i class="bi bi-stars"></i>
+                        <span>AI-Powered</span>
                     </div>
+                    <h1>Create <span>Smart Test</span></h1>
+                    <p>Generate custom AI quizzes on any topic in seconds.</p>
                 </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label">Number of Questions</label>
-                        <select class="form-select" id="numQuestions">
-                            <option value="5">5 Questions</option>
-                            <option value="10" selected>10 Questions</option>
-                            <option value="15">15 Questions</option>
-                            <option value="20">20 Questions</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Time Limit (minutes)</label>
-                        <select class="form-select" id="timeLimit">
-                            <option value="5">5 minutes</option>
-                            <option value="10" selected>10 minutes</option>
-                            <option value="20">20 minutes</option>
-                            <option value="30">30 minutes</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <button type="button" class="btn-generate" id="generateBtn" onclick="generateTest()">
-                    <i class="bi bi-magic me-2"></i>Generate Test with AI
-                </button>
-            </form>
+            </div>
+            <a href="{% url 'assessments:quiz_list' %}" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Back to Tests
+            </a>
+        </div>
+    </div>
+    
+    <!-- FORM -->
+    <form method="post" class="form-wrapper" id="testForm">
+        {% csrf_token %}
+        
+        <!-- Section 1: Topic -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <h3 class="section-title">Choose Your Topic</h3>
+            </div>
+            <p class="section-subtitle">What do you want to test yourself on?</p>
             
-            <div id="loadingState" style="display: none;">
-                <div class="text-center py-4">
-                    <div class="spinner-custom"></div>
-                    <h5 style="color: white;">AI is generating your test...</h5>
-                    <p class="text-muted">This may take a few seconds</p>
+            <div class="topic-input-wrapper">
+                <i class="bi bi-search topic-input-icon"></i>
+                <input type="text" name="topic" id="topicInput" class="topic-input" 
+                       placeholder="e.g., Python Basics, Machine Learning, React Hooks..." 
+                       required autocomplete="off">
+            </div>
+            
+            <p class="section-subtitle" style="margin-top: 12px;">💡 Popular topics right now:</p>
+            <div class="suggested-topics">
+                <span class="topic-chip trending" onclick="setTopic('Python Basics')">Python Basics</span>
+                <span class="topic-chip trending" onclick="setTopic('Machine Learning')">Machine Learning</span>
+                <span class="topic-chip trending" onclick="setTopic('JavaScript ES6')">JavaScript ES6</span>
+                <span class="topic-chip" onclick="setTopic('Data Structures')">Data Structures</span>
+                <span class="topic-chip" onclick="setTopic('React Hooks')">React Hooks</span>
+                <span class="topic-chip" onclick="setTopic('SQL Queries')">SQL Queries</span>
+                <span class="topic-chip" onclick="setTopic('Docker Basics')">Docker Basics</span>
+                <span class="topic-chip" onclick="setTopic('Git Commands')">Git Commands</span>
+            </div>
+        </div>
+        
+        <!-- Section 2: Difficulty -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-number">2</div>
+                <h3 class="section-title">Select Difficulty</h3>
+            </div>
+            <p class="section-subtitle">How challenging should it be?</p>
+            
+            <div class="difficulty-grid">
+                <div class="difficulty-card easy selected" onclick="selectDifficulty('easy', this)">
+                    <span class="diff-emoji">🌱</span>
+                    <div class="diff-name">Easy</div>
+                    <p class="diff-desc">Perfect for beginners</p>
+                    <div class="diff-badge">Beginner</div>
+                </div>
+                
+                <div class="difficulty-card medium" onclick="selectDifficulty('medium', this)">
+                    <span class="diff-emoji">⚡</span>
+                    <div class="diff-name">Medium</div>
+                    <p class="diff-desc">Balanced challenge</p>
+                    <div class="diff-badge">Intermediate</div>
+                </div>
+                
+                <div class="difficulty-card hard" onclick="selectDifficulty('hard', this)">
+                    <span class="diff-emoji">🔥</span>
+                    <div class="diff-name">Hard</div>
+                    <p class="diff-desc">Test your expertise</p>
+                    <div class="diff-badge">Advanced</div>
+                </div>
+            </div>
+            
+            <input type="hidden" name="difficulty" id="difficultyInput" value="easy">
+        </div>
+        
+        <!-- Section 3: Settings -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <h3 class="section-title">Test Settings</h3>
+            </div>
+            <p class="section-subtitle">Customize your test experience</p>
+            
+            <div class="settings-row">
+                <div class="setting-group">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="bi bi-question-circle" style="color: #EC4899;"></i>
+                        Number of Questions
+                    </label>
+                    <div class="count-slider-wrapper">
+                        <div class="count-display">
+                            <div class="count-value" id="countDisplay">10</div>
+                            <div class="count-label">Questions</div>
+                        </div>
+                        <input type="range" name="num_questions" id="countSlider" 
+                               class="count-slider" min="5" max="30" value="10" step="5"
+                               oninput="updateCount(this.value)">
+                        <div class="count-range">
+                            <span>5</span>
+                            <span>15</span>
+                            <span>30</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="bi bi-clock" style="color: #A855F7;"></i>
+                        Time Limit
+                    </label>
+                    <div class="time-presets">
+                        <div class="time-preset" onclick="selectTime(5, this)">
+                            <div class="time-preset-icon">⚡</div>
+                            <div class="time-preset-value">5</div>
+                            <div class="time-preset-label">Quick</div>
+                        </div>
+                        <div class="time-preset selected" onclick="selectTime(10, this)">
+                            <div class="time-preset-icon">⏱️</div>
+                            <div class="time-preset-value">10</div>
+                            <div class="time-preset-label">Standard</div>
+                        </div>
+                        <div class="time-preset" onclick="selectTime(20, this)">
+                            <div class="time-preset-icon">🏃</div>
+                            <div class="time-preset-value">20</div>
+                            <div class="time-preset-label">Extended</div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="time_limit_minutes" id="timeInput" value="10">
                 </div>
             </div>
         </div>
-    </div>
+        
+        <!-- AI Preview -->
+        <div class="form-section">
+            <div class="ai-preview">
+                <div class="preview-header">
+                    <div class="preview-icon">
+                        <i class="bi bi-magic"></i>
+                    </div>
+                    <div class="preview-title">Your Test Preview</div>
+                </div>
+                <div class="preview-stats">
+                    <div class="preview-stat">
+                        <div class="preview-stat-value" id="previewQuestions">10</div>
+                        <div class="preview-stat-label">Questions</div>
+                    </div>
+                    <div class="preview-stat">
+                        <div class="preview-stat-value" id="previewTime">10 min</div>
+                        <div class="preview-stat-label">Duration</div>
+                    </div>
+                    <div class="preview-stat">
+                        <div class="preview-stat-value" id="previewXP">+50 XP</div>
+                        <div class="preview-stat-label">Reward</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Submit -->
+        <div class="submit-section">
+            <button type="submit" class="btn-generate" id="submitBtn">
+                <i class="bi bi-magic"></i>
+                <span>Generate Test with AI</span>
+            </button>
+            <p class="generate-info">
+                <i class="bi bi-info-circle"></i>
+                Takes ~10-15 seconds • Powered by Gemini AI
+            </p>
+        </div>
+    </form>
 </div>
 {% endblock %}
+
 {% block extra_js %}
 <script>
-function getCookie(name) {
-    let v = null;
-    if (document.cookie) {
-        for (let c of document.cookie.split(';')) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) { v = decodeURIComponent(c.substring(name.length + 1)); break; }
-        }
-    }
-    return v;
-}
-
-async function generateTest() {
-    const topic = document.getElementById('topic').value.trim();
-    const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
-    const numQuestions = document.getElementById('numQuestions').value;
-    const timeLimit = document.getElementById('timeLimit').value;
-    
-    if (!topic) {
-        alert('Please enter a topic');
-        return;
+    // Set topic from chip
+    function setTopic(topic) {
+        document.getElementById('topicInput').value = topic;
+        document.getElementById('topicInput').focus();
     }
     
-    const btn = document.getElementById('generateBtn');
-    const form = document.getElementById('createTestForm');
-    const loadingState = document.getElementById('loadingState');
-    
-    btn.disabled = true;
-    btn.innerHTML = 'GENERATING...';
-    form.style.display = 'none';
-    loadingState.style.display = 'block';
-    
-    try {
-        const response = await fetch('/assessments/api/generate/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                topic: topic,
-                difficulty: difficulty,
-                num_questions: parseInt(numQuestions),
-                time_limit: parseInt(timeLimit)
-            })
+    // Select difficulty
+    function selectDifficulty(diff, elem) {
+        document.querySelectorAll('.difficulty-card').forEach(card => {
+            card.classList.remove('selected');
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            window.location.href = '/assessments/take/' + data.test_id + '/';
-        } else {
-            alert('Error: ' + data.error);
-            form.style.display = 'block';
-            loadingState.style.display = 'none';
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-magic me-2"></i>Generate Test with AI';
-        }
-    } catch (error) {
-        alert('Error: ' + error.message);
-        form.style.display = 'block';
-        loadingState.style.display = 'none';
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-magic me-2"></i>Generate Test with AI';
+        elem.classList.add('selected');
+        document.getElementById('difficultyInput').value = diff;
+        updateXPPreview();
     }
-}
+    
+    // Select time preset
+    function selectTime(minutes, elem) {
+        document.querySelectorAll('.time-preset').forEach(p => {
+            p.classList.remove('selected');
+        });
+        elem.classList.add('selected');
+        document.getElementById('timeInput').value = minutes;
+        document.getElementById('previewTime').textContent = minutes + ' min';
+    }
+    
+    // Update question count
+    function updateCount(value) {
+        document.getElementById('countDisplay').textContent = value;
+        document.getElementById('previewQuestions').textContent = value;
+        updateXPPreview();
+    }
+    
+    // Update XP preview
+    function updateXPPreview() {
+        const questions = parseInt(document.getElementById('countSlider').value);
+        const difficulty = document.getElementById('difficultyInput').value;
+        const multiplier = { easy: 5, medium: 8, hard: 12 };
+        const xp = questions * (multiplier[difficulty] || 5);
+        document.getElementById('previewXP').textContent = '+' + xp + ' XP';
+    }
+    
+    // Form submit with loading
+    document.getElementById('testForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i><span>Generating with AI...</span>';
+    });
+    
+    // Initialize
+    updateXPPreview();
 </script>
 {% endblock %}

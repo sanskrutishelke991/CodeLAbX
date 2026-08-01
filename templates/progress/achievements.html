@@ -1,150 +1,954 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Achievements - CodeLabX{% endblock %}
+
 {% block extra_css %}
 <style>
-body { background: #0A0A0A; color: #e0e0e0; }
-.achievements-header { background: var(--accent); border-radius: 8px; padding: 30px; margin-bottom: 25px; color: white; }
-.stats-bar { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 12px; padding: 20px; margin-bottom: 25px; }
-.level-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 25px; margin-bottom: 25px; }
-.badge-card { background: var(--bg-secondary); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 25px; transition: all 0.3s ease; height: 100%; }
-.badge-card:hover { transform: translateY(-5px); }
-.badge-card.earned { border-color: #14B8A6; box-shadow: 0 10px 30px rgba(108,99,255,0.2); }
-.badge-card.locked { opacity: 0.5; filter: grayscale(100%); }
-.badge-icon { font-size: 3rem; margin-bottom: 15px; }
-.badge-name { color: white; font-weight: 600; margin-bottom: 8px; }
-.badge-desc { color: #a0a0a0; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.5; }
-.badge-rarity { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 10px; display: inline-block; }
-.rarity-common { background: #a0a0a0; color: white; }
-.rarity-rare { background: #4a90e2; color: white; }
-.rarity-epic { background: #14B8A6; color: white; }
-.rarity-legendary { background: #f59e0b; color: white; }
-.badge-xp { color: #00D4AA; font-size: 0.85rem; font-weight: 600; }
-.filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e0e0e0; padding: 8px 16px; border-radius: 10px; margin-right: 8px; margin-bottom: 8px; transition: all 0.3s; }
-.filter-btn:hover, .filter-btn.active { background: #14B8A6; border-color: #14B8A6; color: white; }
-.progress-bar-custom { height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle); border-radius: 10px; }
+    body { background: var(--bg-primary); }
+    
+    .ach-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    /* HERO */
+    .ach-hero {
+        position: relative;
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    
+    .ach-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroGlow 6s ease-in-out infinite;
+    }
+    
+    .ach-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.15), transparent 60%);
+        filter: blur(60px);
+        animation: heroGlow 8s ease-in-out infinite reverse;
+    }
+    
+    @keyframes heroGlow {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+        50% { transform: translate(50px, 30px) scale(1.1); opacity: 1; }
+    }
+    
+    .ach-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .ach-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 999px;
+        color: #F59E0B;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 16px;
+    }
+    
+    .ach-hero h1 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.03em;
+        margin-bottom: 8px;
+        line-height: 1.1;
+    }
+    
+    .ach-hero h1 span {
+        background: linear-gradient(135deg, #F59E0B, #EF4444);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .ach-hero p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        max-width: 500px;
+    }
+    
+    /* LEVEL CARD - Main Feature */
+    .level-card {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 20px;
+        padding: 32px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .level-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(20, 184, 166, 0.1), transparent 60%);
+        filter: blur(60px);
+        pointer-events: none;
+    }
+    
+    .level-content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 200px 1fr auto;
+        gap: 40px;
+        align-items: center;
+    }
+    
+    .level-badge-visual {
+        position: relative;
+        width: 160px;
+        height: 160px;
+    }
+    
+    .level-badge-visual svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+    
+    .level-ring-bg {
+        fill: none;
+        stroke: var(--border-default);
+        stroke-width: 8;
+    }
+    
+    .level-ring-fill {
+        fill: none;
+        stroke: url(#levelGradient);
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.5s ease;
+    }
+    
+    .level-number-display {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .level-number-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .level-number-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 3.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent), #06B6D4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+    }
+    
+    .level-info h2 {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+    }
+    
+    .level-info p {
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+    }
+    
+    .level-xp-bar {
+        margin-bottom: 12px;
+    }
+    
+    .level-xp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .level-xp-current {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--accent);
+    }
+    
+    .level-xp-total {
+        font-size: 0.85rem;
+        color: var(--text-tertiary);
+    }
+    
+    .level-xp-track {
+        height: 12px;
+        background: var(--bg-elevated);
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .level-xp-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), #06B6D4);
+        border-radius: 6px;
+        transition: width 1s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .level-xp-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: xpShine 2s ease-in-out infinite;
+    }
+    
+    @keyframes xpShine {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+    }
+    
+    .level-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-align: right;
+    }
+    
+    .level-stat-item {
+        padding: 12px 20px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 10px;
+        min-width: 140px;
+    }
+    
+    .level-stat-value {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    
+    .level-stat-label {
+        font-size: 0.7rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+    
+    /* RARITY STATS */
+    .rarity-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .rarity-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .rarity-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--rarity-color);
+    }
+    
+    .rarity-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, var(--rarity-glow), transparent 60%);
+        filter: blur(40px);
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    
+    .rarity-card.common { --rarity-color: #9CA3AF; --rarity-glow: rgba(156, 163, 175, 0.3); }
+    .rarity-card.rare { --rarity-color: #3B82F6; --rarity-glow: rgba(59, 130, 246, 0.3); }
+    .rarity-card.epic { --rarity-color: #A855F7; --rarity-glow: rgba(168, 85, 247, 0.3); }
+    .rarity-card.legendary { --rarity-color: #F59E0B; --rarity-glow: rgba(245, 158, 11, 0.4); }
+    
+    .rarity-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        background: var(--rarity-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 4px 12px var(--rarity-glow);
+    }
+    
+    .rarity-count {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .rarity-count small {
+        font-size: 1rem;
+        color: var(--text-tertiary);
+    }
+    
+    .rarity-label {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* FILTERS */
+    .filter-bar {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+    }
+    
+    .filter-chip {
+        padding: 10px 18px;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+    
+    .filter-chip:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+    
+    .filter-chip.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+    
+    .filter-chip i { font-size: 1rem; }
+    
+    /* BADGES GRID - THE MAIN THING */
+    .category-section {
+        margin-bottom: 32px;
+    }
+    
+    .category-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .category-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .category-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+    }
+    
+    .category-icon.streak { background: linear-gradient(135deg, #F59E0B, #EF4444); }
+    .category-icon.learning { background: linear-gradient(135deg, #3B82F6, #8B5CF6); }
+    .category-icon.practice { background: linear-gradient(135deg, #10B981, #14B8A6); }
+    .category-icon.test { background: linear-gradient(135deg, #EC4899, #F43F5E); }
+    .category-icon.special { background: linear-gradient(135deg, #A855F7, #F59E0B); }
+    
+    .category-count {
+        color: var(--text-tertiary);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    /* SMALL CIRCULAR BADGES */
+    .badges-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 16px;
+    }
+    
+    .badge-item {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-default);
+        border-radius: 16px;
+        padding: 20px 12px;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .badge-item::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, var(--badge-glow), transparent 70%);
+        filter: blur(30px);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    
+    .badge-item.earned {
+        border-color: var(--badge-color);
+    }
+    
+    .badge-item.earned::before {
+        opacity: 0.6;
+    }
+    
+    .badge-item.earned:hover {
+        transform: translateY(-6px) scale(1.03);
+        border-color: var(--badge-color);
+        box-shadow: 0 15px 30px var(--badge-glow);
+    }
+    
+    .badge-item.locked {
+        opacity: 0.5;
+        filter: grayscale(0.8);
+    }
+    
+    .badge-item.locked:hover {
+        opacity: 0.7;
+        transform: translateY(-3px);
+    }
+    
+    /* CIRCULAR BADGE ICON - SMALL & BEAUTIFUL */
+    .badge-icon-circle {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--badge-color), var(--badge-color-dark));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: white;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s;
+        box-shadow: 
+            inset 0 2px 4px rgba(255, 255, 255, 0.2),
+            0 4px 12px var(--badge-glow);
+    }
+    
+    .badge-item.earned .badge-icon-circle {
+        animation: badgePulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes badgePulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 4px 12px var(--badge-glow); }
+        50% { transform: scale(1.05); box-shadow: 0 8px 24px var(--badge-glow); }
+    }
+    
+    .badge-item.locked .badge-icon-circle {
+        background: linear-gradient(135deg, #4B5563, #374151);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .badge-item.locked .badge-icon-circle::after {
+        content: '\f47a';
+        font-family: 'bootstrap-icons';
+        position: absolute;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+    
+    .badge-item.locked .badge-icon-circle > * {
+        opacity: 0.3;
+    }
+    
+    /* Rarity ring around badge */
+    .badge-rarity-ring {
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        border-radius: 50%;
+        border: 2px solid var(--badge-color);
+        z-index: 0;
+    }
+    
+    .badge-name {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        line-height: 1.2;
+    }
+    
+    .badge-rarity-label {
+        font-size: 0.65rem;
+        color: var(--badge-color);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    
+    .badge-xp {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        background: rgba(20, 184, 166, 0.15);
+        border: 1px solid rgba(20, 184, 166, 0.3);
+        border-radius: 6px;
+        color: var(--accent);
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    
+    .badge-earned-date {
+        font-size: 0.65rem;
+        color: var(--text-tertiary);
+        margin-top: 6px;
+    }
+    
+    /* Rarity colors */
+    .badge-item.common {
+        --badge-color: #9CA3AF;
+        --badge-color-dark: #6B7280;
+        --badge-glow: rgba(156, 163, 175, 0.4);
+    }
+    
+    .badge-item.rare {
+        --badge-color: #3B82F6;
+        --badge-color-dark: #2563EB;
+        --badge-glow: rgba(59, 130, 246, 0.5);
+    }
+    
+    .badge-item.epic {
+        --badge-color: #A855F7;
+        --badge-color-dark: #9333EA;
+        --badge-glow: rgba(168, 85, 247, 0.5);
+    }
+    
+    .badge-item.legendary {
+        --badge-color: #F59E0B;
+        --badge-color-dark: #D97706;
+        --badge-glow: rgba(245, 158, 11, 0.6);
+    }
+    
+    /* EMPTY STATE */
+    .empty-category {
+        padding: 40px;
+        text-align: center;
+        background: var(--bg-secondary);
+        border: 1px dashed var(--border-default);
+        border-radius: 12px;
+        color: var(--text-tertiary);
+        font-size: 0.9rem;
+    }
+    
+    /* NEXT UNLOCKS SECTION */
+    .next-unlocks {
+        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    
+    .next-unlocks-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .next-unlocks-header i {
+        color: var(--accent);
+        font-size: 1.3rem;
+    }
+    
+    .next-unlocks-title {
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .next-unlocks-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .next-unlock-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+    
+    .next-unlock-item:hover {
+        border-color: var(--accent);
+        transform: translateX(4px);
+    }
+    
+    .next-unlock-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--bg-elevated);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        opacity: 0.6;
+    }
+    
+    .next-unlock-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .next-unlock-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+    
+    .next-unlock-desc {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+    }
+    
+    /* Responsive */
+    @media (max-width: 900px) {
+        .level-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 24px;
+        }
+        
+        .level-badge-visual { margin: 0 auto; }
+        .level-stats { flex-direction: row; justify-content: center; }
+        .rarity-stats { grid-template-columns: repeat(2, 1fr); }
+        .next-unlocks-grid { grid-template-columns: 1fr; }
+    }
+    
+    @media (max-width: 640px) {
+        .ach-container { padding: 16px; }
+        .ach-hero { padding: 24px; }
+        .ach-hero h1 { font-size: 1.75rem; }
+        .level-card { padding: 20px; }
+        .badges-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+        .badge-icon-circle { width: 56px; height: 56px; font-size: 1.5rem; }
+    }
 </style>
 {% endblock %}
+
 {% block content %}
-<div class="achievements-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-trophy me-2"></i>Your Achievements</h2>
-            <p class="mb-0" style="opacity: 0.9;">Earn badges and level up as you learn!</p>
+<div class="ach-container">
+    
+    <!-- HERO -->
+    <div class="ach-hero">
+        <div class="ach-hero-content">
+            <div class="ach-hero-eyebrow">
+                <i class="bi bi-trophy-fill"></i>
+                <span>Level {{ user_level.current_level }} Explorer</span>
+            </div>
+            <h1>Your <span>Achievements</span></h1>
+            <p>Track your progress, earn badges, and level up your skills. Every action counts.</p>
         </div>
-        <a href="{% url 'progress:leaderboard' %}" class="btn btn-light btn-sm">
-            <i class="bi bi-bar-chart me-1"></i>Leaderboard
+    </div>
+    
+    <!-- LEVEL CARD -->
+    <div class="level-card">
+        <div class="level-content">
+            <div class="level-badge-visual">
+                <svg viewBox="0 0 160 160">
+                    <defs>
+                        <linearGradient id="levelGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#14B8A6"/>
+                            <stop offset="100%" style="stop-color:#06B6D4"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="level-ring-bg" cx="80" cy="80" r="70"/>
+                    <circle class="level-ring-fill" cx="80" cy="80" r="70"
+                            style="stroke-dasharray: 440; stroke-dashoffset: calc(440 - (440 * {{ level_progress }} / 100));"/>
+                </svg>
+                <div class="level-number-display">
+                    <div class="level-number-label">Level</div>
+                    <div class="level-number-value">{{ user_level.current_level }}</div>
+                </div>
+            </div>
+            
+            <div class="level-info">
+                <h2>{{ current_xp }} XP Earned</h2>
+                <p>{{ next_level_xp|add:"-"|add:current_xp }} XP away from Level {{ user_level.current_level|add:1 }}</p>
+                
+                <div class="level-xp-bar">
+                    <div class="level-xp-header">
+                        <span class="level-xp-current">{{ current_xp }} / {{ next_level_xp }} XP</span>
+                        <span class="level-xp-total">{{ level_progress }}%</span>
+                    </div>
+                    <div class="level-xp-track">
+                        <div class="level-xp-fill" style="width: {{ level_progress }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="level-stats">
+                <div class="level-stat-item">
+                    <div class="level-stat-value">{{ earned_count }}<small style="font-size: 0.9rem; color: var(--text-tertiary);">/{{ total_badges }}</small></div>
+                    <div class="level-stat-label">Badges</div>
+                </div>
+                <div class="level-stat-item">
+                    <div class="level-stat-value">{{ user_streak.longest_streak }}</div>
+                    <div class="level-stat-label">Best Streak</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RARITY STATS -->
+    <div class="rarity-stats">
+        <div class="rarity-card common">
+            <div class="rarity-icon"><i class="bi bi-circle-fill"></i></div>
+            <div class="rarity-count">{{ earned_by_rarity.common }}<small>/{{ rarity_stats.common }}</small></div>
+            <div class="rarity-label">Common</div>
+        </div>
+        <div class="rarity-card rare">
+            <div class="rarity-icon"><i class="bi bi-gem"></i></div>
+            <div class="rarity-count">{{ earned_by_rarity.rare }}<small>/{{ rarity_stats.rare }}</small></div>
+            <div class="rarity-label">Rare</div>
+        </div>
+        <div class="rarity-card epic">
+            <div class="rarity-icon"><i class="bi bi-star-fill"></i></div>
+            <div class="rarity-count">{{ earned_by_rarity.epic }}<small>/{{ rarity_stats.epic }}</small></div>
+            <div class="rarity-label">Epic</div>
+        </div>
+        <div class="rarity-card legendary">
+            <div class="rarity-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="rarity-count">{{ earned_by_rarity.legendary }}<small>/{{ rarity_stats.legendary }}</small></div>
+            <div class="rarity-label">Legendary</div>
+        </div>
+    </div>
+    
+    <!-- NEXT UNLOCKS -->
+    {% if next_to_unlock %}
+    <div class="next-unlocks">
+        <div class="next-unlocks-header">
+            <i class="bi bi-key-fill"></i>
+            <div class="next-unlocks-title">Next to Unlock</div>
+        </div>
+        <div class="next-unlocks-grid">
+            {% for badge in next_to_unlock %}
+            <div class="next-unlock-item">
+                <div class="next-unlock-icon">{{ badge.icon }}</div>
+                <div class="next-unlock-info">
+                    <div class="next-unlock-name">{{ badge.name }}</div>
+                    <div class="next-unlock-desc">{{ badge.description|truncatechars:50 }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- CATEGORY FILTERS -->
+    <div class="filter-bar">
+        <a href="?category=all" class="filter-chip {% if category_filter == 'all' %}active{% endif %}">
+            <i class="bi bi-grid-fill"></i> All
+        </a>
+        <a href="?category=streak" class="filter-chip {% if category_filter == 'streak' %}active{% endif %}">
+            <i class="bi bi-fire"></i> Streak
+        </a>
+        <a href="?category=learning" class="filter-chip {% if category_filter == 'learning' %}active{% endif %}">
+            <i class="bi bi-book-fill"></i> Learning
+        </a>
+        <a href="?category=practice" class="filter-chip {% if category_filter == 'practice' %}active{% endif %}">
+            <i class="bi bi-code-slash"></i> Practice
+        </a>
+        <a href="?category=test" class="filter-chip {% if category_filter == 'test' %}active{% endif %}">
+            <i class="bi bi-clipboard-check-fill"></i> Test
+        </a>
+        <a href="?category=special" class="filter-chip {% if category_filter == 'special' %}active{% endif %}">
+            <i class="bi bi-stars"></i> Special
         </a>
     </div>
-</div>
-
-<div class="stats-bar">
-    <div class="row text-center">
-        <div class="col-3">
-            <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ earned_count }}/{{ total_badges }}</div>
-            <div style="color: #a0a0a0; font-size: 0.85rem;">Badges Earned</div>
-        </div>
-        <div class="col-3">
-            <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ user_level.total_xp_earned }}</div>
-            <div style="color: #a0a0a0; font-size: 0.85rem;">Total XP</div>
-        </div>
-        <div class="col-3">
-            <div style="font-size: 1.5rem; font-weight: 700; color: white;">Level {{ user_level.current_level }}</div>
-            <div style="color: #a0a0a0; font-size: 0.85rem;">Current Level</div>
-        </div>
-        <div class="col-3">
-            <div style="font-size: 1.5rem; font-weight: 700; color: white;">{{ longest_streak }}</div>
-            <div style="color: #a0a0a0; font-size: 0.85rem;">Longest Streak</div>
-        </div>
-    </div>
-</div>
-
-<div class="level-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 style="color: white; margin: 0;">
-            <i class="bi bi-star-fill me-2" style="color: #f59e0b;"></i>
-            Level {{ user_level.current_level }}
-        </h4>
-        <span style="color: #a0a0a0;">{{ user_level.total_xp_earned }} XP Earned</span>
-    </div>
-    <div class="progress-bar-custom mb-2">
-        <div class="progress-fill" style="width: {{ user_level.level_progress_percentage }}%"></div>
-    </div>
-    <small style="color: #a0a0a0;">{{ user_level.current_xp }}/{{ user_level.xp_for_next_level }} XP to Level {{ user_level.current_level|add:1 }}</small>
-</div>
-
-<div class="mb-4">
-    <button class="filter-btn active" onclick="filterBadges('all')">All</button>
-    <button class="filter-btn" onclick="filterBadges('earned')">Earned</button>
-    <button class="filter-btn" onclick="filterBadges('locked')">Locked</button>
-    <button class="filter-btn" onclick="filterBadges('streak')">Streak</button>
-    <button class="filter-btn" onclick="filterBadges('learning')">Learning</button>
-    <button class="filter-btn" onclick="filterBadges('practice')">Practice</button>
-    <button class="filter-btn" onclick="filterBadges('test')">Test</button>
-    <button class="filter-btn" onclick="filterBadges('special')">Special</button>
-</div>
-
-<div class="row g-4" id="badgeGrid">
-    {% for badge in earned_badges %}
-    <div class="col-md-4 col-sm-6 badge-item earned" data-category="{{ badge.category }}">
-        <div class="badge-card earned">
-            <div class="badge-icon">{{ badge.icon }}</div>
-            <h5 class="badge-name">{{ badge.name }}</h5>
-            <p class="badge-desc">{{ badge.description }}</p>
-            <span class="badge-rarity rarity-{{ badge.rarity }}">{{ badge.get_rarity_display }}</span>
-            <div class="mt-2">
-                <span class="badge-xp">+{{ badge.xp_reward }} XP</span>
-            </div>
-            <small style="color: #00D4AA; display: block; margin-top: 8px;">
-                <i class="bi bi-check-circle me-1"></i>Earned
-            </small>
-        </div>
-    </div>
-    {% endfor %}
     
-    {% for badge in locked_badges %}
-    <div class="col-md-4 col-sm-6 badge-item locked" data-category="{{ badge.category }}">
-        <div class="badge-card locked">
-            <div class="badge-icon">{{ badge.icon }}</div>
-            <h5 class="badge-name">{{ badge.name }}</h5>
-            <p class="badge-desc">{{ badge.description }}</p>
-            <span class="badge-rarity rarity-{{ badge.rarity }}">{{ badge.get_rarity_display }}</span>
-            <div class="mt-2">
-                <span class="badge-xp">+{{ badge.xp_reward }} XP</span>
+    <!-- BADGES BY CATEGORY -->
+    {% for category_name, badges in categorized.items %}
+    {% if category_filter == 'all' or category_filter == category_name %}
+    {% if badges %}
+    <div class="category-section">
+        <div class="category-header">
+            <div class="category-title">
+                <div class="category-icon {{ category_name }}">
+                    {% if category_name == 'streak' %}<i class="bi bi-fire"></i>
+                    {% elif category_name == 'learning' %}<i class="bi bi-book-fill"></i>
+                    {% elif category_name == 'practice' %}<i class="bi bi-code-slash"></i>
+                    {% elif category_name == 'test' %}<i class="bi bi-clipboard-check-fill"></i>
+                    {% elif category_name == 'special' %}<i class="bi bi-stars"></i>
+                    {% endif %}
+                </div>
+                {{ category_name|title }} Badges
             </div>
-            <div style="margin-top: 12px;">
-                <i class="bi bi-lock me-1" style="color: #a0a0a0;"></i>
-                <small style="color: #a0a0a0;">Locked</small>
-            </div>
+            <span class="category-count">
+                {{ badges|length }} badges
+            </span>
         </div>
-    </div>
-    {% endfor %}
-</div>
-{% endblock %}
-{% block extra_js %}
-<script>
-function filterBadges(filter) {
-    const items = document.querySelectorAll('.badge-item');
-    const buttons = document.querySelectorAll('.filter-btn');
-    
-    buttons.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    items.forEach(item => {
-        const category = item.dataset.category;
-        const isEarned = item.classList.contains('earned');
         
-        if (filter === 'all') {
-            item.style.display = 'block';
-        } else if (filter === 'earned') {
-            item.style.display = isEarned ? 'block' : 'none';
-        } else if (filter === 'locked') {
-            item.style.display = !isEarned ? 'block' : 'none';
-        } else {
-            item.style.display = category === filter ? 'block' : 'none';
-        }
-    });
-}
-</script>
+        <div class="badges-grid">
+            {% for item in badges %}
+            <div class="badge-item {{ item.badge.rarity }} {% if item.is_earned %}earned{% else %}locked{% endif %}"
+                 title="{{ item.badge.description }}">
+                {% if item.is_earned %}
+                <div class="badge-rarity-ring"></div>
+                {% endif %}
+                
+                <div class="badge-icon-circle">
+                    {% if item.is_earned %}
+                        <span>{{ item.badge.icon }}</span>
+                    {% else %}
+                        <i class="bi bi-lock-fill"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="badge-name">{{ item.badge.name }}</div>
+                <div class="badge-rarity-label">{{ item.badge.rarity|title }}</div>
+                
+                {% if item.is_earned %}
+                <span class="badge-xp">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    +{{ item.badge.xp_reward }}
+                </span>
+                <div class="badge-earned-date">{{ item.earned_at|date:"M d, Y" }}</div>
+                {% else %}
+                <span class="badge-xp">
+                    <i class="bi bi-lock-fill"></i>
+                    Locked
+                </span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+    
+    {% if earned_count == 0 %}
+    <div class="empty-category">
+        <p>Start learning to unlock your first badges! Every action gets you closer to becoming a master.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
