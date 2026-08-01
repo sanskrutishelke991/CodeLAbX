@@ -1,0 +1,1903 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }} - Profile - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+
+/* ============================================================
+   CODELABX PROFILE V3
+   Minimal / Professional / Developer-first
+   Presentation layer only
+   ============================================================ */
+
+.profile-v2 {
+
+    --p-primary: #50c7b7;
+    --p-primary-soft: rgba(80,199,183,.08);
+
+    --p-bg: #0a0b0d;
+    --p-surface: #15171b;
+    --p-surface-2: #191b20;
+
+    --p-border: rgba(255,255,255,.075);
+    --p-border-strong: rgba(255,255,255,.12);
+
+    --p-text: #f1f2f4;
+    --p-text-soft: #c7c9ce;
+    --p-muted: #858991;
+    --p-muted-2: #646870;
+
+    color: var(--p-text);
+
+    position: relative;
+
+    padding-bottom: 70px;
+
+    background: transparent;
+}
+
+
+/* ============================================================
+   REMOVE DECORATIVE BACKGROUND
+   ============================================================ */
+
+.profile-v2::before,
+.profile-v2::after {
+
+    display: none !important;
+
+}
+
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.profile-hero {
+
+    position: relative;
+
+    overflow: hidden;
+
+    margin-bottom: 26px;
+
+    background: transparent !important;
+
+    border: 0 !important;
+
+    border-bottom: 1px solid var(--p-border) !important;
+
+    border-radius: 0 !important;
+
+    box-shadow: none !important;
+
+}
+
+
+.profile-hero::before,
+.profile-hero::after {
+
+    display: none !important;
+
+}
+
+
+.profile-hero-inner {
+
+    padding: 24px 4px 30px !important;
+
+}
+
+
+/* ============================================================
+   IDENTITY
+   ============================================================ */
+
+.profile-identity {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 24px;
+
+}
+
+
+/* ============================================================
+   AVATAR
+   ============================================================ */
+
+.profile-avatar-wrap {
+
+    flex: 0 0 auto;
+
+}
+
+
+.profile-avatar-ring {
+
+    width: 104px !important;
+    height: 104px !important;
+
+    padding: 2px !important;
+
+    background: var(--p-border-strong) !important;
+
+    box-shadow: none !important;
+
+}
+
+
+.profile-avatar {
+
+    background: #202329 !important;
+
+    font-size: 2rem !important;
+
+}
+
+
+.profile-online-dot {
+
+    width: 12px !important;
+    height: 12px !important;
+
+    right: 4px !important;
+    bottom: 5px !important;
+
+    border: 2px solid #0a0b0d !important;
+
+    box-shadow: none !important;
+
+}
+
+
+/* ============================================================
+   IDENTITY CONTENT
+   ============================================================ */
+
+.profile-identity-content {
+
+    min-width: 0;
+
+}
+
+
+.profile-eyebrow {
+
+    margin-bottom: 8px !important;
+
+    color: var(--p-muted) !important;
+
+    font-size: .66rem !important;
+
+    font-weight: 700 !important;
+
+    letter-spacing: .13em !important;
+
+}
+
+
+.profile-eyebrow i {
+
+    color: var(--p-primary) !important;
+
+}
+
+
+.profile-name-v2 {
+
+    color: var(--p-text) !important;
+
+    font-size: clamp(2rem, 4vw, 2.65rem) !important;
+
+    font-weight: 750 !important;
+
+    letter-spacing: -.045em !important;
+
+}
+
+
+.profile-handle {
+
+    margin-top: 7px !important;
+
+    color: var(--p-muted) !important;
+
+    font-size: .86rem !important;
+
+}
+
+
+.profile-location-v2 {
+
+    margin-top: 7px !important;
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .82rem !important;
+
+}
+
+
+.profile-location-v2 i {
+
+    color: var(--p-muted) !important;
+
+}
+
+
+.profile-bio-v2 {
+
+    max-width: 620px !important;
+
+    margin-top: 11px !important;
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .88rem;
+
+    line-height: 1.65 !important;
+
+}
+
+
+/* ============================================================
+   LEVEL
+   ============================================================ */
+
+.profile-level-badge {
+
+    position: absolute;
+
+    top: 30px;
+    right: 4px;
+
+    min-width: 75px !important;
+
+    padding: 0 !important;
+
+    background: transparent !important;
+
+    border: 0 !important;
+
+    border-radius: 0 !important;
+
+    text-align: right !important;
+
+}
+
+
+.profile-level-badge small {
+
+    color: var(--p-muted-2) !important;
+
+    font-size: .59rem !important;
+
+    letter-spacing: .11em !important;
+
+}
+
+
+.profile-level-badge strong {
+
+    margin-top: 2px !important;
+
+    color: var(--p-text) !important;
+
+    font-size: 1.35rem !important;
+
+    font-weight: 750 !important;
+
+}
+
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+
+.profile-actions {
+
+    gap: 8px !important;
+
+    margin-top: 16px !important;
+
+}
+
+
+.profile-edit-btn {
+
+    padding: 8px 14px !important;
+
+    border-radius: 8px !important;
+
+    background: var(--p-text) !important;
+
+    color: #0a0b0d !important;
+
+    font-size: .76rem !important;
+
+    font-weight: 750 !important;
+
+    box-shadow: none !important;
+
+    transition:
+        background .18s ease,
+        transform .18s ease !important;
+
+}
+
+
+.profile-edit-btn:hover {
+
+    background: #ffffff !important;
+
+    color: #0a0b0d !important;
+
+    transform: translateY(-1px);
+
+    box-shadow: none !important;
+
+}
+
+
+.profile-share-btn {
+
+    padding: 8px 13px !important;
+
+    border-radius: 8px !important;
+
+    background: transparent !important;
+
+    border: 1px solid var(--p-border-strong) !important;
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .76rem !important;
+
+}
+
+
+.profile-share-btn:hover {
+
+    background: var(--p-primary-soft) !important;
+
+    border-color: rgba(80,199,183,.35) !important;
+
+    color: var(--p-primary) !important;
+
+}
+
+
+/* ============================================================
+   SOCIALS
+   ============================================================ */
+
+.profile-socials {
+
+    gap: 5px !important;
+
+    margin-top: 13px !important;
+
+}
+
+
+.profile-social {
+
+    width: 30px !important;
+    height: 30px !important;
+
+    border: 0 !important;
+
+    border-radius: 6px !important;
+
+    background: transparent !important;
+
+    color: var(--p-muted) !important;
+
+}
+
+
+.profile-social:hover {
+
+    background: var(--p-primary-soft) !important;
+
+    border: 0 !important;
+
+    color: var(--p-primary) !important;
+
+    transform: none !important;
+
+}
+
+
+/* ============================================================
+   STATS
+   ============================================================ */
+
+.profile-stats {
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 0;
+
+    margin-bottom: 32px;
+
+    border-top: 1px solid var(--p-border);
+
+    border-bottom: 1px solid var(--p-border);
+
+}
+
+
+.profile-stat {
+
+    min-height: 92px !important;
+
+    padding: 18px 20px !important;
+
+    border: 0 !important;
+
+    border-right: 1px solid var(--p-border) !important;
+
+    border-radius: 0 !important;
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+    transition: background .18s ease !important;
+
+}
+
+
+.profile-stat:last-child {
+
+    border-right: 0 !important;
+
+}
+
+
+.profile-stat:hover {
+
+    transform: none !important;
+
+    border-color: var(--p-border) !important;
+
+    background: rgba(255,255,255,.018) !important;
+
+    box-shadow: none !important;
+
+}
+
+
+.profile-stat-icon {
+
+    display: none !important;
+
+}
+
+
+.profile-stat-value {
+
+    color: var(--p-text) !important;
+
+    font-size: 1.45rem !important;
+
+    font-weight: 750 !important;
+
+}
+
+
+.profile-stat-label {
+
+    margin-top: 7px !important;
+
+    color: var(--p-muted-2) !important;
+
+    font-size: .62rem !important;
+
+    letter-spacing: .1em !important;
+
+}
+
+
+/* ============================================================
+   MAIN GRID
+   ============================================================ */
+
+.profile-main-grid {
+
+    grid-template-columns:
+        minmax(0, 1.7fr)
+        minmax(250px, .8fr) !important;
+
+    gap: 48px !important;
+
+}
+
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+
+.profile-panel {
+
+    padding: 0 0 28px !important;
+
+    margin-bottom: 30px !important;
+
+    background: transparent !important;
+
+    border: 0 !important;
+
+    border-bottom: 1px solid var(--p-border) !important;
+
+    border-radius: 0 !important;
+
+    box-shadow: none !important;
+
+}
+
+
+.profile-panel:hover {
+
+    border-color: var(--p-border) !important;
+
+}
+
+
+.profile-panel-heading {
+
+    margin-bottom: 16px !important;
+
+}
+
+
+.profile-panel-title {
+
+    gap: 8px !important;
+
+    color: var(--p-text) !important;
+
+    font-size: .9rem !important;
+
+    font-weight: 700 !important;
+
+}
+
+
+.profile-panel-title i {
+
+    color: var(--p-muted) !important;
+
+    font-size: .88rem !important;
+
+}
+
+
+.profile-panel-subtitle {
+
+    color: var(--p-muted-2) !important;
+
+    font-size: .61rem !important;
+
+    letter-spacing: .08em;
+
+    font-weight: 700;
+
+}
+
+
+/* ============================================================
+   XP / PROGRESSION
+   ============================================================ */
+
+.xp-panel {
+
+    padding-bottom: 26px !important;
+
+}
+
+
+.xp-header {
+
+    margin-bottom: 15px !important;
+
+}
+
+
+.xp-level-label {
+
+    color: var(--p-muted-2) !important;
+
+    font-size: .61rem !important;
+
+    letter-spacing: .1em !important;
+
+}
+
+
+.xp-level {
+
+    color: var(--p-text) !important;
+
+    font-size: 2.2rem !important;
+
+    font-weight: 800 !important;
+
+}
+
+
+.xp-number {
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .78rem !important;
+
+    font-weight: 650 !important;
+
+}
+
+
+.xp-track {
+
+    height: 5px !important;
+
+    background: rgba(255,255,255,.08) !important;
+
+    border-radius: 2px !important;
+
+}
+
+
+.xp-fill {
+
+    background: var(--p-primary) !important;
+
+    box-shadow: none !important;
+
+    border-radius: 2px !important;
+
+}
+
+
+.xp-footer {
+
+    margin-top: 8px !important;
+
+    color: var(--p-muted-2) !important;
+
+    font-size: .65rem !important;
+
+}
+
+
+/* ============================================================
+   SKILLS
+   ============================================================ */
+
+.profile-skills {
+
+    gap: 6px !important;
+
+}
+
+
+.profile-skill {
+
+    padding: 6px 10px !important;
+
+    border-radius: 6px !important;
+
+    background: transparent !important;
+
+    border: 1px solid var(--p-border-strong) !important;
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .7rem !important;
+
+    font-weight: 600 !important;
+
+}
+
+
+.profile-skill::before {
+
+    display: none !important;
+
+}
+
+
+.profile-skill:hover {
+
+    transform: none !important;
+
+    color: var(--p-primary) !important;
+
+    border-color: rgba(80,199,183,.35) !important;
+
+}
+
+
+/* ============================================================
+   LEARNING GOALS
+   ============================================================ */
+
+.profile-goal {
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .84rem !important;
+
+    line-height: 1.7 !important;
+
+}
+
+
+/* ============================================================
+   ROADMAPS
+   ============================================================ */
+
+.roadmap-item {
+
+    padding: 14px 0 !important;
+
+    margin-bottom: 0 !important;
+
+    background: transparent !important;
+
+    border: 0 !important;
+
+    border-bottom: 1px solid rgba(255,255,255,.055) !important;
+
+    border-radius: 0 !important;
+
+}
+
+
+.roadmap-item:last-child {
+
+    border-bottom: 0 !important;
+
+}
+
+
+.roadmap-item:hover {
+
+    background: transparent !important;
+
+    border-color: rgba(255,255,255,.055) !important;
+
+    transform: none !important;
+
+}
+
+
+.roadmap-name {
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .82rem !important;
+
+    font-weight: 650 !important;
+
+}
+
+
+.roadmap-meta {
+
+    margin-top: 4px !important;
+
+    color: var(--p-muted-2) !important;
+
+    font-size: .66rem !important;
+
+}
+
+
+.roadmap-percent {
+
+    color: var(--p-primary) !important;
+
+    font-size: .68rem !important;
+
+}
+
+
+.roadmap-track {
+
+    height: 3px !important;
+
+    margin-top: 10px !important;
+
+    background: rgba(255,255,255,.07) !important;
+
+    border-radius: 2px !important;
+
+}
+
+
+.roadmap-fill {
+
+    background: var(--p-primary) !important;
+
+    border-radius: 2px !important;
+
+}
+
+
+/* ============================================================
+   ACHIEVEMENTS
+   ============================================================ */
+
+.achievement-grid {
+
+    display: block !important;
+
+}
+
+
+.achievement {
+
+    min-height: auto !important;
+
+    padding: 12px 0 !important;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+    text-align: left !important;
+
+    background: transparent !important;
+
+    border: 0 !important;
+
+    border-bottom: 1px solid rgba(255,255,255,.055) !important;
+
+    border-radius: 0 !important;
+
+}
+
+
+.achievement:last-child {
+
+    border-bottom: 0 !important;
+
+}
+
+
+.achievement:hover {
+
+    transform: none !important;
+
+    background: transparent !important;
+
+    border-color: rgba(255,255,255,.055) !important;
+
+}
+
+
+.achievement-icon {
+
+    width: 30px;
+
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin: 0 !important;
+
+    border-radius: 7px;
+
+    background: var(--p-primary-soft);
+
+    font-size: 1rem !important;
+
+}
+
+
+.achievement-name {
+
+    color: var(--p-text-soft) !important;
+
+    font-size: .73rem !important;
+
+    font-weight: 600 !important;
+
+}
+
+
+/* ============================================================
+   PROFILE SNAPSHOT
+   ============================================================ */
+
+.profile-panel strong {
+
+    font-weight: 650 !important;
+
+}
+
+
+/* ============================================================
+   SHARE BOX
+   ============================================================ */
+
+.profile-share-box {
+
+    margin-top: 10px !important;
+
+    padding: 10px 0 !important;
+
+    background: transparent !important;
+
+    border: 0 !important;
+
+}
+
+
+.profile-share-label {
+
+    color: var(--p-muted-2) !important;
+
+    font-size: .6rem !important;
+
+}
+
+
+.profile-share-code {
+
+    color: var(--p-primary) !important;
+
+    font-size: .7rem !important;
+
+}
+
+
+/* ============================================================
+   EMPTY STATES
+   ============================================================ */
+
+.profile-empty {
+
+    padding: 25px 0 !important;
+
+    color: var(--p-muted) !important;
+
+}
+
+
+.profile-empty i {
+
+    color: var(--p-muted-2) !important;
+
+}
+
+
+/* ============================================================
+   VIEW ALL
+   ============================================================ */
+
+.profile-view-all {
+
+    color: var(--p-muted) !important;
+
+    font-size: .62rem !important;
+
+    letter-spacing: .08em;
+
+}
+
+
+.profile-view-all:hover {
+
+    color: var(--p-primary) !important;
+
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 991px) {
+
+    .profile-main-grid {
+
+        grid-template-columns: 1fr !important;
+
+        gap: 0 !important;
+
+    }
+
+    .profile-level-badge {
+
+        position: static !important;
+
+        margin-left: auto;
+
+        align-self: flex-start;
+
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .profile-hero-inner {
+
+        padding: 18px 0 25px !important;
+
+    }
+
+    .profile-identity {
+
+        align-items: flex-start !important;
+
+    }
+
+    .profile-avatar-ring {
+
+        width: 88px !important;
+        height: 88px !important;
+
+    }
+
+    .profile-name-v2 {
+
+        font-size: 1.9rem !important;
+
+    }
+
+    .profile-level-badge {
+
+        display: none !important;
+
+    }
+
+    .profile-stats {
+
+        grid-template-columns: repeat(2, 1fr) !important;
+
+    }
+
+    .profile-stat {
+
+        border-bottom: 1px solid var(--p-border) !important;
+
+    }
+
+    .profile-stat:nth-child(2) {
+
+        border-right: 0 !important;
+
+    }
+
+    .profile-stat:nth-child(3) {
+
+        border-bottom: 0 !important;
+
+    }
+
+    .profile-stat:nth-child(4) {
+
+        border-right: 0 !important;
+
+        border-bottom: 0 !important;
+
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .profile-identity {
+
+        flex-direction: column !important;
+
+    }
+
+    .profile-identity-content {
+
+        width: 100%;
+
+    }
+
+    .profile-actions {
+
+        align-items: stretch !important;
+
+        flex-direction: row !important;
+
+    }
+
+    .profile-edit-btn,
+    .profile-share-btn {
+
+        flex: 1;
+
+    }
+
+    .profile-stats {
+
+        margin-bottom: 25px;
+
+    }
+
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="profile-v2">
+
+    <!-- ======================================================
+         PROFILE HERO
+         ====================================================== -->
+
+    <section class="profile-hero">
+
+        <div class="profile-hero-inner">
+
+            <div class="profile-identity">
+
+                <div class="profile-avatar-wrap">
+
+                    <div class="profile-avatar-ring">
+
+                        <div class="profile-avatar">
+
+                            {% if profile.avatar_url %}
+                                <img
+                                    src="{{ profile.avatar_url }}"
+                                    alt="{{ profile_user.username }}"
+                                >
+                            {% else %}
+                                {{ profile.initials }}
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                    <span class="profile-online-dot"></span>
+
+                </div>
+
+
+                <div class="profile-identity-content">
+
+                    <div class="profile-eyebrow">
+                        <i class="bi bi-terminal"></i>
+                        CODELABX DEVELOPER
+                    </div>
+
+                    <h1 class="profile-name-v2">
+                        {{ profile_user.username }}
+                    </h1>
+
+                    <div class="profile-handle">
+                        @{{ profile_user.username }}
+                    </div>
+
+                    {% if profile.location %}
+                    <div class="profile-location-v2">
+                        <i class="bi bi-geo-alt-fill me-1"></i>
+                        {{ profile.location }}
+                    </div>
+                    {% endif %}
+
+                    {% if profile.bio %}
+                    <p class="profile-bio-v2">
+                        {{ profile.bio }}
+                    </p>
+                    {% endif %}
+
+
+                    <!-- SOCIAL LINKS -->
+
+                    {% if profile.github_url or profile.linkedin_url or profile.twitter_url or profile.website_url %}
+
+                    <div class="profile-socials">
+
+                        {% if profile.github_url %}
+                        <a
+                            href="{{ profile.github_url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="profile-social"
+                            title="GitHub"
+                        >
+                            <i class="bi bi-github"></i>
+                        </a>
+                        {% endif %}
+
+                        {% if profile.linkedin_url %}
+                        <a
+                            href="{{ profile.linkedin_url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="profile-social"
+                            title="LinkedIn"
+                        >
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        {% endif %}
+
+                        {% if profile.twitter_url %}
+                        <a
+                            href="{{ profile.twitter_url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="profile-social"
+                            title="Twitter"
+                        >
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        {% endif %}
+
+                        {% if profile.website_url %}
+                        <a
+                            href="{{ profile.website_url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="profile-social"
+                            title="Website"
+                        >
+                            <i class="bi bi-globe"></i>
+                        </a>
+                        {% endif %}
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- ACTIONS -->
+
+                    {% if is_own_profile %}
+
+                    <div class="profile-actions">
+
+                        <a
+                            href="{% url 'accounts:profile_edit' %}"
+                            class="profile-edit-btn"
+                        >
+                            <i class="bi bi-pencil-square"></i>
+                            Edit Profile
+                        </a>
+
+                        <button
+                            type="button"
+                            class="profile-share-btn"
+                            onclick="copyLink()"
+                        >
+                            <i class="bi bi-share"></i>
+                            Share Profile
+                        </button>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- LEVEL -->
+
+                <div class="profile-level-badge">
+
+                    <small>CURRENT LEVEL</small>
+
+                    <strong>
+                        {{ level.current_level|default:1 }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ======================================================
+         STATS
+         ====================================================== -->
+
+    <section class="profile-stats">
+
+        <div class="profile-stat">
+
+            <div class="profile-stat-icon">
+                <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+
+            <div class="profile-stat-value">
+                {{ level.current_level|default:1 }}
+            </div>
+
+            <div class="profile-stat-label">
+                Level
+            </div>
+
+        </div>
+
+
+        <div class="profile-stat">
+
+            <div class="profile-stat-icon">
+                <i class="bi bi-stars"></i>
+            </div>
+
+            <div class="profile-stat-value">
+                {{ level.total_xp_earned|default:0 }}
+            </div>
+
+            <div class="profile-stat-label">
+                Total XP
+            </div>
+
+        </div>
+
+
+        <div class="profile-stat">
+
+            <div class="profile-stat-icon">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+
+            <div class="profile-stat-value">
+                {{ total_badges|default:0 }}
+            </div>
+
+            <div class="profile-stat-label">
+                Badges
+            </div>
+
+        </div>
+
+
+        <div class="profile-stat">
+
+            <div class="profile-stat-icon">
+                <i class="bi bi-fire"></i>
+            </div>
+
+            <div class="profile-stat-value">
+                {{ streak.current_streak|default:0 }}
+            </div>
+
+            <div class="profile-stat-label">
+                Day Streak
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ======================================================
+         MAIN CONTENT
+         ====================================================== -->
+
+    <div class="profile-main-grid">
+
+
+        <!-- ==================================================
+             LEFT / PRIMARY COLUMN
+             ================================================== -->
+
+        <div class="profile-column">
+
+
+            <!-- XP -->
+
+            {% if level %}
+
+            <section class="profile-panel xp-panel">
+
+                <div class="profile-panel-heading">
+
+                    <h2 class="profile-panel-title">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        Progression
+                    </h2>
+
+                    <span class="profile-panel-subtitle">
+                        Level {{ level.current_level }}
+                    </span>
+
+                </div>
+
+
+                <div class="xp-header">
+
+                    <div>
+                        <div class="xp-level-label">
+                            Current Level
+                        </div>
+
+                        <div class="xp-level">
+                            {{ level.current_level }}
+                        </div>
+                    </div>
+
+                    <div class="xp-number">
+                        {{ level.current_xp }} /
+                        {{ level.xp_for_next_level }} XP
+                    </div>
+
+                </div>
+
+
+                <div class="xp-track">
+
+                    <div
+                        class="xp-fill"
+                        style="width: {{ level.level_progress_percentage }}%;"
+                    ></div>
+
+                </div>
+
+
+                <div class="xp-footer">
+
+                    <span>
+                        {{ level.level_progress_percentage }}% complete
+                    </span>
+
+                    <span>
+                        {{ level.xp_for_next_level|add:"-"|add:level.current_xp }}
+                        XP to next level
+                    </span>
+
+                </div>
+
+            </section>
+
+            {% endif %}
+
+
+            <!-- SKILLS -->
+
+            {% if profile.skills %}
+
+            <section class="profile-panel">
+
+                <div class="profile-panel-heading">
+
+                    <h2 class="profile-panel-title">
+                        <i class="bi bi-code-slash"></i>
+                        Skills & Technologies
+                    </h2>
+
+                    <span class="profile-panel-subtitle">
+                        TECH STACK
+                    </span>
+
+                </div>
+
+
+                <div class="profile-skills">
+
+                    {% for skill in profile.skills %}
+
+                    <span class="profile-skill">
+                        {{ skill }}
+                    </span>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+            {% endif %}
+
+
+            <!-- LEARNING GOALS -->
+
+            {% if profile.learning_goals %}
+
+            <section class="profile-panel">
+
+                <div class="profile-panel-heading">
+
+                    <h2 class="profile-panel-title">
+                        <i class="bi bi-bullseye"></i>
+                        Learning Goals
+                    </h2>
+
+                    <span class="profile-panel-subtitle">
+                        CURRENT FOCUS
+                    </span>
+
+                </div>
+
+                <div class="profile-goal">
+                    {{ profile.learning_goals|linebreaks }}
+                </div>
+
+            </section>
+
+            {% endif %}
+
+
+            <!-- ROADMAPS -->
+
+            <section class="profile-panel">
+
+                <div class="profile-panel-heading">
+
+                    <h2 class="profile-panel-title">
+                        <i class="bi bi-map"></i>
+                        Current Learning Paths
+                    </h2>
+
+                    {% if active_roadmaps %}
+                    <span class="profile-panel-subtitle">
+                        {{ active_roadmaps|length }} ACTIVE
+                    </span>
+                    {% endif %}
+
+                </div>
+
+
+                {% if active_roadmaps %}
+
+                    {% for roadmap in active_roadmaps %}
+
+                    <a
+                        href="{% url 'learning:roadmap_detail' roadmap.id %}"
+                        class="roadmap-item"
+                    >
+
+                        <div class="roadmap-top">
+
+                            <div>
+
+                                <div class="roadmap-name">
+
+                                    {% if roadmap.topic == 'ML' %}
+                                        🤖
+                                    {% else %}
+                                        💻
+                                    {% endif %}
+
+                                    {{ roadmap.title }}
+
+                                </div>
+
+                                <div class="roadmap-meta">
+
+                                    Day {{ roadmap.completed_days }}/{{ roadmap.total_days }}
+
+                                    • {{ roadmap.get_level_display }}
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="roadmap-percent">
+                                {{ roadmap.progress_percentage }}%
+                            </div>
+
+                        </div>
+
+
+                        <div class="roadmap-track">
+
+                            <div
+                                class="roadmap-fill"
+                                style="width: {{ roadmap.progress_percentage }}%;"
+                            ></div>
+
+                        </div>
+
+                    </a>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="profile-empty">
+
+                        <i class="bi bi-map"></i>
+
+                        <p>
+                            No active learning paths yet.
+                        </p>
+
+                        {% if is_own_profile %}
+
+                        <a
+                            href="{% url 'learning:roadmap_create' %}"
+                            class="profile-edit-btn"
+                        >
+                            <i class="bi bi-plus-lg"></i>
+                            Create Learning Path
+                        </a>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+
+        </div>
+
+
+        <!-- ==================================================
+             RIGHT / ACHIEVEMENTS COLUMN
+             ================================================== -->
+
+        <div class="profile-column">
+
+
+            <!-- ACHIEVEMENTS -->
+
+            <section class="profile-panel">
+
+                <div class="profile-panel-heading">
+
+                    <h2 class="profile-panel-title">
+                        <i class="bi bi-trophy-fill"></i>
+                        Achievements
+                    </h2>
+
+                    {% if is_own_profile %}
+
+                    <a
+                        href="{% url 'progress:achievements' %}"
+                        class="profile-view-all"
+                    >
+                        VIEW ALL
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if recent_badges %}
+
+                <div class="achievement-grid">
+
+                    {% for user_badge in recent_badges %}
+
+                    <div class="achievement">
+
+                        <div class="achievement-icon">
+                            {{ user_badge.badge.icon }}
+                        </div>
+
+                        <div class="achievement-name">
+                            {{ user_badge.badge.name }}
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+                {% else %}
+
+                <div class="profile-empty">
+
+                    <i class="bi bi-award"></i>
+
+                    <p>
+                        No badges earned yet.
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </section>
+
+
+            <!-- PROFILE SNAPSHOT -->
+
+            <section class="profile-panel">
+
+                <div class="profile-panel-heading">
+
+                    <h2 class="profile-panel-title">
+                        <i class="bi bi-person-badge"></i>
+                        Profile Snapshot
+                    </h2>
+
+                </div>
+
+
+                <div style="
+                    display:grid;
+                    gap:12px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:15px;
+                        color:#969aa3;
+                        font-size:.78rem;
+                    ">
+                        <span>Username</span>
+                        <strong style="color:#e8eaed;">
+                            @{{ profile_user.username }}
+                        </strong>
+                    </div>
+
+
+                    {% if profile.location %}
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:15px;
+                        color:#969aa3;
+                        font-size:.78rem;
+                    ">
+                        <span>Location</span>
+                        <strong style="color:#e8eaed;">
+                            {{ profile.location }}
+                        </strong>
+                    </div>
+
+                    {% endif %}
+
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:15px;
+                        color:#969aa3;
+                        font-size:.78rem;
+                    ">
+                        <span>Badges</span>
+                        <strong style="color:#50c7b7;">
+                            {{ total_badges|default:0 }}
+                        </strong>
+                    </div>
+
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:15px;
+                        color:#969aa3;
+                        font-size:.78rem;
+                    ">
+                        <span>Current Streak</span>
+                        <strong style="color:#50c7b7;">
+                            {{ streak.current_streak|default:0 }} days
+                        </strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SHARE -->
+
+            {% if is_own_profile %}
+
+            <section class="profile-panel">
+
+                <div class="profile-panel-heading">
+
+                    <h2 class="profile-panel-title">
+                        <i class="bi bi-share"></i>
+                        Share Profile
+                    </h2>
+
+                </div>
+
+
+                <div class="profile-share-box">
+
+                    <span class="profile-share-label">
+                        Public Profile
+                    </span>
+
+                    <code
+                        class="profile-share-code"
+                        id="shareLink"
+                        onclick="copyLink()"
+                    >
+                        /user/{{ profile_user.username }}/
+                    </code>
+
+                </div>
+
+            </section>
+
+            {% endif %}
+
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+function copyLink() {
+
+    const link =
+        window.location.origin +
+        '/accounts/user/{{ profile_user.username }}/';
+
+    navigator.clipboard.writeText(link).then(() => {
+
+        const codeEl =
+            document.getElementById('shareLink');
+
+        if (!codeEl) return;
+
+        const original =
+            codeEl.textContent;
+
+        codeEl.textContent =
+            '✓ Copied to clipboard';
+
+        setTimeout(() => {
+            codeEl.textContent = original;
+        }, 2000);
+
+    }).catch(() => {
+
+        const codeEl =
+            document.getElementById('shareLink');
+
+        if (!codeEl) return;
+
+        const original =
+            codeEl.textContent;
+
+        codeEl.textContent =
+            'Copy failed';
+
+        setTimeout(() => {
+            codeEl.textContent = original;
+        }, 2000);
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,866 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }} - Profile - CodeLabX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0A0A0A; color: #e0e0e0; }
+    
+    .profile-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    
+    .avatar-large {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5rem;
+        font-weight: 700;
+        color: white;
+        background: var(--accent);
+        overflow: hidden;
+        border: 4px solid rgba(20, 184, 166, 0.3);
+        box-shadow: 0 10px 40px rgba(20, 184, 166, 0.3);
+    }
+    
+    .avatar-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .profile-name {
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .profile-username {
+        color: #a0a0a0;
+        margin-bottom: 15px;
+    }
+    
+    .profile-location {
+        color: #14B8A6;
+        margin-bottom: 15px;
+    }
+    
+    .profile-bio {
+        color: #e0e0e0;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .social-link {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(20, 184, 166, 0.15);
+        color: #14B8A6;
+        text-decoration: none;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+    }
+    
+    .social-link:hover {
+        background: #14B8A6;
+        color: white;
+        transform: translateY(-3px);
+    }
+    
+    .btn-edit-profile {
+        background: var(--accent);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    .btn-edit-profile:hover {
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+    }
+    
+    .share-link-box {
+        background: rgba(0, 212, 170, 0.1);
+        border: 1px solid rgba(0, 212, 170, 0.3);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        margin-top: 15px;
+    }
+    
+    .share-link-box small {
+        color: #a0a0a0;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .share-link-box code {
+        color: #00D4AA;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+    
+    /* Stats Grid */
+    .stat-mini {
+        background: var(--bg-secondary);
+        border: 1px solid rgba(20, 184, 166, 0.15);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .stat-mini:hover {
+        border-color: #14B8A6;
+        transform: translateY(-3px);
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #a0a0a0;
+        font-size: 0.85rem;
+    }
+    
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    /* Section */
+    .section-title {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Skills */
+    .skills-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .skill-tag {
+        padding: 8px 18px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+    
+    /* Badges */
+    .badge-mini {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .badge-mini:hover {
+        transform: translateY(-3px);
+        border-color: #14B8A6;
+        box-shadow: 0 10px 25px rgba(20, 184, 166, 0.3);
+    }
+    
+    .badge-mini-icon {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+    
+    .badge-mini-name {
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    /* Roadmap Cards */
+    .roadmap-mini {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.3s;
+    }
+    
+    .roadmap-mini:hover {
+        border-color: #14B8A6;
+        transform: translateX(5px);
+        color: inherit;
+    }
+    
+    .progress-mini {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    
+    .progress-mini-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #14B8A6, #00D4AA);
+        border-radius: 3px;
+    }
+    
+    /* Level Progress */
+    .level-display {
+        text-align: center;
+    }
+    
+    .level-number {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #14B8A6, #00D4AA);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .xp-bar {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+    
+    .xp-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #14B8A6, #00D4AA);
+        border-radius: 5px;
+    }
+    
+    .empty-mini {
+        text-align: center;
+        padding: 20px;
+        color: #a0a0a0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- CODELABX_PROFILE_UPGRADE_V1 -->
+<style>
+/* =========================================================
+   CODELABX — PREMIUM PROFILE UPGRADE
+   UI ONLY — NO BACKEND CHANGES
+   ========================================================= */
+
+.profile-upgrade {
+    --cx-primary: #50c7b7;
+    --cx-primary-soft: rgba(80, 199, 183, .12);
+    --cx-primary-glow: rgba(80, 199, 183, .28);
+    --cx-bg: #0a0b0d;
+    --cx-card: #1d1e24;
+    --cx-card-2: #22242b;
+    --cx-border: rgba(255,255,255,.08);
+    --cx-text: #f1f2f4;
+    --cx-muted: #9b9da5;
+
+    position: relative;
+    isolation: isolate;
+    color: var(--cx-text);
+}
+
+/* Background atmosphere */
+.profile-upgrade::before {
+    content: "";
+    position: absolute;
+    top: -100px;
+    left: 5%;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(
+        circle,
+        rgba(80,199,183,.11),
+        transparent 68%
+    );
+    filter: blur(20px);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.profile-upgrade::after {
+    content: "";
+    position: absolute;
+    right: 5%;
+    top: 180px;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(
+        circle,
+        rgba(80,199,183,.06),
+        transparent 70%
+    );
+    filter: blur(25px);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* ---------------------------------------------------------
+   ALL CARDS
+   --------------------------------------------------------- */
+
+.profile-upgrade .card,
+.profile-upgrade [class*="card"] {
+    background: linear-gradient(
+        145deg,
+        rgba(34,36,43,.98),
+        rgba(27,28,34,.98)
+    ) !important;
+
+    border: 1px solid var(--cx-border) !important;
+    border-radius: 18px !important;
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,.22),
+        inset 0 1px 0 rgba(255,255,255,.025);
+
+    transition:
+        transform .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
+}
+
+.profile-upgrade .card:hover,
+.profile-upgrade [class*="card"]:hover {
+    transform: translateY(-3px);
+    border-color: rgba(80,199,183,.30) !important;
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.32),
+        0 0 30px rgba(80,199,183,.045);
+}
+
+/* ---------------------------------------------------------
+   HEADINGS
+   --------------------------------------------------------- */
+
+.profile-upgrade h1,
+.profile-upgrade h2,
+.profile-upgrade h3,
+.profile-upgrade h4,
+.profile-upgrade h5 {
+    color: var(--cx-text);
+    letter-spacing: -.025em;
+}
+
+.profile-upgrade h1 {
+    font-weight: 800;
+}
+
+.profile-upgrade h2,
+.profile-upgrade h3,
+.profile-upgrade h4 {
+    font-weight: 700;
+}
+
+/* ---------------------------------------------------------
+   AVATAR
+   --------------------------------------------------------- */
+
+.profile-upgrade img {
+    transition:
+        transform .3s ease,
+        box-shadow .3s ease,
+        border-color .3s ease;
+}
+
+.profile-upgrade img:hover {
+    transform: scale(1.035);
+}
+
+/* Circular profile images */
+.profile-upgrade img.rounded-circle,
+.profile-upgrade .rounded-circle {
+    border: 2px solid rgba(80,199,183,.55) !important;
+    box-shadow:
+        0 0 0 5px rgba(80,199,183,.06),
+        0 0 35px rgba(80,199,183,.16);
+}
+
+/* ---------------------------------------------------------
+   BUTTONS
+   --------------------------------------------------------- */
+
+.profile-upgrade .btn-primary,
+.profile-upgrade .btn-success,
+.profile-upgrade a.btn-primary {
+    background: linear-gradient(
+        135deg,
+        #50c7b7,
+        #3bb3a5
+    ) !important;
+
+    border: none !important;
+    color: #07100f !important;
+
+    font-weight: 700;
+    border-radius: 11px !important;
+
+    box-shadow:
+        0 8px 22px rgba(80,199,183,.18);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        filter .2s ease;
+}
+
+.profile-upgrade .btn-primary:hover,
+.profile-upgrade .btn-success:hover,
+.profile-upgrade a.btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow:
+        0 12px 30px rgba(80,199,183,.28);
+}
+
+.profile-upgrade .btn-outline-primary,
+.profile-upgrade .btn-outline-success {
+    color: var(--cx-primary) !important;
+    border-color: rgba(80,199,183,.45) !important;
+    border-radius: 10px !important;
+}
+
+.profile-upgrade .btn-outline-primary:hover,
+.profile-upgrade .btn-outline-success:hover {
+    background: var(--cx-primary-soft) !important;
+}
+
+/* ---------------------------------------------------------
+   XP / PROGRESS
+   --------------------------------------------------------- */
+
+.profile-upgrade .progress {
+    height: 9px !important;
+    background: #303139 !important;
+    border-radius: 100px !important;
+    overflow: hidden;
+}
+
+.profile-upgrade .progress-bar {
+    background: linear-gradient(
+        90deg,
+        #3bb3a5,
+        #62d7c7
+    ) !important;
+
+    border-radius: 100px;
+    box-shadow:
+        0 0 15px rgba(80,199,183,.35);
+}
+
+/* ---------------------------------------------------------
+   BADGES / PILLS / SKILLS
+   --------------------------------------------------------- */
+
+.profile-upgrade .badge {
+    border-radius: 999px !important;
+    padding: .5rem .75rem !important;
+    font-weight: 600;
+}
+
+.profile-upgrade .badge.bg-primary,
+.profile-upgrade .badge.bg-success,
+.profile-upgrade .badge.bg-info {
+    background: var(--cx-primary-soft) !important;
+    color: #67d6c7 !important;
+    border: 1px solid rgba(80,199,183,.28);
+}
+
+/* Tech skill looking elements */
+.profile-upgrade .skill,
+.profile-upgrade .skills .badge,
+.profile-upgrade [class*="skill"] .badge {
+    background: rgba(80,199,183,.07) !important;
+    color: #67d6c7 !important;
+    border: 1px solid rgba(80,199,183,.28) !important;
+}
+
+/* ---------------------------------------------------------
+   STAT NUMBERS
+   --------------------------------------------------------- */
+
+.profile-upgrade .display-4,
+.profile-upgrade .display-5,
+.profile-upgrade .display-6 {
+    color: var(--cx-text);
+    font-weight: 800;
+}
+
+.profile-upgrade .text-primary,
+.profile-upgrade .text-success,
+.profile-upgrade .text-info {
+    color: var(--cx-primary) !important;
+}
+
+/* ---------------------------------------------------------
+   LINKS
+   --------------------------------------------------------- */
+
+.profile-upgrade a {
+    transition:
+        color .2s ease,
+        opacity .2s ease;
+}
+
+.profile-upgrade a:not(.btn):hover {
+    color: var(--cx-primary) !important;
+}
+
+/* ---------------------------------------------------------
+   DIVIDERS
+   --------------------------------------------------------- */
+
+.profile-upgrade hr {
+    border-color: rgba(255,255,255,.08) !important;
+    opacity: 1;
+}
+
+/* ---------------------------------------------------------
+   FORM / EDIT PROFILE ELEMENTS IF PRESENT
+   --------------------------------------------------------- */
+
+.profile-upgrade input,
+.profile-upgrade textarea,
+.profile-upgrade select {
+    background: #15161b !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+}
+
+.profile-upgrade input:focus,
+.profile-upgrade textarea:focus,
+.profile-upgrade select:focus {
+    border-color: rgba(80,199,183,.55) !important;
+    box-shadow: 0 0 0 .2rem rgba(80,199,183,.08) !important;
+}
+
+/* ---------------------------------------------------------
+   SUBTLE SECTION LABEL
+   --------------------------------------------------------- */
+
+.profile-upgrade small,
+.profile-upgrade .text-muted {
+    color: var(--cx-muted) !important;
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+
+    .profile-upgrade {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .profile-upgrade .card,
+    .profile-upgrade [class*="card"] {
+        border-radius: 15px !important;
+    }
+
+    .profile-upgrade h1 {
+        font-size: 1.7rem;
+    }
+
+    .profile-upgrade h2 {
+        font-size: 1.35rem;
+    }
+
+    .profile-upgrade .display-4,
+    .profile-upgrade .display-5 {
+        font-size: 2rem;
+    }
+}
+
+/* ---------------------------------------------------------
+   REDUCE MOTION
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-upgrade *,
+    .profile-upgrade *::before,
+    .profile-upgrade *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+</style>
+
+<div class="profile-upgrade">
+<div class="row">
+    <!-- LEFT SIDEBAR -->
+    <div class="col-lg-4 mb-4">
+        <div class="profile-card text-center">
+            <div class="avatar-large">
+                {% if profile.avatar_url %}
+                    <img src="{{ profile.avatar_url }}" alt="{{ profile_user.username }}">
+                {% else %}
+                    {{ profile.initials }}
+                {% endif %}
+            </div>
+            
+            <h3 class="profile-name">{{ profile_user.username }}</h3>
+            <p class="profile-username">@{{ profile_user.username }}</p>
+            
+            {% if profile.location %}
+            <p class="profile-location">
+                <i class="bi bi-geo-alt-fill me-1"></i>{{ profile.location }}
+            </p>
+            {% endif %}
+            
+            {% if profile.bio %}
+            <p class="profile-bio">{{ profile.bio }}</p>
+            {% endif %}
+            
+            <!-- Social Links -->
+            {% if profile.github_url or profile.linkedin_url or profile.twitter_url or profile.website_url %}
+            <div class="social-links">
+                {% if profile.github_url %}
+                <a href="{{ profile.github_url }}" target="_blank" class="social-link" title="GitHub">
+                    <i class="bi bi-github"></i>
+                </a>
+                {% endif %}
+                {% if profile.linkedin_url %}
+                <a href="{{ profile.linkedin_url }}" target="_blank" class="social-link" title="LinkedIn">
+                    <i class="bi bi-linkedin"></i>
+                </a>
+                {% endif %}
+                {% if profile.twitter_url %}
+                <a href="{{ profile.twitter_url }}" target="_blank" class="social-link" title="Twitter">
+                    <i class="bi bi-twitter"></i>
+                </a>
+                {% endif %}
+                {% if profile.website_url %}
+                <a href="{{ profile.website_url }}" target="_blank" class="social-link" title="Website">
+                    <i class="bi bi-globe"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% if is_own_profile %}
+                <a href="{% url 'accounts:profile_edit' %}" class="btn-edit-profile">
+                    <i class="bi bi-pencil me-2"></i>Edit Profile
+                </a>
+                
+                <div class="share-link-box">
+                    <small>Share your profile:</small>
+                    <code onclick="copyLink()" id="shareLink">/user/{{ profile_user.username }}/</code>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- MAIN CONTENT -->
+    <div class="col-lg-8">
+        
+        <!-- Stats Grid -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <span class="stat-icon">⚡</span>
+                    <div class="stat-value">{{ level.current_level|default:1 }}</div>
+                    <div class="stat-label">Level</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <span class="stat-icon">🎯</span>
+                    <div class="stat-value">{{ level.total_xp_earned|default:0 }}</div>
+                    <div class="stat-label">Total XP</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <span class="stat-icon">🏆</span>
+                    <div class="stat-value">{{ total_badges|default:0 }}</div>
+                    <div class="stat-label">Badges</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-mini">
+                    <span class="stat-icon">🔥</span>
+                    <div class="stat-value">{{ streak.current_streak|default:0 }}</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Level Card -->
+        {% if level %}
+        <div class="profile-card">
+            <div class="level-display">
+                <div style="color: #a0a0a0; font-size: 0.9rem;">CURRENT LEVEL</div>
+                <div class="level-number">{{ level.current_level }}</div>
+                <div style="color: white; font-weight: 600;">{{ level.current_xp }} / {{ level.xp_for_next_level }} XP</div>
+                <div class="xp-bar">
+                    <div class="xp-bar-fill" style="width: {{ level.level_progress_percentage }}%"></div>
+                </div>
+                <small style="color: #a0a0a0;">{{ level.xp_for_next_level|add:"-"|add:level.current_xp }} XP to next level</small>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Skills -->
+        {% if profile.skills %}
+        <div class="profile-card">
+            <h4 class="section-title">
+                <i class="bi bi-tools me-2" style="color: #14B8A6;"></i>Skills & Technologies
+            </h4>
+            <div class="skills-grid">
+                {% for skill in profile.skills %}
+                    <span class="skill-tag" style="background: {{ profile.get_skill_color|default:'#14B8A6' }};">
+                        {{ skill }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Learning Goals -->
+        {% if profile.learning_goals %}
+        <div class="profile-card">
+            <h4 class="section-title">
+                <i class="bi bi-bullseye me-2" style="color: #00D4AA;"></i>Learning Goals
+            </h4>
+            <p style="color: #e0e0e0; line-height: 1.7;">{{ profile.learning_goals|linebreaks }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Active Roadmaps -->
+        <div class="profile-card">
+            <h4 class="section-title">
+                <i class="bi bi-map me-2" style="color: #14B8A6;"></i>Current Learning Paths
+            </h4>
+            {% if active_roadmaps %}
+                {% for roadmap in active_roadmaps %}
+                <a href="{% url 'learning:roadmap_detail' roadmap.id %}" class="roadmap-mini">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong style="color: white;">
+                                {% if roadmap.topic == 'ML' %}🤖{% else %}💻{% endif %}
+                                {{ roadmap.title }}
+                            </strong>
+                            <br>
+                            <small style="color: #a0a0a0;">
+                                Day {{ roadmap.completed_days }}/{{ roadmap.total_days }} • {{ roadmap.get_level_display }}
+                            </small>
+                        </div>
+                        <span style="color: #00D4AA; font-weight: 600;">{{ roadmap.progress_percentage }}%</span>
+                    </div>
+                    <div class="progress-mini">
+                        <div class="progress-mini-bar" style="width: {{ roadmap.progress_percentage }}%"></div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty-mini">
+                    <i class="bi bi-map" style="font-size: 3rem; color: #14B8A6; opacity: 0.5;"></i>
+                    <p>No active roadmaps yet</p>
+                    {% if is_own_profile %}
+                        <a href="{% url 'learning:roadmap_create' %}" class="btn btn-sm btn-outline-light">Create One</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Recent Badges -->
+        <div class="profile-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="section-title mb-0">
+                    <i class="bi bi-trophy me-2" style="color: #f59e0b;"></i>Latest Achievements
+                </h4>
+                {% if is_own_profile %}
+                <a href="{% url 'progress:achievements' %}" class="btn btn-sm btn-outline-light">View All</a>
+                {% endif %}
+            </div>
+            
+            {% if recent_badges %}
+                <div class="row g-3">
+                    {% for user_badge in recent_badges %}
+                    <div class="col-6 col-md-4">
+                        <div class="badge-mini">
+                            <div class="badge-mini-icon">{{ user_badge.badge.icon }}</div>
+                            <div class="badge-mini-name">{{ user_badge.badge.name }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-mini">
+                    <i class="bi bi-trophy" style="font-size: 3rem; color: #f59e0b; opacity: 0.5;"></i>
+                    <p>No badges earned yet</p>
+                </div>
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyLink() {
+    const link = window.location.origin + '/accounts/user/{{ profile_user.username }}/';
+    navigator.clipboard.writeText(link).then(() => {
+        const codeEl = document.getElementById('shareLink');
+        const original = codeEl.textContent;
+        codeEl.textContent = '✓ Copied!';
+        setTimeout(() => codeEl.textContent = original, 2000);
+    });
+}
+</script>
+
+</div>
+
+{% endblock %}
