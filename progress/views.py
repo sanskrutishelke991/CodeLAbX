@@ -1,4 +1,5 @@
-from django.shortcuts import render, redirect
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 from .models import Badge, UserBadge, UserLevel, UserStreak
 from .services import BadgeManager
@@ -109,7 +110,7 @@ def achievements(request):
 @login_required
 def badge_detail(request, badge_id):
     """Detail of a specific badge."""
-    badge = Badge.objects.get(id=badge_id)
+    badge = get_object_or_404(Badge, id=badge_id)
     user = request.user
     
     # Check if user has earned this badge
@@ -131,23 +132,52 @@ def badge_detail(request, badge_id):
 
 @login_required
 def leaderboard(request):
-    """Top users by XP."""
-    # Get top 10 users by XP
-    top_users = UserLevel.objects.select_related('user').order_by('-total_xp_earned')[:10]
-    
-    # Get current user's rank
-    current_user_level = BadgeManager.get_or_create_user_level(request.user)
-    current_rank = UserLevel.objects.filter(
-        total_xp_earned__gt=current_user_level.total_xp_earned
-    ).count() + 1
-    
+    """Display public learners ranked by total XP."""
+    current_user_level = (
+        BadgeManager.get_or_create_user_level(request.user)
+    )
+
+    eligible_levels = UserLevel.objects.filter(
+        Q(user__profile__is_public=True)
+        | Q(user=request.user)
+    )
+
+    users = (
+        eligible_levels
+        .select_related('user', 'user__profile')
+        .annotate(
+            badge_count=Count(
+                'user__badges',
+                distinct=True,
+            )
+        )
+        .order_by(
+            '-total_xp_earned',
+            'user__username',
+        )[:10]
+    )
+
+    current_rank = (
+        eligible_levels.filter(
+            total_xp_earned__gt=(
+                current_user_level.total_xp_earned
+            )
+        ).count()
+        + 1
+    )
+
     context = {
-        'top_users': top_users,
+        'users': users,
+        'top_users': users,
         'current_user_level': current_user_level,
         'current_rank': current_rank,
     }
-    
-    return render(request, 'progress/leaderboard.html', context)
+
+    return render(
+        request,
+        'progress/leaderboard.html',
+        context,
+    )
 
 
 def redirect_to_achievements(request):

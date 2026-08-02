@@ -318,7 +318,6 @@ class BadgeManager:
     def get_badge_progress(user, badge):
         """Calculate progress percentage for a locked badge."""
         from learning.models import Roadmap, Day
-        from practice.models import CodeReview
         from assessments.models import TestAttempt
         
         requirement_type = badge.requirement_type
@@ -338,7 +337,17 @@ class BadgeManager:
         elif requirement_type == 'roadmaps_completed':
             current_value = Roadmap.objects.filter(user=user, status='completed').count()
         elif requirement_type == 'code_reviews':
-            current_value = CodeReview.objects.filter(user=user).count()
+            # CodeReview is introduced with the trusted
+            # activity ledger in Phase 3. Until then,
+            # safely report zero instead of crashing.
+            try:
+                from practice.models import CodeReview
+            except ImportError:
+                current_value = 0
+            else:
+                current_value = CodeReview.objects.filter(
+                    user=user
+                ).count()
         elif requirement_type == 'tests_taken':
             current_value = TestAttempt.objects.filter(user=user).count()
         elif requirement_type == 'tests_completed':
