@@ -1,3 +1,4 @@
+from django.conf import settings as django_settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -6,6 +7,7 @@ from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from assessments.models import Test
 from challenges.models import UserChallenge
@@ -13,6 +15,7 @@ from content.models import UserVideoProgress
 from learning.models import Day, Roadmap
 from notes.models import Note
 from progress.models import DailyActivity, UserBadge, UserLevel, UserStreak
+from codelabx.throttling import is_rate_limited
 
 from .forms import ProfileUpdateForm
 from .models import UserProfile
@@ -23,6 +26,16 @@ def register(request):
         return redirect('dashboard:home')
 
     if request.method == 'POST':
+        if is_rate_limited(
+            request,
+            "register",
+            django_settings.AUTH_REGISTER_ATTEMPTS,
+            django_settings.AUTH_REGISTER_WINDOW_SECONDS,
+        ):
+            form = UserCreationForm(request.POST)
+            messages.error(request, "Too many registration attempts. Please try again later.")
+            return render(request, 'accounts/register.html', {'form': form}, status=429)
+
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
@@ -40,6 +53,15 @@ def login_view(request):
         return redirect('dashboard:home')
 
     if request.method == 'POST':
+        if is_rate_limited(
+            request,
+            "login",
+            django_settings.AUTH_LOGIN_ATTEMPTS,
+            django_settings.AUTH_LOGIN_WINDOW_SECONDS,
+        ):
+            messages.error(request, "Too many login attempts. Please try again later.")
+            return render(request, 'accounts/login.html', status=429)
+
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
@@ -53,6 +75,8 @@ def login_view(request):
     return render(request, 'accounts/login.html')
 
 
+@login_required
+@require_POST
 def logout_view(request):
     logout(request)
     messages.info(request, 'You have been logged out successfully.')

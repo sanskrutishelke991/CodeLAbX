@@ -7,6 +7,13 @@ from django.views.decorators.csrf import csrf_protect
 from django.db.models import Q
 import json
 from .models import Note, Bookmark
+from ai_tools.api import (
+    choice_field,
+    parse_json_object,
+    safe_api_errors,
+    text_field,
+)
+from .validators import validate_bookmark_url
 
 
 @login_required
@@ -156,30 +163,60 @@ def bookmarks_list(request):
 @login_required
 @require_POST
 @csrf_protect
+@safe_api_errors
 def bookmark_add(request):
-    """Add a bookmark via AJAX"""
-    try:
-        data = json.loads(request.body)
-        
-        bookmark = Bookmark.objects.create(
-            user=request.user,
-            title=data.get('title', 'Bookmark'),
-            url=data.get('url', ''),
-            bookmark_type=data.get('type', 'other'),
-            description=data.get('description', ''),
-            icon=data.get('icon', '🔖')
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'bookmark_id': bookmark.id,
-            'message': 'Bookmark added!'
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+    """Validate and add one bookmark."""
+    data = parse_json_object(request)
+
+    title = text_field(
+        data,
+        "title",
+        default="Bookmark",
+        min_length=1,
+        max_length=200,
+    )
+    url = text_field(
+        data,
+        "url",
+        required=True,
+        min_length=1,
+        max_length=500,
+    )
+    bookmark_type = choice_field(
+        data,
+        "type",
+        choices={"day", "roadmap", "test", "code", "other"},
+        default="other",
+    )
+    description = text_field(
+        data,
+        "description",
+        default="",
+        max_length=2000,
+    )
+    icon = text_field(
+        data,
+        "icon",
+        default="🔖",
+        max_length=10,
+    )
+
+    bookmark = Bookmark.objects.create(
+        user=request.user,
+        title=title,
+        url=validate_bookmark_url(url),
+        bookmark_type=bookmark_type,
+        description=description,
+        icon=icon,
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "bookmark_id": bookmark.id,
+            "message": "Bookmark added!",
+        }
+    )
 
 
 @login_required

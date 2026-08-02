@@ -654,10 +654,13 @@
                 <i class="bi bi-person-fill"></i>
                 <span>Profile</span>
             </a>
-            <a href="{% url 'accounts:logout' %}" class="menu-item" style="color: var(--error); border-color: var(--error);">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Sign Out</span>
-            </a>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="menu-item" style="width: 100%; color: var(--error); border-color: var(--error);">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sign Out</span>
+                </button>
+            </form>
         </div>
     </div>
     {% endif %}
@@ -1735,10 +1738,14 @@
             <i class="bi bi-person-fill"></i>
         </a>
         
-        <a href="{% url 'accounts:logout' %}" class="omni-btn omni-btn-9"
-           data-name="Sign Out" data-desc="Log out safely">
-            <i class="bi bi-box-arrow-right"></i>
-        </a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="omni-btn omni-btn-9"
+                    data-name="Sign Out" data-desc="Log out safely"
+                    aria-label="Sign out">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </form>
     </div>
     {% endif %}
     

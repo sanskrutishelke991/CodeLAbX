@@ -671,9 +671,14 @@ class ImageAnalysisValidationTests(TestCase):
         self.media_directory.cleanup()
 
     def upload(self):
+        output = BytesIO()
+        Image.new("RGB", (4, 4), "teal").save(
+            output,
+            format="PNG",
+        )
         return SimpleUploadedFile(
             "sample.png",
-            b"temporary-image-content",
+            output.getvalue(),
             content_type="image/png",
         )
 
@@ -713,6 +718,30 @@ class ImageAnalysisValidationTests(TestCase):
             response.status_code,
             400,
         )
+
+
+
+    def test_invalid_binary_file_is_rejected(self):
+        upload = SimpleUploadedFile(
+            "fake.png",
+            b"this-is-not-an-image",
+            content_type="image/png",
+        )
+        response = self.client.post(
+            self.url,
+            {"analysis_type": "general", "image": upload},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error_code"], "INVALID_IMAGE")
+
+    @override_settings(AI_IMAGE_MAX_PIXELS=3)
+    def test_pixel_limit_is_enforced(self):
+        response = self.client.post(
+            self.url,
+            {"analysis_type": "general", "image": self.upload()},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error_code"], "INVALID_IMAGE")
 
     @patch(
         "ai_tools.views.GeminiService"
@@ -768,3 +797,7 @@ class ImageAnalysisValidationTests(TestCase):
         ]
 
         self.assertEqual(files, [])
+
+
+from io import BytesIO
+from PIL import Image

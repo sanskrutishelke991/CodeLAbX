@@ -44,3 +44,39 @@ class NoteAuthorizationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+
+import json
+
+from .models import Bookmark
+
+
+class BookmarkSecurityTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="bookmark-security-user",
+            password="StrongPass123!",
+        )
+        self.client.force_login(self.user)
+        self.url = reverse("notes:bookmark_add")
+
+    def post(self, url):
+        return self.client.post(
+            self.url,
+            data=json.dumps({"title": "Test", "url": url}),
+            content_type="application/json",
+        )
+
+    def test_javascript_scheme_is_rejected(self):
+        response = self.post("javascript:alert(1)")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error_code"], "INVALID_BOOKMARK_URL")
+
+    def test_https_url_is_accepted(self):
+        response = self.post("https://example.com/lesson")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Bookmark.objects.get(user=self.user).url, "https://example.com/lesson")
+
+    def test_internal_relative_url_is_accepted(self):
+        response = self.post("/learning/roadmaps/")
+        self.assertEqual(response.status_code, 200)

@@ -20,6 +20,7 @@ from .api import (
 from .rendering import render_ai_markdown
 from .security import guard_ai_request, protect_ai_endpoint
 from .services import GeminiService
+from .uploads import normalize_uploaded_image
 from .models import ChatSession, ChatMessage
 from django.shortcuts import get_object_or_404
 
@@ -291,19 +292,13 @@ def _process_image_analysis(request):
             400,
         )
 
-    if image_file.size > 5 * 1024 * 1024:
-        return json_error(
-            "IMAGE_TOO_LARGE",
-            (
-                "Image size must be "
-                "no more than 5 MB."
-            ),
-            413,
-        )
+    normalized_image = normalize_uploaded_image(
+        image_file
+    )
 
     analysis = ImageAnalysis.objects.create(
         user=request.user,
-        image=image_file,
+        image=normalized_image,
         analysis_type=analysis_type,
         user_question=user_question,
     )
