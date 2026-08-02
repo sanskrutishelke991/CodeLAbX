@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -5,10 +6,24 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.utils import timezone
+from django.db import transaction
+from django.urls import reverse
 import json
+import logging
 from .models import Test, TestAttempt
+from ai_tools.api import (
+    APIRequestError,
+    choice_field,
+    integer_field,
+    parse_json_object,
+    provider_error_response,
+    safe_api_errors,
+    text_field,
+)
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -121,76 +136,246 @@ def create_test(request):
     return render(request, 'assessments/create_test.html')
 
 
+
+def _validate_generated_questions(value):
+    if (
+        not isinstance(value, list)
+        or not value
+        or len(value) > 30
+    ):
+        raise APIRequestError(
+            "AI_INVALID_RESPONSE",
+            (
+                "The AI returned an invalid "
+                "question set."
+            ),
+            502,
+        )
+
+    validated = []
+
+    for item in value:
+        if not isinstance(item, dict):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "question set."
+                ),
+                502,
+            )
+
+        question = item.get("question")
+        options = item.get("options")
+        correct = item.get("correct")
+        explanation = item.get(
+            "explanation",
+            "",
+        )
+
+        if (
+            not isinstance(question, str)
+            or not question.strip()
+            or len(question) > 1000
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "question."
+                ),
+                502,
+            )
+
+        if (
+            not isinstance(options, list)
+            or not 2 <= len(options) <= 6
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned invalid "
+                    "answer options."
+                ),
+                502,
+            )
+
+        if any(
+            not isinstance(option, str)
+            or not option.strip()
+            or len(option) > 500
+            for option in options
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned invalid "
+                    "answer options."
+                ),
+                502,
+            )
+
+        if (
+            isinstance(correct, bool)
+            or not isinstance(correct, int)
+            or not 0 <= correct < len(options)
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "answer key."
+                ),
+                502,
+            )
+
+        if (
+            not isinstance(explanation, str)
+            or len(explanation) > 2000
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "explanation."
+                ),
+                502,
+            )
+
+        validated.append(
+            {
+                "question": question.strip(),
+                "options": [
+                    option.strip()
+                    for option in options
+                ],
+                "correct": correct,
+                "explanation": (
+                    explanation.strip()
+                ),
+            }
+        )
+
+    return validated
+
+
 @login_required
 @require_POST
 @csrf_protect
 @protect_ai_endpoint(
     "test-generation",
     "AI_GENERATION_BURST_LIMIT",
-    feature_flag=(
-        "ASSESSMENTS_ENABLED"
-    ),
+    feature_flag="ASSESSMENTS_ENABLED",
 )
+@safe_api_errors
 def generate_test_questions(request):
-    """API endpoint to generate test questions using AI."""
+    data = parse_json_object(request)
+
+    topic = text_field(
+        data,
+        "topic",
+        required=True,
+        min_length=1,
+        max_length=min(
+            settings.AI_TOPIC_MAX_CHARS,
+            150,
+        ),
+    )
+
+    difficulty = choice_field(
+        data,
+        "difficulty",
+        choices={
+            "easy",
+            "medium",
+            "hard",
+        },
+        default="medium",
+    )
+
+    num_questions = integer_field(
+        data,
+        "num_questions",
+        default=10,
+        minimum=1,
+        maximum=30,
+    )
+
+    time_key = (
+        "time_limit_minutes"
+        if "time_limit_minutes" in data
+        else "time_limit"
+    )
+
+    time_limit = integer_field(
+        data,
+        time_key,
+        default=10,
+        minimum=1,
+        maximum=180,
+    )
+
+    result = (
+        GeminiService()
+        .generate_test_questions(
+            topic,
+            difficulty,
+            num_questions,
+        )
+    )
+
+    if not result.get("success"):
+        return provider_error_response(
+            logger,
+            "test-generation",
+            result.get("error"),
+        )
+
     try:
-        data = json.loads(request.body)
-        topic = data.get('topic', '').strip()
-        difficulty = data.get('difficulty', 'medium')
-        num_questions = data.get('num_questions', 10)
-        
-        if not topic:
-            return JsonResponse({
-                'success': False,
-                'error': 'Please provide a topic'
-            }, status=400)
-        
-        # Generate questions using Gemini
-        gemini = GeminiService()
-        result = gemini.generate_test_questions(topic, difficulty, num_questions)
-        
-        if result['success']:
-            try:
-                questions = json.loads(result['content'])
-                
-                # Create test with generated questions
-                test = Test.objects.create(
-                    user=request.user,
-                    title=f"{topic} Quiz ({difficulty})",
-                    topic=topic,
-                    difficulty=difficulty,
-                    num_questions=len(questions),
-                    time_limit_minutes=data.get('time_limit', 10),
-                    questions=questions,
-                    status='created'
-                )
-                
-                return JsonResponse({
-                    'success': True,
-                    'test_id': test.id,
-                    'questions': questions
-                })
-            except json.JSONDecodeError:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'AI returned invalid format. Please try again.'
-                }, status=500)
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': result.get('error', 'Failed to generate questions')
-            }, status=500)
-    
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid request format'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        generated = json.loads(
+            result.get("content", "")
+        )
+
+    except json.JSONDecodeError as exc:
+        raise APIRequestError(
+            "AI_INVALID_RESPONSE",
+            (
+                "The AI returned an invalid "
+                "question set."
+            ),
+            502,
+        ) from exc
+
+    questions = (
+        _validate_generated_questions(
+            generated
+        )
+    )
+
+    with transaction.atomic():
+        test = Test.objects.create(
+            user=request.user,
+            title=(
+                f"{topic} Quiz ({difficulty})"
+            )[:200],
+            topic=topic,
+            difficulty=difficulty,
+            num_questions=len(questions),
+            time_limit_minutes=time_limit,
+            questions=questions,
+            status="created",
+        )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "test_id": test.id,
+            "redirect_url": reverse(
+                "assessments:take",
+                args=[test.id],
+            ),
+        }
+    )
 
 
 @login_required

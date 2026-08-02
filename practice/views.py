@@ -1,23 +1,65 @@
-from django.shortcuts import render
+import json
+import logging
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
-import json
+from django.views.decorators.http import require_POST
+
+from ai_tools.api import (
+    APIRequestError,
+    choice_field,
+    parse_json_object,
+    provider_error_response,
+    safe_api_errors,
+    text_field,
+)
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
+
+logger = logging.getLogger(__name__)
+
+SUPPORTED_LANGUAGES = {
+    "python",
+    "javascript",
+    "java",
+    "cpp",
+    "typescript",
+    "go",
+    "rust",
+    "ruby",
+}
 
 
 @login_required
 def task_list(request):
-    """Practice arena home page"""
-    return render(request, 'practice/task_list.html')
+    return render(
+        request,
+        "practice/task_list.html",
+    )
 
 
 @login_required
 def code_examiner(request):
-    """AI Code Examiner page"""
-    return render(request, 'practice/code_examiner.html')
+    return render(
+        request,
+        "practice/code_examiner.html",
+    )
+
+
+def _badge_payload(item):
+    badge = getattr(
+        item,
+        "badge",
+        item,
+    )
+
+    return {
+        "name": badge.name,
+        "icon": badge.icon,
+    }
 
 
 @login_required
@@ -27,65 +69,90 @@ def code_examiner(request):
     "code-review",
     "AI_CODE_REVIEW_BURST_LIMIT",
 )
+@safe_api_errors
 def check_code(request):
-    """AI checks user's code and provides feedback with XP + Badges"""
+    data = parse_json_object(request)
+
+    code = text_field(
+        data,
+        "code",
+        required=True,
+        min_length=1,
+        max_length=settings.AI_CODE_MAX_CHARS,
+    )
+
+    language = choice_field(
+        data,
+        "language",
+        choices=SUPPORTED_LANGUAGES,
+        default="python",
+    )
+
+    problem = text_field(
+        data,
+        "problem",
+        default="",
+        max_length=settings.AI_PROBLEM_MAX_CHARS,
+    )
+
+    result = GeminiService().review_code(
+        code,
+        language,
+        problem,
+    )
+
+    if not result.get("success"):
+        return provider_error_response(
+            logger,
+            "code-review",
+            result.get("error"),
+        )
+
+    response_data = {
+        "success": True,
+        "feedback": result["feedback_html"],
+    }
+
     try:
-        data = json.loads(request.body)
-        code = data.get('code', '').strip()
-        language = data.get('language', 'python')
-        problem = data.get('problem', '')
-        
-        if not code:
-            return JsonResponse({
-                'success': False,
-                'error': 'Please write some code first!'
-            }, status=400)
-        
-        # Get AI feedback
-        gemini = GeminiService()
-        result = gemini.review_code(code, language, problem)
-        
-        if result['success']:
-            response_data = {
-                'success': True,
-                'feedback': result['feedback_html']
+        from progress.services import BadgeManager
+
+        xp_result = BadgeManager.add_xp(
+            request.user,
+            15,
+            "Code reviewed",
+        )
+
+        new_badges = (
+            BadgeManager.check_and_award_badges(
+                request.user
+            )
+        )
+
+        response_data.update(
+            {
+                "xp_earned": 15,
+                "xp_reason": "Code reviewed",
+                "leveled_up": xp_result.get(
+                    "leveled_up",
+                    False,
+                ),
+                "new_level": xp_result.get(
+                    "new_level"
+                ),
+                "new_badges": [
+                    _badge_payload(item)
+                    for item in new_badges
+                ],
             }
-            
-            # Award XP and check badges
-            try:
-                from progress.services import BadgeManager
-                
-                xp_result = BadgeManager.add_xp(request.user, 15, "Code reviewed")
-                new_badges = BadgeManager.check_and_award_badges(request.user)
-                
-                response_data['xp_earned'] = 15
-                response_data['xp_reason'] = 'Code reviewed'
-                response_data['leveled_up'] = xp_result.get('leveled_up', False)
-                response_data['new_level'] = xp_result.get('new_level')
-                response_data['new_badges'] = [
-                    {'name': b.badge.name, 'icon': b.badge.icon} 
-                    for b in new_badges
-                ]
-            except Exception as e:
-                print(f"Badge/XP error: {e}")
-            
-            return JsonResponse(response_data)
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': result.get('error', 'Something went wrong')
-            }, status=500)
-    
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid request format'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        )
+
+    except Exception:
+        logger.warning(
+            "XP/badge update failed after code review",
+            exc_info=True,
+        )
+
+    return JsonResponse(response_data)
 
 
 @login_required
@@ -94,43 +161,89 @@ def check_code(request):
     "practice-generation",
     "AI_GENERATION_BURST_LIMIT",
 )
+@safe_api_errors
 def generate_problem(request):
-    """Generate a new practice problem using AI"""
+    data = parse_json_object(request)
+
+    topic = text_field(
+        data,
+        "topic",
+        default="arrays",
+        min_length=1,
+        max_length=settings.AI_TOPIC_MAX_CHARS,
+    )
+
+    difficulty = choice_field(
+        data,
+        "difficulty",
+        choices={
+            "easy",
+            "medium",
+            "hard",
+        },
+        default="easy",
+    )
+
+    result = (
+        GeminiService()
+        .generate_practice_problem(
+            topic,
+            difficulty,
+        )
+    )
+
+    if not result.get("success"):
+        return provider_error_response(
+            logger,
+            "practice-generation",
+            result.get("error"),
+        )
+
+    content = result.get(
+        "content",
+        "",
+    ).strip()
+
+    if content.startswith("```"):
+        parts = content.split("```")
+
+        if len(parts) >= 2:
+            content = parts[1]
+
+            if content.startswith("json"):
+                content = content[4:]
+
+            content = content.strip()
+
     try:
-        data = json.loads(request.body)
-        topic = data.get('topic', 'arrays')
-        difficulty = data.get('difficulty', 'easy')
-        
-        gemini = GeminiService()
-        result = gemini.generate_practice_problem(topic, difficulty)
-        
-        if result['success']:
-            content = result['content'].strip()
-            if content.startswith('```'):
-                content = content.split('```')[1]
-                if content.startswith('json'):
-                    content = content[4:]
-                content = content.strip()
-            
-            try:
-                problem_data = json.loads(content)
-                return JsonResponse({
-                    'success': True,
-                    'problem': problem_data
-                })
-            except json.JSONDecodeError:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'AI returned invalid format. Try again.'
-                }, status=500)
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': result.get('error')
-            }, status=500)
-    
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        problem_data = json.loads(content)
+
+    except json.JSONDecodeError as exc:
+        raise APIRequestError(
+            "AI_INVALID_RESPONSE",
+            (
+                "The AI returned an invalid "
+                "practice problem."
+            ),
+            502,
+        ) from exc
+
+    if not isinstance(
+        problem_data,
+        dict,
+    ):
+        raise APIRequestError(
+            "AI_INVALID_RESPONSE",
+            (
+                "The AI returned an invalid "
+                "practice problem."
+            ),
+            502,
+        )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "problem": problem_data,
+        }
+    )
