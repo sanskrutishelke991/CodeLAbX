@@ -629,3 +629,142 @@ class ChatRequestValidationTests(TestCase):
             payload["error_code"],
             "INTERNAL_ERROR",
         )
+
+
+import tempfile
+from pathlib import Path
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+
+@override_settings(
+    AI_FEATURES_ENABLED=True,
+    IMAGE_ANALYSIS_ENABLED=True,
+    RATE_LIMIT_ENABLED=False,
+)
+class ImageAnalysisValidationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="image-validation-user",
+            password="StrongPass123!",
+        )
+
+        self.client.force_login(self.user)
+
+        self.url = reverse(
+            "ai_tools:image_analyzer"
+        )
+
+        self.media_directory = (
+            tempfile.TemporaryDirectory()
+        )
+
+        self.media_override = self.settings(
+            MEDIA_ROOT=(
+                self.media_directory.name
+            )
+        )
+
+        self.media_override.enable()
+
+    def tearDown(self):
+        self.media_override.disable()
+        self.media_directory.cleanup()
+
+    def upload(self):
+        return SimpleUploadedFile(
+            "sample.png",
+            b"temporary-image-content",
+            content_type="image/png",
+        )
+
+    def test_invalid_analysis_type_is_rejected(self):
+        response = self.client.post(
+            self.url,
+            {
+                "analysis_type": "executable",
+                "image": self.upload(),
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+
+        self.assertEqual(
+            response.json()["error_code"],
+            "VALIDATION_ERROR",
+        )
+
+    @override_settings(
+        AI_IMAGE_QUESTION_MAX_CHARS=5
+    )
+    def test_oversized_question_is_rejected(self):
+        response = self.client.post(
+            self.url,
+            {
+                "analysis_type": "general",
+                "user_question": "x" * 6,
+                "image": self.upload(),
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+
+    @patch(
+        "ai_tools.views.GeminiService"
+    )
+    def test_failure_removes_record_and_file(
+        self,
+        service_class,
+    ):
+        service_class.return_value            .analyze_image            .return_value = {
+                "success": False,
+                "error": (
+                    "SECRET_IMAGE_PROVIDER_DETAIL"
+                ),
+            }
+
+        with self.assertLogs(
+            "ai_tools.views",
+            level="WARNING",
+        ):
+            response = self.client.post(
+                self.url,
+                {
+                    "analysis_type": "general",
+                    "image": self.upload(),
+                },
+            )
+
+        self.assertEqual(
+            response.status_code,
+            502,
+        )
+
+        self.assertNotIn(
+            "SECRET_IMAGE_PROVIDER_DETAIL",
+            response.content.decode(),
+        )
+
+        from .models import ImageAnalysis
+
+        self.assertEqual(
+            ImageAnalysis.objects.filter(
+                user=self.user
+            ).count(),
+            0,
+        )
+
+        files = [
+            path
+            for path in Path(
+                self.media_directory.name
+            ).rglob("*")
+            if path.is_file()
+        ]
+
+        self.assertEqual(files, [])

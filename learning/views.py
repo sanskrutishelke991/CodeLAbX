@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -7,8 +8,11 @@ from .services import RoadmapGenerator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from ai_tools.api import provider_error_response, safe_api_errors
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -198,35 +202,58 @@ def day_detail(request, roadmap_id, day_number):
     "day-content",
     "AI_GENERATION_BURST_LIMIT",
 )
-def generate_day_content(request, roadmap_id, day_number):
-    """Generate AI theory content for a day"""
-    roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
-    day = get_object_or_404(Day, roadmap=roadmap, day_number=day_number)
-    
-    try:
-        gemini = GeminiService()
-        result = gemini.generate_theory(day.title, level=roadmap.level)
-        
-        if result['success']:
-            day.ai_content = result['content_html']
-            day.ai_content_generated_at = timezone.now()
-            day.save()
-            
-            return JsonResponse({
-                'success': True,
-                'content': result['content_html']
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': result.get('error', 'Unknown error')
-            }, status=500)
-    
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+@safe_api_errors
+def generate_day_content(
+    request,
+    roadmap_id,
+    day_number,
+):
+    """Generate sanitized content for an owned day."""
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+
+    day = get_object_or_404(
+        Day,
+        roadmap=roadmap,
+        day_number=day_number,
+    )
+
+    result = (
+        GeminiService()
+        .generate_theory(
+            day.title,
+            level=roadmap.level,
+        )
+    )
+
+    if not result.get("success"):
+        return provider_error_response(
+            logger,
+            "day-content",
+            result.get("error"),
+        )
+
+    day.ai_content = result["content_html"]
+    day.ai_content_generated_at = (
+        timezone.now()
+    )
+
+    day.save(
+        update_fields=[
+            "ai_content",
+            "ai_content_generated_at",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "content": result["content_html"],
+        }
+    )
 
 
 @login_required

@@ -118,3 +118,115 @@ class StoredAIContentSecurityTests(TestCase):
             response,
             'steal()',
         )
+
+
+from unittest.mock import patch
+from django.test import override_settings
+
+
+@override_settings(
+    AI_FEATURES_ENABLED=True,
+    RATE_LIMIT_ENABLED=False,
+)
+class DayContentAPIErrorTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="day-content-api-user",
+            password="StrongPass123!",
+        )
+
+        self.roadmap = Roadmap.objects.create(
+            user=self.user,
+            topic="ML",
+            title="API roadmap",
+            total_days=1,
+            daily_hours=1,
+        )
+
+        self.day = Day.objects.create(
+            roadmap=self.roadmap,
+            day_number=1,
+            title="API day",
+            estimated_hours=1,
+            order=1,
+        )
+
+        self.client.force_login(self.user)
+
+        self.url = reverse(
+            "learning:generate_content",
+            args=[
+                self.roadmap.id,
+                self.day.day_number,
+            ],
+        )
+
+    @patch(
+        "learning.views.GeminiService"
+    )
+    def test_provider_failure_is_safe(
+        self,
+        service_class,
+    ):
+        service_class.return_value            .generate_theory            .return_value = {
+                "success": False,
+                "error": (
+                    "SECRET_DAY_PROVIDER_DETAIL"
+                ),
+            }
+
+        with self.assertLogs(
+            "learning.views",
+            level="WARNING",
+        ):
+            response = self.client.post(
+                self.url
+            )
+
+        self.assertEqual(
+            response.status_code,
+            502,
+        )
+
+        self.assertNotIn(
+            "SECRET_DAY_PROVIDER_DETAIL",
+            response.content.decode(),
+        )
+
+        self.assertEqual(
+            response.json()["error_code"],
+            "AI_SERVICE_ERROR",
+        )
+
+    @patch(
+        "learning.views.GeminiService",
+        side_effect=RuntimeError(
+            "SECRET_DAY_EXCEPTION"
+        ),
+    )
+    def test_unexpected_exception_is_safe(
+        self,
+        service_class,
+    ):
+        with self.assertLogs(
+            "learning.views",
+            level="ERROR",
+        ):
+            response = self.client.post(
+                self.url
+            )
+
+        self.assertEqual(
+            response.status_code,
+            500,
+        )
+
+        self.assertNotIn(
+            "SECRET_DAY_EXCEPTION",
+            response.content.decode(),
+        )
+
+        self.assertEqual(
+            response.json()["error_code"],
+            "INTERNAL_ERROR",
+        )

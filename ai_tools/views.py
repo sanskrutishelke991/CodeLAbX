@@ -5,9 +5,11 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.utils.html import escape
+from django.urls import reverse
 import json
 import logging
 from .api import (
+    choice_field,
     integer_field,
     json_error,
     parse_json_object,
@@ -217,88 +219,169 @@ def chat_new_session(request):
     })
 @login_required
 def image_analyzer(request):
-    """Image analyzer page - upload and analyze"""
+    """Render or securely process image analysis."""
+    if request.method == "POST":
+        return _process_image_analysis(
+            request
+        )
+
+    return render(
+        request,
+        "ai_tools/image_analyzer.html",
+    )
+
+
+@safe_api_errors
+def _process_image_analysis(request):
     from .models import ImageAnalysis
-    
-    if request.method == 'POST':
-        blocked = guard_ai_request(
-            request,
-            "image-analysis",
-            "AI_IMAGE_BURST_LIMIT",
-            feature_flag=(
-                "IMAGE_ANALYSIS_ENABLED"
+
+    blocked = guard_ai_request(
+        request,
+        "image-analysis",
+        "AI_IMAGE_BURST_LIMIT",
+        feature_flag=(
+            "IMAGE_ANALYSIS_ENABLED"
+        ),
+    )
+
+    if blocked is not None:
+        return blocked
+
+    values = {
+        "analysis_type": request.POST.get(
+            "analysis_type",
+            "general",
+        ),
+        "user_question": request.POST.get(
+            "user_question",
+            "",
+        ),
+    }
+
+    analysis_type = choice_field(
+        values,
+        "analysis_type",
+        choices={
+            "general",
+            "code",
+            "math",
+            "handwritten",
+            "diagram",
+        },
+        default="general",
+    )
+
+    user_question = text_field(
+        values,
+        "user_question",
+        default="",
+        max_length=(
+            settings.AI_IMAGE_QUESTION_MAX_CHARS
+        ),
+    )
+
+    image_file = request.FILES.get(
+        "image"
+    )
+
+    if image_file is None:
+        return json_error(
+            "IMAGE_REQUIRED",
+            "Please upload an image.",
+            400,
+        )
+
+    if image_file.size > 5 * 1024 * 1024:
+        return json_error(
+            "IMAGE_TOO_LARGE",
+            (
+                "Image size must be "
+                "no more than 5 MB."
             ),
+            413,
         )
 
-        if blocked is not None:
-            return blocked
+    analysis = ImageAnalysis.objects.create(
+        user=request.user,
+        image=image_file,
+        analysis_type=analysis_type,
+        user_question=user_question,
+    )
 
-        image_file = request.FILES.get('image')
-        analysis_type = request.POST.get('analysis_type', 'general')
-        user_question = request.POST.get('user_question', '').strip()
-        
-        if not image_file:
-            return JsonResponse({
-                'success': False,
-                'error': 'Please upload an image'
-            }, status=400)
-        
-        # Validate file size (5MB max)
-        if image_file.size > 5 * 1024 * 1024:
-            return JsonResponse({
-                'success': False,
-                'error': 'Image size must be less than 5MB'
-            }, status=400)
-        
-        # Save the analysis record
-        analysis = ImageAnalysis.objects.create(
-            user=request.user,
-            image=image_file,
-            analysis_type=analysis_type,
-            user_question=user_question
-        )
-        
-        # Analyze with AI
-        try:
-            gemini = GeminiService()
-            result = gemini.analyze_image(
+    try:
+        result = (
+            GeminiService()
+            .analyze_image(
                 image_path=analysis.image.path,
                 analysis_type=analysis_type,
-                user_question=user_question
+                user_question=user_question,
             )
-            
-            if result['success']:
-                analysis.ai_analysis = result['analysis_html']
-                analysis.save()
-                
-                # Award XP
-                try:
-                    from progress.services import BadgeManager
-                    BadgeManager.add_xp(request.user, 15, "Image analyzed")
-                except:
-                    pass
-                
-                return JsonResponse({
-                    'success': True,
-                    'analysis_id': analysis.id,
-                    'analysis_html': result['analysis_html'],
-                    'redirect_url': f'/ai-tools/image/{analysis.id}/'
-                })
-            else:
-                analysis.delete()
-                return JsonResponse({
-                    'success': False,
-                    'error': result.get('error', 'AI analysis failed')
-                }, status=500)
-        
-        except Exception as e:
-            analysis.delete()
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=500)
-    
-    return render(request, 'ai_tools/image_analyzer.html')
+        )
+
+    except Exception:
+        analysis.image.delete(
+            save=False
+        )
+
+        analysis.delete()
+        raise
+
+    if not result.get("success"):
+        detail = result.get("error")
+
+        analysis.image.delete(
+            save=False
+        )
+
+        analysis.delete()
+
+        return provider_error_response(
+            logger,
+            "image-analysis",
+            detail,
+        )
+
+    analysis.ai_analysis = (
+        result["analysis_html"]
+    )
+
+    analysis.save(
+        update_fields=[
+            "ai_analysis"
+        ]
+    )
+
+    try:
+        from progress.services import BadgeManager
+
+        BadgeManager.add_xp(
+            request.user,
+            15,
+            "Image analyzed",
+        )
+
+    except Exception:
+        logger.warning(
+            (
+                "XP update failed after "
+                "image analysis"
+            ),
+            exc_info=True,
+        )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "analysis_id": analysis.id,
+            "analysis_html": (
+                result["analysis_html"]
+            ),
+            "redirect_url": reverse(
+                "ai_tools:image_result",
+                args=[analysis.id],
+            ),
+        }
+    )
 
 
 @login_required
