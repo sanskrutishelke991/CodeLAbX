@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
+from django.utils.html import escape
 import json
+from .rendering import render_ai_markdown
 from .services import GeminiService
 from .models import ChatSession, ChatMessage
 from django.shortcuts import get_object_or_404
@@ -123,15 +125,13 @@ def chat_get_session(request, session_id):
         session = ChatSession.objects.get(id=session_id, user=request.user)
         messages = session.messages.all()
         
-        import markdown as md
-        
         data = []
         for msg in messages:
-            content_html = msg.content
+            content_html = escape(msg.content)
+
             if msg.role == 'assistant':
-                content_html = md.markdown(
-                    msg.content,
-                    extensions=['fenced_code', 'tables', 'nl2br']
+                content_html = render_ai_markdown(
+                    msg.content
                 )
             data.append({
                 'id': msg.id,

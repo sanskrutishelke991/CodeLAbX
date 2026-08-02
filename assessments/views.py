@@ -199,9 +199,35 @@ def take_test(request, test_id):
         test.status = 'in_progress'
         test.save()
     
-    return render(request, 'assessments/take_test.html', {
-        'test': test
-    })
+    public_questions = []
+
+    for question in test.questions:
+        if not isinstance(question, dict):
+            continue
+
+        options = question.get('options', [])
+
+        if not isinstance(options, list):
+            options = []
+
+        public_questions.append({
+            'question': str(
+                question.get('question', '')
+            ),
+            'options': [
+                str(option)
+                for option in options
+            ],
+        })
+
+    return render(
+        request,
+        'assessments/take_test.html',
+        {
+            'test': test,
+            'public_questions': public_questions,
+        },
+    )
 
 
 @login_required

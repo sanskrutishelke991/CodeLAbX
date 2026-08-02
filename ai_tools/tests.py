@@ -1,3 +1,13 @@
+import json
+from types import SimpleNamespace
+
+from django.contrib.auth.models import User
+from django.test import TestCase
+from django.urls import reverse
+
+from .models import ChatMessage, ChatSession
+from .services import GeminiService
+
 from django.template import Context, Template
 from django.test import SimpleTestCase
 
@@ -117,4 +127,140 @@ class AIRenderingSecurityTests(SimpleTestCase):
         self.assertNotIn(
             "steal",
             result.lower(),
+        )
+
+
+class _FakeModels:
+    def __init__(self, text):
+        self.text = text
+
+    def generate_content(self, **kwargs):
+        return SimpleNamespace(
+            text=self.text
+        )
+
+
+def _service_with_response(text):
+    service = object.__new__(
+        GeminiService
+    )
+
+    service.model_name = "test-model"
+
+    service.client = SimpleNamespace(
+        models=_FakeModels(text)
+    )
+
+    return service
+
+
+class AIServiceSanitizationTests(SimpleTestCase):
+    def test_theory_response_is_sanitized(self):
+        service = _service_with_response(
+            "# Lesson\n"
+            "<script>steal()</script>"
+            "<p onclick='x()'>Safe</p>"
+        )
+
+        result = service.generate_theory(
+            "Python"
+        )
+
+        self.assertTrue(result["success"])
+
+        self.assertIn(
+            "Lesson",
+            result["content_html"],
+        )
+
+        self.assertNotIn(
+            "script",
+            result["content_html"].lower(),
+        )
+
+        self.assertNotIn(
+            "onclick",
+            result["content_html"].lower(),
+        )
+
+    def test_chat_response_is_sanitized(self):
+        service = _service_with_response(
+            "Hello "
+            "<img src=x onerror=steal()>"
+        )
+
+        result = service.chat("hello")
+
+        self.assertTrue(result["success"])
+
+        self.assertIn(
+            "Hello",
+            result["response_html"],
+        )
+
+        self.assertNotIn(
+            "<img",
+            result["response_html"].lower(),
+        )
+
+        self.assertNotIn(
+            "onerror",
+            result["response_html"].lower(),
+        )
+
+
+class ChatHistorySanitizationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="chat-security-user",
+            password="StrongPass123!",
+        )
+
+        self.session = ChatSession.objects.create(
+            user=self.user
+        )
+
+        ChatMessage.objects.create(
+            session=self.session,
+            role="assistant",
+            content=(
+                "<p>Answer</p>"
+                "<script>steal()</script>"
+            ),
+        )
+
+        self.client.force_login(self.user)
+
+    def test_assistant_history_is_sanitized(self):
+        response = self.client.get(
+            reverse(
+                "ai_tools:chat_session",
+                args=[self.session.id],
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        html = (
+            payload["messages"][0]
+            ["content_html"]
+        )
+
+        self.assertIn("Answer", html)
+
+        self.assertNotIn(
+            "script",
+            html.lower(),
+        )
+
+        self.assertNotIn(
+            "steal",
+            html.lower(),
         )

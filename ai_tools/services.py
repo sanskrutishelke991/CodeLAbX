@@ -3,19 +3,30 @@ Gemini AI Service for CodeLabX
 """
 
 from django.conf import settings
-import markdown as md
+
+from .rendering import render_ai_markdown
 
 
 class GeminiService:
     """Service to interact with Google Gemini AI"""
     
     def __init__(self):
+        if not settings.AI_FEATURES_ENABLED:
+            raise ValueError(
+                "AI features are currently disabled"
+            )
+
         if not settings.GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY not set in environment")
-        
+            raise ValueError(
+                "GEMINI_API_KEY not set in environment"
+            )
+
         from google import genai
-        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.model_name = "gemini-flash-latest"
+
+        self.client = genai.Client(
+            api_key=settings.GEMINI_API_KEY
+        )
+        self.model_name = settings.GEMINI_MODEL
     
     def generate_theory(self, topic_name, level='beginner'):
         """Generate complete theory content for a topic"""
@@ -69,9 +80,8 @@ IMPORTANT:
             
             markdown_content = response.text
             
-            html_content = md.markdown(
-                markdown_content,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                markdown_content
             )
             
             return {
@@ -133,9 +143,8 @@ IMPORTANT:
             )
             
             markdown_content = response.text
-            html_content = md.markdown(
-                markdown_content,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                markdown_content
             )
             
             return {
@@ -291,9 +300,8 @@ IMPORTANT:
             )
             
             # Convert markdown to HTML
-            html_content = md.markdown(
-                response.text,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                response.text
             )
             
             return {
@@ -520,9 +528,8 @@ IMPORTANT:
             )
             
             markdown_content = response.text
-            html_content = md.markdown(
-                markdown_content,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                markdown_content
             )
             
             return {

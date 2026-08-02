@@ -91,8 +91,13 @@ body { background: #0A0A0A; color: #e0e0e0; }
 </div>
 {% endblock %}
 {% block extra_js %}
+{{ public_questions|json_script:"test-questions-data" }}
 <script>
-const questions = {{ test.questions|safe }};
+const questions = JSON.parse(
+    document
+        .getElementById('test-questions-data')
+        .textContent
+);
 let currentQuestion = 0;
 let answers = {};
 let timeRemaining = {{ test.time_limit_minutes }} * 60;
@@ -131,10 +136,28 @@ function renderQuestion() {
         const isSelected = answers[currentQuestion] === index;
         const label = document.createElement('label');
         label.className = 'option-label' + (isSelected ? ' selected' : '');
-        label.innerHTML = `
-            <input type="radio" name="option" class="option-input" value="${index}" ${isSelected ? 'checked' : ''}>
-            <span class="option-text">${String.fromCharCode(65 + index)}. ${option}</span>
-        `;
+        const input = document.createElement(
+            'input'
+        );
+
+        input.type = 'radio';
+        input.name = 'option';
+        input.className = 'option-input';
+        input.value = index;
+        input.checked = isSelected;
+
+        const text = document.createElement(
+            'span'
+        );
+
+        text.className = 'option-text';
+        text.textContent = (
+            `${String.fromCharCode(65 + index)}. `
+            + option
+        );
+
+        label.appendChild(input);
+        label.appendChild(text);
         label.onclick = () => selectOption(index);
         container.appendChild(label);
     });

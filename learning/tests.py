@@ -57,3 +57,64 @@ class LearningAuthorizationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+
+class StoredAIContentSecurityTests(TestCase):
+    def test_day_page_resanitizes_legacy_html(self):
+        user = User.objects.create_user(
+            username='stored-ai-user',
+            password='StrongPass123!',
+        )
+
+        roadmap = Roadmap.objects.create(
+            user=user,
+            topic='ML',
+            title='AI safety roadmap',
+            total_days=1,
+            daily_hours=1,
+        )
+
+        day = Day.objects.create(
+            roadmap=roadmap,
+            day_number=1,
+            title='Safe lesson',
+            estimated_hours=1,
+            order=1,
+            ai_content=(
+                '<p>Lesson</p>'
+                '<script>steal()</script>'
+            ),
+        )
+
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse(
+                'learning:day_detail',
+                args=[
+                    roadmap.id,
+                    day.day_number,
+                ],
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            '<p>Lesson</p>',
+            html=True,
+        )
+
+        self.assertNotContains(
+            response,
+            '<script>steal()</script>',
+        )
+
+        self.assertNotContains(
+            response,
+            'steal()',
+        )
