@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.utils import timezone
 import json
 from .models import Test, TestAttempt
+from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
 
 
@@ -123,6 +124,13 @@ def create_test(request):
 @login_required
 @require_POST
 @csrf_protect
+@protect_ai_endpoint(
+    "test-generation",
+    "AI_GENERATION_BURST_LIMIT",
+    feature_flag=(
+        "ASSESSMENTS_ENABLED"
+    ),
+)
 def generate_test_questions(request):
     """API endpoint to generate test questions using AI."""
     try:

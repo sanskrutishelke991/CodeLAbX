@@ -7,6 +7,7 @@ from .services import RoadmapGenerator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
 
 
@@ -193,6 +194,10 @@ def day_detail(request, roadmap_id, day_number):
 
 @login_required
 @require_POST
+@protect_ai_endpoint(
+    "day-content",
+    "AI_GENERATION_BURST_LIMIT",
+)
 def generate_day_content(request, roadmap_id, day_number):
     """Generate AI theory content for a day"""
     roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)

@@ -90,6 +90,36 @@ AI_DAILY_REQUEST_LIMIT = env_int(
     25,
 )
 
+RATE_LIMIT_ENABLED = env_bool(
+    'RATE_LIMIT_ENABLED',
+    True,
+)
+
+AI_RATE_LIMIT_WINDOW_SECONDS = env_int(
+    'AI_RATE_LIMIT_WINDOW_SECONDS',
+    60,
+)
+
+AI_CHAT_BURST_LIMIT = env_int(
+    'AI_CHAT_BURST_LIMIT',
+    10,
+)
+
+AI_CODE_REVIEW_BURST_LIMIT = env_int(
+    'AI_CODE_REVIEW_BURST_LIMIT',
+    5,
+)
+
+AI_GENERATION_BURST_LIMIT = env_int(
+    'AI_GENERATION_BURST_LIMIT',
+    5,
+)
+
+AI_IMAGE_BURST_LIMIT = env_int(
+    'AI_IMAGE_BURST_LIMIT',
+    3,
+)
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -163,6 +193,18 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': sqlite_path,
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': (
+            'django.core.cache.backends.'
+            'locmem.LocMemCache'
+        ),
+        'LOCATION': (
+            'codelabx-development-security-cache'
+        ),
     }
 }
 

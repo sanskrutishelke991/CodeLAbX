@@ -264,3 +264,166 @@ class ChatHistorySanitizationTests(TestCase):
             "steal",
             html.lower(),
         )
+
+
+from django.core.cache import cache
+from django.http import JsonResponse
+from django.test import RequestFactory, override_settings
+
+from .security import protect_ai_endpoint
+
+
+class AIRequestGuardTests(SimpleTestCase):
+    def setUp(self):
+        cache.clear()
+        self.factory = RequestFactory()
+
+    def tearDown(self):
+        cache.clear()
+
+    def request(self):
+        request = self.factory.post(
+            "/guard-test/"
+        )
+
+        request.user = SimpleNamespace(
+            is_authenticated=True,
+            pk=42,
+        )
+
+        return request
+
+    @override_settings(
+        AI_FEATURES_ENABLED=False
+    )
+    def test_disabled_feature_fails_closed(self):
+        @protect_ai_endpoint(
+            "test",
+            "AI_CHAT_BURST_LIMIT",
+        )
+        def view(request):
+            return JsonResponse(
+                {"success": True}
+            )
+
+        response = view(
+            self.request()
+        )
+
+        self.assertEqual(
+            response.status_code,
+            503,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "FEATURE_DISABLED",
+        )
+
+    @override_settings(
+        AI_FEATURES_ENABLED=True,
+        RATE_LIMIT_ENABLED=True,
+        AI_CHAT_BURST_LIMIT=2,
+        AI_DAILY_REQUEST_LIMIT=20,
+        AI_RATE_LIMIT_WINDOW_SECONDS=60,
+    )
+    def test_burst_limit_returns_429(self):
+        @protect_ai_endpoint(
+            "burst-test",
+            "AI_CHAT_BURST_LIMIT",
+        )
+        def view(request):
+            return JsonResponse(
+                {"success": True}
+            )
+
+        self.assertEqual(
+            view(self.request()).status_code,
+            200,
+        )
+
+        self.assertEqual(
+            view(self.request()).status_code,
+            200,
+        )
+
+        blocked = view(
+            self.request()
+        )
+
+        self.assertEqual(
+            blocked.status_code,
+            429,
+        )
+
+        self.assertEqual(
+            blocked["Retry-After"],
+            "60",
+        )
+
+        payload = json.loads(
+            blocked.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "RATE_LIMITED",
+        )
+
+    @override_settings(
+        AI_FEATURES_ENABLED=True,
+        RATE_LIMIT_ENABLED=True,
+        AI_CHAT_BURST_LIMIT=20,
+        AI_DAILY_REQUEST_LIMIT=2,
+        AI_RATE_LIMIT_WINDOW_SECONDS=60,
+    )
+    def test_daily_limit_shared_across_scopes(self):
+        @protect_ai_endpoint(
+            "scope-a",
+            "AI_CHAT_BURST_LIMIT",
+        )
+        def first(request):
+            return JsonResponse(
+                {"success": True}
+            )
+
+        @protect_ai_endpoint(
+            "scope-b",
+            "AI_CHAT_BURST_LIMIT",
+        )
+        def second(request):
+            return JsonResponse(
+                {"success": True}
+            )
+
+        self.assertEqual(
+            first(self.request()).status_code,
+            200,
+        )
+
+        self.assertEqual(
+            second(self.request()).status_code,
+            200,
+        )
+
+        blocked = first(
+            self.request()
+        )
+
+        self.assertEqual(
+            blocked.status_code,
+            429,
+        )
+
+        payload = json.loads(
+            blocked.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "DAILY_AI_LIMIT_REACHED",
+        )

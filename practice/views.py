@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 import json
+from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
 
 
@@ -22,6 +23,10 @@ def code_examiner(request):
 @login_required
 @require_POST
 @csrf_protect
+@protect_ai_endpoint(
+    "code-review",
+    "AI_CODE_REVIEW_BURST_LIMIT",
+)
 def check_code(request):
     """AI checks user's code and provides feedback with XP + Badges"""
     try:
@@ -85,6 +90,10 @@ def check_code(request):
 
 @login_required
 @require_POST
+@protect_ai_endpoint(
+    "practice-generation",
+    "AI_GENERATION_BURST_LIMIT",
+)
 def generate_problem(request):
     """Generate a new practice problem using AI"""
     try:

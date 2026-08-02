@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.utils.html import escape
 import json
 from .rendering import render_ai_markdown
+from .security import guard_ai_request, protect_ai_endpoint
 from .services import GeminiService
 from .models import ChatSession, ChatMessage
 from django.shortcuts import get_object_or_404
@@ -21,6 +22,10 @@ def ai_home(request):
 @login_required
 @require_POST
 @csrf_protect
+@protect_ai_endpoint(
+    "chat",
+    "AI_CHAT_BURST_LIMIT",
+)
 def chat_send(request):
     """Send a message to AI Study Buddy"""
     try:
@@ -189,6 +194,18 @@ def image_analyzer(request):
     from .models import ImageAnalysis
     
     if request.method == 'POST':
+        blocked = guard_ai_request(
+            request,
+            "image-analysis",
+            "AI_IMAGE_BURST_LIMIT",
+            feature_flag=(
+                "IMAGE_ANALYSIS_ENABLED"
+            ),
+        )
+
+        if blocked is not None:
+            return blocked
+
         image_file = request.FILES.get('image')
         analysis_type = request.POST.get('analysis_type', 'general')
         user_question = request.POST.get('user_question', '').strip()
