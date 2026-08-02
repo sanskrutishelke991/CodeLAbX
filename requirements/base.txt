@@ -1,0 +1,6 @@
+Django==6.0.7
+google-genai==2.16.0
+Markdown==3.10.3
+nh3==0.3.6
+Pillow==12.3.0
+python-dotenv==1.2.2
