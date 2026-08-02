@@ -265,28 +265,7 @@ def submit_test(request, test_id):
             'success': False,
             'error': str(e)
         }, status=500)
-        # Award XP and check badges
-try:
-    from progress.services import BadgeManager
-    
-    # XP based on score percentage
-    xp_amount = int(percentage * 2)  # 100% = 200 XP
-    xp_result = BadgeManager.add_xp(request.user, xp_amount, "Test completed")
-    
-    # Check for new badges
-    new_badges = BadgeManager.check_and_award_badges(request.user)
-    
-    # Add to response
-    response_data['xp_earned'] = xp_amount
-    response_data['xp_reason'] = f'Test scored {percentage}%'
-    response_data['leveled_up'] = xp_result.get('leveled_up', False)
-    response_data['new_level'] = xp_result.get('new_level')
-    response_data['new_badges'] = [
-        {'name': b.badge.name, 'icon': b.badge.icon} 
-        for b in new_badges
-    ]
-except Exception as e:
-    print(f"Badge/XP error: {e}")
+
 
 @login_required
 def test_result(request, test_id):
