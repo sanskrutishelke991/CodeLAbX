@@ -2,7 +2,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Badge, UserLevel
+from .models import Badge, UserLevel, XPTransaction
+from .services import BadgeManager
 
 
 class ProgressPageTests(TestCase):
@@ -89,3 +90,31 @@ class ProgressPageTests(TestCase):
             response,
             private_user.username,
         )
+
+
+class XPTransactionTests(TestCase):
+    def test_same_idempotency_key_awards_once(self):
+        user = User.objects.create_user(
+            username="xp-ledger-user",
+            password="StrongPass123!",
+        )
+        first = BadgeManager.add_xp(
+            user,
+            20,
+            "Test event",
+            idempotency_key="test:event:1",
+            event_type="test",
+        )
+        second = BadgeManager.add_xp(
+            user,
+            20,
+            "Test event",
+            idempotency_key="test:event:1",
+            event_type="test",
+        )
+        level = UserLevel.objects.get(user=user)
+        self.assertEqual(first["xp_added"], 20)
+        self.assertEqual(second["xp_added"], 0)
+        self.assertTrue(second["duplicate"])
+        self.assertEqual(level.total_xp_earned, 20)
+        self.assertEqual(XPTransaction.objects.filter(user=user).count(), 1)

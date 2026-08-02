@@ -140,7 +140,33 @@ def challenge_attempt(request, challenge_id):
 def challenge_submit(request, challenge_id):
     """Submit challenge answer"""
     challenge = get_object_or_404(Challenge, id=challenge_id)
-    
+
+    completed_attempt = UserChallenge.objects.filter(
+        user=request.user,
+        challenge=challenge,
+        status="completed",
+    ).first()
+    if completed_attempt:
+        return JsonResponse(
+            {
+                "success": True,
+                "already_completed": True,
+                "is_correct": completed_attempt.is_correct,
+                "xp_earned": 0,
+                "correct_option": (
+                    challenge.correct_option
+                    if challenge.challenge_type == "theory"
+                    else None
+                ),
+                "explanation": (
+                    challenge.explanation
+                    if challenge.challenge_type == "theory"
+                    else None
+                ),
+                "redirect_url": f"/challenges/result/{challenge.id}/",
+            }
+        )
+
     try:
         data = json.loads(request.body)
         
@@ -170,8 +196,8 @@ def challenge_submit(request, challenge_id):
                 # If code seems okay, mark correct (simple heuristic)
                 if review['success'] and 'correct' in review['feedback_html'].lower():
                     is_correct = True
-            except:
-                is_correct = True  # Give benefit of doubt
+            except Exception:
+                is_correct = False
         
         else:  # theory
             selected = data.get('selected_option', -1)
@@ -201,7 +227,15 @@ def challenge_submit(request, challenge_id):
         # Award XP via progress system
         try:
             from progress.services import BadgeManager
-            BadgeManager.add_xp(request.user, xp_earned, f"Daily {challenge.challenge_type} challenge")
+            xp_result = BadgeManager.add_xp(
+                request.user,
+                xp_earned,
+                f"Daily {challenge.challenge_type} challenge",
+                idempotency_key=f"challenge:{challenge.id}",
+                event_type="challenge-completed",
+                source_object_type="challenge",
+                source_object_id=challenge.id,
+            )
             new_badges = BadgeManager.check_and_award_badges(request.user)
         except:
             new_badges = []
@@ -209,7 +243,7 @@ def challenge_submit(request, challenge_id):
         return JsonResponse({
             'success': True,
             'is_correct': is_correct,
-            'xp_earned': xp_earned,
+            'xp_earned': xp_result.get('xp_added', 0),
             'correct_option': challenge.correct_option if challenge.challenge_type == 'theory' else None,
             'explanation': challenge.explanation if challenge.challenge_type == 'theory' else None,
             'redirect_url': f'/challenges/result/{challenge.id}/'

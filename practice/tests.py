@@ -115,3 +115,29 @@ class PracticeAPIValidationTests(TestCase):
             "SECRET_PRACTICE_PROVIDER",
             response.content.decode(),
         )
+
+
+from progress.models import UserLevel, XPTransaction
+from .models import CodeReview
+
+
+class CodeReviewRewardIntegrityTests(TestCase):
+    @override_settings(AI_FEATURES_ENABLED=True, RATE_LIMIT_ENABLED=False)
+    @patch("practice.views.GeminiService")
+    def test_same_code_review_is_rewarded_once(self, service_class):
+        user = User.objects.create_user(username="review-xp-user", password="StrongPass123!")
+        self.client.force_login(user)
+        service_class.return_value.review_code.return_value = {
+            "success": True,
+            "feedback_html": "<p>Safe feedback</p>",
+        }
+        payload = json.dumps({"code": "print(1)", "language": "python", "problem": "Print one"})
+        url = reverse("practice:check_code")
+        first = self.client.post(url, data=payload, content_type="application/json")
+        second = self.client.post(url, data=payload, content_type="application/json")
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json().get("xp_earned"), 15)
+        self.assertEqual(second.json().get("xp_earned"), 0)
+        self.assertEqual(CodeReview.objects.filter(user=user).count(), 1)
+        self.assertEqual(UserLevel.objects.get(user=user).total_xp_earned, 15)
+        self.assertEqual(XPTransaction.objects.filter(user=user).count(), 1)

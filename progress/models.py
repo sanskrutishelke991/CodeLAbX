@@ -173,3 +173,36 @@ class UserLevel(models.Model):
         if xp_needed == 0:
             return 0
         return round((self.current_xp / xp_needed) * 100, 1)
+
+class XPTransaction(models.Model):
+    """Immutable record of one idempotent XP award."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="xp_transactions",
+    )
+    amount = models.PositiveIntegerField()
+    event_type = models.CharField(max_length=50)
+    reason = models.CharField(max_length=200)
+    idempotency_key = models.CharField(max_length=255)
+    source_object_type = models.CharField(max_length=50, blank=True)
+    source_object_id = models.CharField(max_length=100, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "idempotency_key"],
+                name="unique_user_xp_idempotency_key",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["event_type"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username}: +{self.amount} XP ({self.event_type})"

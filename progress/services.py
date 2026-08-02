@@ -5,7 +5,15 @@ Progress tracking services
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.models import User
-from .models import DailyActivity, UserStreak, Badge, UserBadge, UserLevel
+from django.db import transaction
+from .models import (
+    Badge,
+    DailyActivity,
+    UserBadge,
+    UserLevel,
+    UserStreak,
+    XPTransaction,
+)
 
 
 class ActivityLogger:
@@ -96,22 +104,63 @@ class BadgeManager:
         return level
     
     @staticmethod
-    def add_xp(user, amount, reason):
-        """Add XP to user and check for level up."""
-        level = BadgeManager.get_or_create_user_level(user)
+    @transaction.atomic
+    def add_xp(
+        user,
+        amount,
+        reason,
+        *,
+        idempotency_key,
+        event_type="activity",
+        source_object_type="",
+        source_object_id="",
+        metadata=None,
+    ):
+        """Atomically award XP once for a deterministic event key."""
+        if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+            raise ValueError("XP amount must be a positive integer.")
+        if not idempotency_key or len(idempotency_key) > 255:
+            raise ValueError("A valid XP idempotency key is required.")
+
+        xp_event, created = XPTransaction.objects.get_or_create(
+            user=user,
+            idempotency_key=idempotency_key,
+            defaults={
+                "amount": amount,
+                "reason": reason[:200],
+                "event_type": event_type[:50],
+                "source_object_type": source_object_type[:50],
+                "source_object_id": str(source_object_id)[:100],
+                "metadata": metadata or {},
+            },
+        )
+
+        level, _ = UserLevel.objects.get_or_create(user=user)
+        level = UserLevel.objects.select_for_update().get(pk=level.pk)
         old_level = level.current_level
+
+        if not created:
+            return {
+                "xp_added": 0,
+                "old_level": old_level,
+                "new_level": old_level,
+                "leveled_up": False,
+                "reason": reason,
+                "duplicate": True,
+                "transaction_id": xp_event.id,
+            }
+
         new_level = level.add_xp(amount)
-        
-        result = {
-            'xp_added': amount,
-            'old_level': old_level,
-            'new_level': new_level,
-            'leveled_up': new_level > old_level,
-            'reason': reason
+        return {
+            "xp_added": amount,
+            "old_level": old_level,
+            "new_level": new_level,
+            "leveled_up": new_level > old_level,
+            "reason": reason,
+            "duplicate": False,
+            "transaction_id": xp_event.id,
         }
-        
-        return result
-    
+
     @staticmethod
     def award_badge(user, badge_name):
         """Manually award a badge to a user."""
@@ -124,7 +173,15 @@ class BadgeManager:
             
             if created:
                 # Award XP for earning badge
-                BadgeManager.add_xp(user, badge.xp_reward, f"Earned badge: {badge.name}")
+                BadgeManager.add_xp(
+                    user,
+                    badge.xp_reward,
+                    f"Earned badge: {badge.name}",
+                    idempotency_key=f"badge:{badge.id}",
+                    event_type="badge-earned",
+                    source_object_type="badge",
+                    source_object_id=badge.id,
+                )
                 return {'success': True, 'badge': badge, 'new': True}
             else:
                 return {'success': True, 'badge': badge, 'new': False}

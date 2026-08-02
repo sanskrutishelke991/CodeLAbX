@@ -353,6 +353,10 @@ def _process_image_analysis(request):
             request.user,
             15,
             "Image analyzed",
+            idempotency_key=f"image-analysis:{analysis.id}",
+            event_type="image-analysis",
+            source_object_type="image-analysis",
+            source_object_id=analysis.id,
         )
 
     except Exception:

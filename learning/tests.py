@@ -230,3 +230,39 @@ class DayContentAPIErrorTests(TestCase):
             response.json()["error_code"],
             "INTERNAL_ERROR",
         )
+
+
+class DayRewardIntegrityTests(TestCase):
+    def test_day_reward_and_activity_are_applied_once(self):
+        from progress.models import DailyActivity, UserLevel, XPTransaction
+
+        user = User.objects.create_user(username="day-xp-user", password="StrongPass123!")
+        roadmap = Roadmap.objects.create(
+            user=user,
+            topic="ML",
+            title="One day roadmap",
+            total_days=1,
+            daily_hours=1,
+        )
+        day = Day.objects.create(
+            roadmap=roadmap,
+            day_number=1,
+            title="Only day",
+            estimated_hours=1,
+            order=1,
+        )
+        self.client.force_login(user)
+        url = reverse("learning:mark_complete", args=[roadmap.id, day.day_number])
+        first = self.client.post(url)
+        second = self.client.post(url)
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["xp_earned"], 20)
+        self.assertEqual(second.json()["xp_earned"], 0)
+        self.assertTrue(second.json()["already_completed"])
+        self.assertEqual(UserLevel.objects.get(user=user).total_xp_earned, 20)
+        self.assertEqual(XPTransaction.objects.filter(user=user).count(), 1)
+        activity = DailyActivity.objects.get(user=user)
+        self.assertEqual(activity.days_completed, 1)
+        self.assertEqual(activity.minutes_studied, 60)
+        roadmap.refresh_from_db()
+        self.assertEqual(roadmap.status, "completed")

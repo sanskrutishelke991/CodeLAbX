@@ -19,6 +19,8 @@ from ai_tools.api import (
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
 
+from .models import CodeReview
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_LANGUAGES = {
@@ -113,6 +115,12 @@ def check_code(request):
         "feedback": result["feedback_html"],
     }
 
+    review_record, review_created = CodeReview.objects.get_or_create(
+        user=request.user,
+        code_hash=CodeReview.hash_code(language, code),
+        defaults={"language": language},
+    )
+
     try:
         from progress.services import BadgeManager
 
@@ -120,6 +128,10 @@ def check_code(request):
             request.user,
             15,
             "Code reviewed",
+            idempotency_key=f"code-review:{review_record.id}",
+            event_type="code-review",
+            source_object_type="code-review",
+            source_object_id=review_record.id,
         )
 
         new_badges = (
@@ -130,7 +142,7 @@ def check_code(request):
 
         response_data.update(
             {
-                "xp_earned": 15,
+                "xp_earned": xp_result["xp_added"],
                 "xp_reason": "Code reviewed",
                 "leveled_up": xp_result.get(
                     "leveled_up",

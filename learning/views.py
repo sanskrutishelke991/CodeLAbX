@@ -8,6 +8,7 @@ from .services import RoadmapGenerator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db import transaction
 from ai_tools.api import provider_error_response, safe_api_errors
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
@@ -151,7 +152,15 @@ def roadmap_create(request):
                 # Award XP for creating first roadmap
                 try:
                     from progress.services import BadgeManager
-                    BadgeManager.add_xp(request.user, 25, "Created roadmap")
+                    BadgeManager.add_xp(
+                        request.user,
+                        25,
+                        "Created roadmap",
+                        idempotency_key=f"roadmap-created:{roadmap.id}",
+                        event_type="roadmap-created",
+                        source_object_type="roadmap",
+                        source_object_id=roadmap.id,
+                    )
                     BadgeManager.check_and_award_badges(request.user)
                 except Exception as e:
                     print(f"Badge error: {e}")
@@ -258,44 +267,70 @@ def generate_day_content(
 
 @login_required
 @require_POST
+@transaction.atomic
 def mark_day_complete(request, roadmap_id, day_number):
-    """Mark a day as complete and log activity with XP + Badges"""
-    from progress.services import ActivityLogger
-    
-    roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
-    day = get_object_or_404(Day, roadmap=roadmap, day_number=day_number)
-    
-    # Mark as completed
-    day.mark_completed()
-    
-    # Log activity + update streak
+    """Complete a roadmap day exactly once."""
+    from progress.services import ActivityLogger, BadgeManager
+
+    roadmap = get_object_or_404(
+        Roadmap.objects.select_for_update(),
+        id=roadmap_id,
+        user=request.user,
+    )
+    day = get_object_or_404(
+        Day.objects.select_for_update(),
+        roadmap=roadmap,
+        day_number=day_number,
+    )
+
+    if day.is_completed:
+        return JsonResponse(
+            {
+                "success": True,
+                "already_completed": True,
+                "message": f"Day {day.day_number} was already completed.",
+                "xp_earned": 0,
+            }
+        )
+
+    day.is_completed = True
+    day.completed_at = timezone.now()
+    day.save(update_fields=["is_completed", "completed_at"])
     ActivityLogger.log_day_completion(request.user, day)
-    
-    # Prepare response
-    response_data = {
-        'success': True,
-        'message': f'Day {day.day_number} marked as complete!'
-    }
-    
-    # Award XP and check badges
-    try:
-        from progress.services import BadgeManager
-        
-        # Add XP for completing day
-        xp_result = BadgeManager.add_xp(request.user, 20, "Completed a day")
-        
-        # Check for new badges
-        new_badges = BadgeManager.check_and_award_badges(request.user)
-        
-        response_data['xp_earned'] = 20
-        response_data['xp_reason'] = 'Day completed'
-        response_data['leveled_up'] = xp_result.get('leveled_up', False)
-        response_data['new_level'] = xp_result.get('new_level')
-        response_data['new_badges'] = [
-            {'name': b.badge.name, 'icon': b.badge.icon} 
-            for b in new_badges
-        ]
-    except Exception as e:
-        print(f"Badge/XP error: {e}")
-    
-    return JsonResponse(response_data)
+
+    xp_result = BadgeManager.add_xp(
+        request.user,
+        20,
+        "Completed a day",
+        idempotency_key=f"day-completed:{day.id}",
+        event_type="day-completed",
+        source_object_type="day",
+        source_object_id=day.id,
+    )
+    new_badges = BadgeManager.check_and_award_badges(request.user)
+
+    if not roadmap.days.filter(is_completed=False).exists():
+        roadmap.status = "completed"
+        roadmap.end_date = timezone.localdate()
+        roadmap.save(update_fields=["status", "end_date", "updated_at"])
+
+    return JsonResponse(
+        {
+            "success": True,
+            "already_completed": False,
+            "message": f"Day {day.day_number} marked as complete!",
+            "xp_earned": xp_result["xp_added"],
+            "xp_reason": "Day completed",
+            "leveled_up": xp_result["leveled_up"],
+            "new_level": xp_result["new_level"],
+            "new_badges": [
+                {
+                    "name": getattr(item, "badge", item).name,
+                    "icon": getattr(item, "badge", item).icon,
+                }
+                for item in new_badges
+            ],
+            "roadmap_completed": roadmap.status == "completed",
+        }
+    )
+
