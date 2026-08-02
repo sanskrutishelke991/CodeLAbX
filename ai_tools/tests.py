@@ -427,3 +427,205 @@ class AIRequestGuardTests(SimpleTestCase):
             payload["error_code"],
             "DAILY_AI_LIMIT_REACHED",
         )
+
+
+from unittest.mock import patch
+
+
+@override_settings(
+    AI_FEATURES_ENABLED=True,
+    RATE_LIMIT_ENABLED=False,
+)
+class ChatRequestValidationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="validated-chat-user",
+            password="StrongPass123!",
+        )
+
+        self.client.force_login(self.user)
+
+        self.url = reverse(
+            "ai_tools:chat_send"
+        )
+
+    def post(
+        self,
+        data,
+        content_type="application/json",
+    ):
+        return self.client.post(
+            self.url,
+            data=data,
+            content_type=content_type,
+        )
+
+    def test_malformed_json_is_rejected(self):
+        response = self.post("{")
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "INVALID_JSON",
+        )
+
+    def test_non_json_content_type_is_rejected(self):
+        response = self.post(
+            "message=hello",
+            "text/plain",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            415,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "UNSUPPORTED_MEDIA_TYPE",
+        )
+
+    @override_settings(
+        AI_JSON_BODY_MAX_BYTES=50
+    )
+    def test_oversized_body_is_rejected(self):
+        response = self.post(
+            json.dumps(
+                {
+                    "message": "x" * 100
+                }
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            413,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "REQUEST_TOO_LARGE",
+        )
+
+    @override_settings(
+        AI_CHAT_MAX_CHARS=10
+    )
+    def test_oversized_message_is_rejected(self):
+        response = self.post(
+            json.dumps(
+                {
+                    "message": "x" * 11
+                }
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            400,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "VALIDATION_ERROR",
+        )
+
+        self.assertEqual(
+            ChatSession.objects.filter(
+                user=self.user
+            ).count(),
+            0,
+        )
+
+    def test_unknown_session_returns_404(self):
+        response = self.post(
+            json.dumps(
+                {
+                    "message": "hello",
+                    "session_id": 999999,
+                }
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            404,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "SESSION_NOT_FOUND",
+        )
+
+        self.assertEqual(
+            ChatSession.objects.filter(
+                user=self.user
+            ).count(),
+            0,
+        )
+
+    @patch(
+        "ai_tools.views.GeminiService",
+        side_effect=RuntimeError(
+            "SECRET_PROVIDER_DETAIL"
+        ),
+    )
+    def test_provider_error_is_not_exposed(
+        self,
+        mocked_service,
+    ):
+        with self.assertLogs(
+            "ai_tools.views",
+            level="ERROR",
+        ):
+            response = self.post(
+                json.dumps(
+                    {
+                        "message": "hello"
+                    }
+                )
+            )
+
+        self.assertEqual(
+            response.status_code,
+            500,
+        )
+
+        content = response.content.decode()
+
+        self.assertNotIn(
+            "SECRET_PROVIDER_DETAIL",
+            content,
+        )
+
+        payload = json.loads(
+            response.content
+        )
+
+        self.assertEqual(
+            payload["error_code"],
+            "INTERNAL_ERROR",
+        )

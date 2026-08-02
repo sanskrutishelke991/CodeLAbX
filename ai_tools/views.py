@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -5,11 +6,22 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.utils.html import escape
 import json
+import logging
+from .api import (
+    integer_field,
+    json_error,
+    parse_json_object,
+    provider_error_response,
+    safe_api_errors,
+    text_field,
+)
 from .rendering import render_ai_markdown
 from .security import guard_ai_request, protect_ai_endpoint
 from .services import GeminiService
 from .models import ChatSession, ChatMessage
 from django.shortcuts import get_object_or_404
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -26,79 +38,94 @@ def ai_home(request):
     "chat",
     "AI_CHAT_BURST_LIMIT",
 )
+@safe_api_errors
 def chat_send(request):
-    """Send a message to AI Study Buddy"""
-    try:
-        data = json.loads(request.body)
-        message = data.get('message', '').strip()
-        session_id = data.get('session_id')
-        
-        if not message:
-            return JsonResponse({
-                'success': False,
-                'error': 'Message cannot be empty'
-            }, status=400)
-        
-        # Get or create session
-        if session_id:
-            try:
-                session = ChatSession.objects.get(id=session_id, user=request.user)
-            except ChatSession.DoesNotExist:
-                session = ChatSession.objects.create(user=request.user)
-        else:
-            session = ChatSession.objects.create(
+    """Validate and send one AI chat message."""
+    data = parse_json_object(request)
+
+    message = text_field(
+        data,
+        "message",
+        required=True,
+        min_length=1,
+        max_length=settings.AI_CHAT_MAX_CHARS,
+    )
+
+    session_id = integer_field(
+        data,
+        "session_id",
+        default=None,
+        minimum=1,
+    )
+
+    if session_id is not None:
+        try:
+            session = ChatSession.objects.get(
+                id=session_id,
                 user=request.user,
-                title=message[:50]  # Use first message as title
             )
-        
-        # Save user message
-        ChatMessage.objects.create(
-            session=session,
-            role='user',
-            content=message
-        )
-        
-        # Get chat history for context
-        history = list(session.messages.all().values('role', 'content'))
-        
-        # Get AI response
-        gemini = GeminiService()
-        result = gemini.chat(
-            message=message,
-            chat_history=history[:-1],  # Exclude current message
-            user_context=f"Username: {request.user.username}"
-        )
-        
-        if result['success']:
-            # Save AI response
-            ai_message = ChatMessage.objects.create(
-                session=session,
-                role='assistant',
-                content=result['response_text']
+        except ChatSession.DoesNotExist:
+            return json_error(
+                "SESSION_NOT_FOUND",
+                (
+                    "The requested chat session "
+                    "was not found."
+                ),
+                404,
             )
-            
-            return JsonResponse({
-                'success': True,
-                'session_id': session.id,
-                'response': result['response_html'],
-                'message_id': ai_message.id
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': result.get('error', 'Failed to get response')
-            }, status=500)
-    
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid request'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+    else:
+        session = ChatSession.objects.create(
+            user=request.user,
+            title=message[:50],
+        )
+
+    ChatMessage.objects.create(
+        session=session,
+        role="user",
+        content=message,
+    )
+
+    history = list(
+        session.messages
+        .order_by("-created_at")
+        .values(
+            "role",
+            "content",
+        )[:10]
+    )
+
+    history.reverse()
+
+    result = GeminiService().chat(
+        message=message,
+        chat_history=history[:-1],
+        user_context=(
+            f"Username: "
+            f"{request.user.username}"
+        ),
+    )
+
+    if not result.get("success"):
+        return provider_error_response(
+            logger,
+            "chat",
+            result.get("error"),
+        )
+
+    ai_message = ChatMessage.objects.create(
+        session=session,
+        role="assistant",
+        content=result["response_text"],
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "session_id": session.id,
+            "response": result["response_html"],
+            "message_id": ai_message.id,
+        }
+    )
 
 
 @login_required

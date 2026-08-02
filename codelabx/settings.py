@@ -90,6 +90,36 @@ AI_DAILY_REQUEST_LIMIT = env_int(
     25,
 )
 
+AI_JSON_BODY_MAX_BYTES = env_int(
+    'AI_JSON_BODY_MAX_BYTES',
+    64 * 1024,
+)
+
+AI_CHAT_MAX_CHARS = env_int(
+    'AI_CHAT_MAX_CHARS',
+    4000,
+)
+
+AI_CODE_MAX_CHARS = env_int(
+    'AI_CODE_MAX_CHARS',
+    20000,
+)
+
+AI_PROBLEM_MAX_CHARS = env_int(
+    'AI_PROBLEM_MAX_CHARS',
+    5000,
+)
+
+AI_TOPIC_MAX_CHARS = env_int(
+    'AI_TOPIC_MAX_CHARS',
+    200,
+)
+
+AI_IMAGE_QUESTION_MAX_CHARS = env_int(
+    'AI_IMAGE_QUESTION_MAX_CHARS',
+    2000,
+)
+
 RATE_LIMIT_ENABLED = env_bool(
     'RATE_LIMIT_ENABLED',
     True,
