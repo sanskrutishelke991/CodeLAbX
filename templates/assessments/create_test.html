@@ -898,11 +898,37 @@
         document.getElementById('previewXP').textContent = '+' + xp + ' XP';
     }
     
-    // Form submit with loading
-    document.getElementById('testForm').addEventListener('submit', function(e) {
+    document.getElementById('testForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
         const btn = document.getElementById('submitBtn');
+        const original = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i><span>Generating with AI...</span>';
+
+        try {
+            const response = await fetch('{% url "assessments:generate" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    topic: document.getElementById('topicInput').value,
+                    difficulty: document.getElementById('difficultyInput').value,
+                    num_questions: parseInt(document.getElementById('countSlider').value),
+                    time_limit_minutes: parseInt(document.getElementById('timeInput').value)
+                })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Unable to generate the assessment.');
+            }
+            window.location.href = data.redirect_url;
+        } catch (error) {
+            alert(error.message);
+            btn.disabled = false;
+            btn.innerHTML = original;
+        }
     });
     
     // Initialize

@@ -68,6 +68,11 @@ class UserChallenge(models.Model):
     selected_option = models.PositiveIntegerField(null=True, blank=True)  # For MCQ
     
     is_correct = models.BooleanField(default=False)
+    evaluation_type = models.CharField(
+        max_length=30,
+        default="deterministic",
+    )
+    ai_feedback = models.TextField(blank=True)
     time_taken_seconds = models.PositiveIntegerField(default=0)
     xp_earned = models.PositiveIntegerField(default=0)
     

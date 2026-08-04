@@ -255,3 +255,69 @@ class AssessmentGenerationValidationTests(TestCase):
             ).count(),
             0,
         )
+
+
+from datetime import timedelta
+from django.utils import timezone
+from progress.models import XPTransaction
+from .models import TestAttempt
+
+
+class AssessmentAttemptLifecycleTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="attempt-lifecycle-user",
+            password="StrongPass123!",
+        )
+        self.test = Test.objects.create(
+            user=self.user,
+            title="Lifecycle test",
+            topic="Python",
+            num_questions=1,
+            time_limit_minutes=10,
+            questions=[
+                {
+                    "question": "Choose A",
+                    "options": ["A", "B"],
+                    "correct": 0,
+                    "explanation": "A is correct",
+                }
+            ],
+        )
+        self.client.force_login(self.user)
+
+    def test_take_page_creates_and_reuses_attempt(self):
+        url = reverse("assessments:take", args=[self.test.id])
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(TestAttempt.objects.filter(test=self.test).count(), 1)
+        self.assertIsNotNone(TestAttempt.objects.get(test=self.test).deadline_at)
+
+    def test_submission_finalizes_once_and_awards_once(self):
+        self.client.get(reverse("assessments:take", args=[self.test.id]))
+        attempt = TestAttempt.objects.get(test=self.test)
+        url = reverse("assessments:submit", args=[self.test.id])
+        payload = json.dumps({"attempt_id": attempt.id, "answers": {"0": 0}, "time_taken": 1})
+        first = self.client.post(url, data=payload, content_type="application/json")
+        second = self.client.post(url, data=payload, content_type="application/json")
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["score"], 100)
+        self.assertGreater(first.json()["xp_earned"], 0)
+        self.assertTrue(second.json()["already_finalized"])
+        self.assertEqual(second.json()["xp_earned"], 0)
+        self.assertEqual(XPTransaction.objects.filter(user=self.user, event_type="assessment-completed").count(), 1)
+
+    def test_expired_attempt_is_finalized_with_zero(self):
+        self.client.get(reverse("assessments:take", args=[self.test.id]))
+        attempt = TestAttempt.objects.get(test=self.test)
+        attempt.deadline_at = timezone.now() - timedelta(minutes=1)
+        attempt.save(update_fields=["deadline_at"])
+        response = self.client.post(
+            reverse("assessments:submit", args=[self.test.id]),
+            data=json.dumps({"attempt_id": attempt.id, "answers": {"0": 0}}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 410)
+        attempt.refresh_from_db()
+        self.assertTrue(attempt.is_finalized)
+        self.assertEqual(attempt.score, 0)

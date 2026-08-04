@@ -11,60 +11,8 @@ from .models import Challenge, UserChallenge, ChallengeStreak
 
 
 def get_or_create_today_challenges():
-    """Get today's challenges, generate if not exist"""
-    from ai_tools.services import GeminiService
-    
-    today = timezone.now().date()
-    challenges = Challenge.objects.filter(date=today)
-    
-    # If both today's challenges exist, return them
-    if challenges.count() >= 2:
-        return challenges
-    
-    # Generate missing challenges
-    types_needed = ['coding', 'theory']
-    existing_types = [c.challenge_type for c in challenges]
-    
-    for ctype in types_needed:
-        if ctype not in existing_types:
-            try:
-                gemini = GeminiService()
-                result = gemini.generate_daily_challenge(
-                    challenge_type=ctype,
-                    difficulty='medium'
-                )
-                
-                if result['success']:
-                    data = result['data']
-                    
-                    challenge_data = {
-                        'date': today,
-                        'challenge_type': ctype,
-                        'title': data.get('title', 'Daily Challenge'),
-                        'description': data.get('description', ''),
-                        'difficulty': data.get('difficulty', 'medium'),
-                        'xp_reward': 30 if ctype == 'coding' else 15,
-                    }
-                    
-                    if ctype == 'coding':
-                        challenge_data.update({
-                            'starter_code': data.get('starter_code', ''),
-                            'example_input': data.get('example_input', ''),
-                            'example_output': data.get('example_output', ''),
-                            'hints': data.get('hints', []),
-                        })
-                    else:
-                        challenge_data.update({
-                            'options': data.get('options', []),
-                            'correct_option': data.get('correct_option', 0),
-                            'explanation': data.get('explanation', ''),
-                        })
-                    
-                    Challenge.objects.create(**challenge_data)
-            except Exception as e:
-                print(f"Error generating {ctype} challenge: {e}")
-    
-    return Challenge.objects.filter(date=today)
+    """Read today's pre-generated challenges without calling AI from GET."""
+    return Challenge.objects.filter(date=timezone.localdate())
 
 
 @login_required
@@ -184,22 +132,22 @@ def challenge_submit(request, challenge_id):
             attempt.user_answer = data.get('code', '')
             attempt.time_taken_seconds = data.get('time_taken', 0)
             
-            # Use AI to check if code looks correct
+            attempt.evaluation_type = "ai_feedback"
             from ai_tools.services import GeminiService
             try:
-                gemini = GeminiService()
-                review = gemini.review_code(
+                review = GeminiService().review_code(
                     code=attempt.user_answer,
-                    language='python',
-                    problem_statement=challenge.description
+                    language="python",
+                    problem_statement=challenge.description,
                 )
-                # If code seems okay, mark correct (simple heuristic)
-                if review['success'] and 'correct' in review['feedback_html'].lower():
-                    is_correct = True
+                if review.get("success"):
+                    attempt.ai_feedback = review.get("feedback_html", "")
             except Exception:
-                is_correct = False
+                attempt.ai_feedback = ""
+            is_correct = False
         
         else:  # theory
+            attempt.evaluation_type = "deterministic"
             selected = data.get('selected_option', -1)
             attempt.selected_option = selected
             is_correct = (selected == challenge.correct_option)
@@ -246,7 +194,9 @@ def challenge_submit(request, challenge_id):
             'xp_earned': xp_result.get('xp_added', 0),
             'correct_option': challenge.correct_option if challenge.challenge_type == 'theory' else None,
             'explanation': challenge.explanation if challenge.challenge_type == 'theory' else None,
-            'redirect_url': f'/challenges/result/{challenge.id}/'
+            'redirect_url': f'/challenges/result/{challenge.id}/',
+            'evaluation_type': attempt.evaluation_type,
+            'ai_feedback': attempt.ai_feedback if challenge.challenge_type == 'coding' else None
         })
     
     except Exception as e:

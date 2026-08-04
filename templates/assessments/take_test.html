@@ -100,7 +100,7 @@ const questions = JSON.parse(
 );
 let currentQuestion = 0;
 let answers = {};
-let timeRemaining = {{ test.time_limit_minutes }} * 60;
+let timeRemaining = {{ seconds_remaining }};
 let timerInterval;
 
 // Load saved answers from localStorage
@@ -114,7 +114,6 @@ function loadSavedAnswers() {
 // Save answers to localStorage
 function saveProgress() {
     localStorage.setItem('test_{{ test.id }}_answers', JSON.stringify(answers));
-    alert('Progress saved!');
 }
 
 // Render current question
@@ -246,7 +245,7 @@ async function submitTest() {
             },
             body: JSON.stringify({
                 answers: answers,
-                time_taken: timeTaken
+                attempt_id: {{ attempt.id }}
             })
         });
         

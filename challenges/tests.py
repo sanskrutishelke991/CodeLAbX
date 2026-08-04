@@ -56,3 +56,49 @@ class ChallengeRewardIntegrityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["is_correct"])
         self.assertEqual(response.json()["xp_earned"], 9)
+
+
+from unittest.mock import patch
+
+
+class ChallengeGenerationBehaviorTests(TestCase):
+    @patch("challenges.views.GeminiService", create=True)
+    def test_dashboard_does_not_call_ai(self, gemini):
+        user = User.objects.create_user(
+            username="challenge-dashboard-user",
+            password="StrongPass123!",
+        )
+        self.client.force_login(user)
+        response = self.client.get(reverse("challenges:dashboard"))
+        self.assertEqual(response.status_code, 200)
+        gemini.assert_not_called()
+
+    @override_settings(AI_FEATURES_ENABLED=True)
+    @patch("ai_tools.services.GeminiService")
+    def test_coding_success_is_feedback_not_verified(self, service_class):
+        user = User.objects.create_user(
+            username="feedback-challenge-user",
+            password="StrongPass123!",
+        )
+        challenge = Challenge.objects.create(
+            date=timezone.localdate(),
+            challenge_type="coding",
+            difficulty="easy",
+            title="Feedback code",
+            description="Write code",
+            xp_reward=30,
+        )
+        service_class.return_value.review_code.return_value = {
+            "success": True,
+            "feedback_html": "<p>Looks useful</p>",
+        }
+        self.client.force_login(user)
+        response = self.client.post(
+            reverse("challenges:submit", args=[challenge.id]),
+            data=json.dumps({"code": "print(1)", "time_taken": 1}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["is_correct"])
+        self.assertEqual(response.json()["evaluation_type"], "ai_feedback")
+        self.assertIn("Looks useful", response.json()["ai_feedback"])

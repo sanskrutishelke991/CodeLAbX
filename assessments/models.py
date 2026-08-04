@@ -44,7 +44,7 @@ class Test(models.Model):
     
     @property
     def percentage(self):
-        if self.total_marks == 0:
+        if self.score is None or self.total_marks == 0:
             return 0
         return round((self.score / self.total_marks) * 100, 1)
     
@@ -88,6 +88,8 @@ class TestAttempt(models.Model):
     score = models.PositiveIntegerField(null=True, blank=True)
     time_taken_seconds = models.PositiveIntegerField(default=0)
     completed_at = models.DateTimeField(null=True, blank=True)
+    deadline_at = models.DateTimeField(null=True, blank=True)
+    is_finalized = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
