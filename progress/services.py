@@ -50,7 +50,7 @@ class ActivityLogger:
     def get_heatmap_data(user, days=365):
         """Get heatmap data for last N days"""
         today = timezone.now().date()
-        start_date = today - timedelta(days=days)
+        start_date = today - timedelta(days=days - 1)
         
         activities = DailyActivity.objects.filter(
             user=user,
