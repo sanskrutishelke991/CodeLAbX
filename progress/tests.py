@@ -1,3 +1,4 @@
+from pathlib import Path
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -118,3 +119,54 @@ class XPTransactionTests(TestCase):
         self.assertTrue(second["duplicate"])
         self.assertEqual(level.total_xp_earned, 20)
         self.assertEqual(XPTransaction.objects.filter(user=user).count(), 1)
+
+
+from datetime import timedelta
+from django.utils import timezone
+from .models import DailyActivity
+from .services import AnalyticsService
+from assessments.models import Test
+
+
+class AnalyticsCorrectnessTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="analytics-user",
+            password="StrongPass123!",
+        )
+
+    def test_consistency_never_counts_an_extra_day(self):
+        today = timezone.localdate()
+        for offset in range(31):
+            DailyActivity.objects.create(
+                user=self.user,
+                date=today - timedelta(days=offset),
+                minutes_studied=10,
+            )
+        self.assertEqual(
+            AnalyticsService.get_study_consistency(self.user, days=30),
+            100.0,
+        )
+
+    def test_test_performance_returns_latest_twenty(self):
+        for index in range(21):
+            test = Test.objects.create(
+                user=self.user,
+                title=f"Test {index}",
+                topic="Python",
+                status="completed",
+                score=index,
+                completed_at=timezone.now() + timedelta(minutes=index),
+            )
+        result = AnalyticsService.get_test_performance(self.user)
+        self.assertEqual(len(result["data"]), 20)
+        self.assertEqual(result["data"][0], 1.0)
+        self.assertEqual(result["data"][-1], 20.0)
+
+    def test_analytics_template_contains_no_safe_json_filter(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("progress:analytics"))
+        self.assertEqual(response.status_code, 200)
+        source = (Path(__file__).resolve().parent.parent / "templates" / "progress" / "analytics.html").read_text()
+        self.assertNotIn("|safe", source)
+        self.assertContains(response, 'id="weekly-activity-labels"')

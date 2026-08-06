@@ -456,7 +456,7 @@ class AnalyticsService:
         from django.utils import timezone
         
         today = timezone.now().date()
-        start_date = today - timedelta(weeks=weeks)
+        start_date = today - timedelta(days=(weeks * 7) - 1)
         
         activities = DailyActivity.objects.filter(
             user=user,
@@ -509,11 +509,14 @@ class AnalyticsService:
         try:
             from assessments.models import Test
             
-            tests = Test.objects.filter(
-                user=user,
-                status='completed'
-            ).order_by('completed_at')[:20]  # Last 20 tests
-            
+            tests = list(
+                Test.objects.filter(
+                    user=user,
+                    status='completed',
+                ).order_by('-completed_at')[:20]
+            )
+            tests.reverse()
+
             labels = []
             scores = []
             for test in tests:
@@ -600,7 +603,7 @@ class AnalyticsService:
         from django.utils import timezone
         
         today = timezone.now().date()
-        start_date = today - timedelta(days=days)
+        start_date = today - timedelta(days=days - 1)
         
         active_days = DailyActivity.objects.filter(
             user=user,

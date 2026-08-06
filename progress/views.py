@@ -186,26 +186,28 @@ def redirect_to_achievements(request):
 
 @login_required
 def analytics(request):
-    """Comprehensive analytics dashboard"""
+    """Render analytics using bounded, real user data."""
     from .services import AnalyticsService
-    
+
     stats = AnalyticsService.get_learning_stats(request.user)
     weekly_activity = AnalyticsService.get_weekly_activity(request.user, weeks=4)
     topic_distribution = AnalyticsService.get_topic_distribution(request.user)
     test_performance = AnalyticsService.get_test_performance(request.user)
     consistency = AnalyticsService.get_study_consistency(request.user)
-    
-    import json
-    
+
     context = {
-        'stats': stats,
-        'consistency': consistency,
-        'weekly_activity_labels': json.dumps(weekly_activity['labels']),
-        'weekly_activity_data': json.dumps(weekly_activity['data']),
-        'topic_labels': json.dumps(topic_distribution['labels']),
-        'topic_data': json.dumps(topic_distribution['data']),
-        'test_labels': json.dumps(test_performance['labels']),
-        'test_data': json.dumps(test_performance['data']),
+        "stats": stats,
+        "consistency": consistency,
+        "consistency_remaining": max(0, round(100 - consistency, 1)),
+        "weekly_activity_labels": weekly_activity["labels"],
+        "weekly_activity_data": weekly_activity["data"],
+        "topic_labels": topic_distribution["labels"],
+        "topic_data": topic_distribution["data"],
+        "test_labels": test_performance["labels"],
+        "test_data": test_performance["data"],
+        "has_topic_data": bool(topic_distribution["labels"]),
+        "has_test_data": bool(test_performance["labels"]),
     }
-    
-    return render(request, 'progress/analytics.html', context)
+
+    return render(request, "progress/analytics.html", context)
+

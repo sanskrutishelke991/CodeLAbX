@@ -275,9 +275,9 @@ class Command(BaseCommand):
         updated_count = 0
         
         for badge_data in badges_data:
-            badge, created = Badge.objects.get_or_create(
+            badge, created = Badge.objects.update_or_create(
                 name=badge_data['name'],
-                defaults=badge_data
+                defaults=badge_data,
             )
             
             if created:

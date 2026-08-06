@@ -87,3 +87,30 @@ class RouteSmokeTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+
+
+from django.contrib import admin
+from accounts.models import UserProfile
+from assessments.models import Test
+from challenges.models import Challenge
+from content.models import Video
+from learning.models import Roadmap
+from notes.models import Note
+from practice.models import CodeReview
+from progress.models import XPTransaction
+
+
+class AdminRegistrationTests(TestCase):
+    def test_operational_models_are_registered(self):
+        for model in [
+            UserProfile,
+            Test,
+            Challenge,
+            Video,
+            Roadmap,
+            Note,
+            CodeReview,
+            XPTransaction,
+        ]:
+            with self.subTest(model=model.__name__):
+                self.assertIn(model, admin.site._registry)

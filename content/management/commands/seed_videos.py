@@ -18,9 +18,9 @@ class Command(BaseCommand):
         
         categories = {}
         for cat_data in categories_data:
-            cat, created = VideoCategory.objects.get_or_create(
+            cat, created = VideoCategory.objects.update_or_create(
                 slug=cat_data['slug'],
-                defaults=cat_data
+                defaults=cat_data,
             )
             categories[cat_data['slug']] = cat
             status = 'Created' if created else 'Exists'
@@ -162,9 +162,9 @@ class Command(BaseCommand):
             category_slug = video_data.pop('category')
             video_data['category'] = categories[category_slug]
             
-            video, created = Video.objects.get_or_create(
+            video, created = Video.objects.update_or_create(
                 youtube_id=video_data['youtube_id'],
-                defaults=video_data
+                defaults=video_data,
             )
             
             if created:

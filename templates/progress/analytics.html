@@ -686,8 +686,20 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ weekly_activity_labels|json_script:"weekly-activity-labels" }}
+{{ weekly_activity_data|json_script:"weekly-activity-data" }}
+{{ topic_labels|json_script:"topic-labels" }}
+{{ topic_data|json_script:"topic-data" }}
+{{ test_labels|json_script:"test-labels" }}
+{{ test_data|json_script:"test-data" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    const weeklyActivityLabels = JSON.parse(document.getElementById('weekly-activity-labels').textContent);
+    const weeklyActivityData = JSON.parse(document.getElementById('weekly-activity-data').textContent);
+    const topicLabels = JSON.parse(document.getElementById('topic-labels').textContent);
+    const topicData = JSON.parse(document.getElementById('topic-data').textContent);
+    const testLabels = JSON.parse(document.getElementById('test-labels').textContent);
+    const testData = JSON.parse(document.getElementById('test-data').textContent);
     Chart.defaults.color = '#A1A1AA';
     Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
     Chart.defaults.font.family = "'Inter', sans-serif";
@@ -701,10 +713,10 @@
     new Chart(studyCtx, {
         type: 'line',
         data: {
-            labels: {{ weekly_activity_labels|safe }},
+            labels: weeklyActivityLabels,
             datasets: [{
                 label: 'Minutes',
-                data: {{ weekly_activity_data|safe }},
+                data: weeklyActivityData,
                 borderColor: '#14B8A6',
                 backgroundColor: studyGradient,
                 borderWidth: 3,
@@ -759,7 +771,7 @@
         type: 'doughnut',
         data: {
             datasets: [{
-                data: [{{ consistency }}, {{ 100|add:consistency|add:"-100"|add:"-100" }}],
+                data: [{{ consistency }}, {{ consistency_remaining }}],
                 backgroundColor: [
                     'rgba(236, 72, 153, 1)',
                     'rgba(255, 255, 255, 0.05)'
@@ -801,14 +813,14 @@
     });
     
     // ========== TOPIC DISTRIBUTION - RAINBOW ==========
-    {% if topic_labels != '[]' %}
+    {% if has_topic_data %}
     const topicCtx = document.getElementById('topicChart').getContext('2d');
     new Chart(topicCtx, {
         type: 'polarArea',
         data: {
-            labels: {{ topic_labels|safe }},
+            labels: topicLabels,
             datasets: [{
-                data: {{ topic_data|safe }},
+                data: topicData,
                 backgroundColor: [
                     'rgba(168, 85, 247, 0.8)',   // Purple
                     'rgba(236, 72, 153, 0.8)',   // Pink
@@ -863,7 +875,7 @@
     {% endif %}
     
     // ========== TEST PERFORMANCE - AMBER BARS ==========
-    {% if test_labels != '[]' %}
+    {% if has_test_data %}
     const testCtx = document.getElementById('testChart').getContext('2d');
     const testGradient = testCtx.createLinearGradient(0, 0, 0, 220);
     testGradient.addColorStop(0, 'rgba(245, 158, 11, 1)');
@@ -872,10 +884,10 @@
     new Chart(testCtx, {
         type: 'bar',
         data: {
-            labels: {{ test_labels|safe }},
+            labels: testLabels,
             datasets: [{
                 label: 'Score %',
-                data: {{ test_data|safe }},
+                data: testData,
                 backgroundColor: testGradient,
                 borderColor: '#F59E0B',
                 borderWidth: 2,
