@@ -5,7 +5,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from challenges.models import Challenge
@@ -208,10 +210,31 @@ class DashboardTruthTests(TestCase):
 
 
 class OperationalSecurityTests(TestCase):
-    def test_health_endpoint_checks_database(self):
+    def test_liveness_endpoint_has_no_dependency_checks(self):
+        response = self.client.get(reverse("live"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "alive"})
+        self.assertEqual(response["Cache-Control"], "no-store")
+
+    def test_health_endpoint_checks_database_and_cache(self):
         response = self.client.get(reverse("health"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"status": "healthy", "database": "ok"})
+        self.assertEqual(
+            response.json(),
+            {
+                "status": "healthy",
+                "database": "ok",
+                "cache": "ok",
+            },
+        )
+        self.assertEqual(response["Cache-Control"], "no-store")
+
+    @patch("codelabx.views.cache.set", side_effect=RuntimeError("offline"))
+    def test_health_endpoint_fails_closed_when_cache_is_unavailable(self, cache_set):
+        response = self.client.get(reverse("health"))
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["cache"], "unavailable")
+        self.assertEqual(response.json()["database"], "ok")
 
     def test_security_headers_are_present(self):
         response = self.client.get(reverse("landing"))
@@ -334,3 +357,46 @@ class FrontendTrustTests(TestCase):
         self.assertNotIn("Powerful AI features", toolbox)
         self.assertNotIn(">Popular<", toolbox)
         self.assertIn("Default quota", toolbox)
+
+
+class DashboardQueryBudgetTests(TestCase):
+    def test_dashboard_query_count_stays_bounded_with_many_roadmaps(self):
+        user = User.objects.create_user(
+            username="dashboard-query-user",
+            password="StrongPass123!",
+        )
+        for index in range(12):
+            roadmap = Roadmap.objects.create(
+                user=user,
+                topic="ML",
+                title=f"Roadmap {index}",
+                total_days=2,
+                daily_hours=1,
+            )
+            Day.objects.create(
+                roadmap=roadmap,
+                day_number=1,
+                title="First day",
+                estimated_hours=1,
+                order=1,
+                is_completed=True,
+                completed_at=timezone.now(),
+            )
+            Day.objects.create(
+                roadmap=roadmap,
+                day_number=2,
+                title="Next day",
+                estimated_hours=1,
+                order=2,
+            )
+
+        self.client.force_login(user)
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(reverse("dashboard:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertLessEqual(
+            len(queries),
+            25,
+            msg=f"Dashboard exceeded query budget: {len(queries)}",
+        )

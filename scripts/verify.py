@@ -23,6 +23,7 @@ SOURCE_DIRECTORIES = [
     "notes",
     "practice",
     "progress",
+    "scripts",
 ]
 
 
@@ -180,7 +181,22 @@ def main() -> int:
             "DJANGO_HSTS_SECONDS": "31536000",
             "DJANGO_HSTS_INCLUDE_SUBDOMAINS": "True",
             "DJANGO_HSTS_PRELOAD": "True",
+            "DJANGO_USE_WHITENOISE": "True",
         }
+    )
+
+    run(
+        "Production static collection",
+        [
+            PYTHON,
+            "manage.py",
+            "collectstatic",
+            "--noinput",
+            "--clear",
+            "--verbosity",
+            "0",
+        ],
+        production_env,
     )
 
     run(
@@ -201,7 +217,7 @@ def main() -> int:
             "-m",
             "pip_audit",
             "-r",
-            "requirements/base.txt",
+            "requirements/prod.txt",
             "--progress-spinner",
             "off",
         ],

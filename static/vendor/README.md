@@ -11,3 +11,8 @@ rendering does not depend on a third-party CDN at runtime.
 directory includes its upstream license. Update a dependency only by pinning a
 new version, verifying its upstream checksum, reviewing its release notes, and
 running the complete verification gate.
+
+Upstream minified files retain optional `sourceMappingURL` comments, but source
+maps are not shipped because they are not runtime dependencies. Production
+static storage hashes CSS runtime URLs while intentionally ignoring those
+development-only map references.

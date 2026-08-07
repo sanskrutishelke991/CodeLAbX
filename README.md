@@ -10,6 +10,7 @@ The project is under active stabilization on `stabilization/production-readiness
 
 - Python 3.12 or 3.14
 - SQLite for local development
+- PostgreSQL and Redis for production/staging evaluation
 - A Gemini API key for optional AI features
 
 ## Setup
@@ -27,7 +28,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Set a new random `DJANGO_SECRET_KEY` and your optional `GEMINI_API_KEY` in `.env`. Never commit `.env`.
+Set a new random `DJANGO_SECRET_KEY` and your optional `GEMINI_API_KEY` in `.env`. Never commit `.env`. Install `requirements/prod.txt` only when validating the production runtime dependencies.
 
 ## Verification
 
@@ -41,8 +42,10 @@ The gate runs compilation, critical Ruff checks, migration-drift detection, Djan
 
 ```bash
 python manage.py generate_daily_challenges
+python manage.py production_preflight
 python manage.py check --deploy
 python manage.py makemigrations --check --dry-run
+python scripts/load_smoke.py --help
 ```
 
 ## Main applications
@@ -70,6 +73,8 @@ python manage.py makemigrations --check --dry-run
 - Privacy-scoped profiles, chats, and leaderboards
 - Self-hosted, version-pinned browser dependencies
 - Enforced origin-restricting CSP (legacy inline allowances remain)
+- Optional PostgreSQL, shared Redis cache, WhiteNoise, and bounded runtime settings
+- Separate liveness/readiness probes and a secret-safe production preflight
 
 ## Frontend dependencies
 
@@ -81,4 +86,4 @@ Before schema or destructive changes, copy `db.sqlite3`, archive `media/`, and c
 
 ## Deployment
 
-Production deployment is intentionally deferred until PostgreSQL, Redis-backed limits/jobs, private object storage, monitoring, and a staging rollback test are complete.
+Provider-neutral PostgreSQL, Redis cache, WhiteNoise, and Gunicorn configuration is available for staging preparation. Production deployment remains intentionally deferred until private object storage, background jobs, monitoring, and a staging backup/rollback exercise are complete. See `docs/DEPLOYMENT_READINESS.md`.

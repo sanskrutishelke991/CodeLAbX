@@ -4,6 +4,11 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+from codelabx.configuration import (
+    build_cache_settings,
+    build_database_settings,
+)
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
@@ -138,6 +143,45 @@ RATE_LIMIT_ENABLED = env_bool(
     True,
 )
 
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
+DATABASE_REQUIRE_TLS = env_bool('DATABASE_REQUIRE_TLS', True)
+DB_CONNECTION_MAX_AGE = env_int('DJANGO_DB_CONN_MAX_AGE', 60)
+DB_CONNECT_TIMEOUT_SECONDS = env_int(
+    'DJANGO_DB_CONNECT_TIMEOUT_SECONDS',
+    10,
+)
+
+REDIS_URL = os.getenv('REDIS_URL', '').strip()
+REDIS_REQUIRE_TLS = env_bool('REDIS_REQUIRE_TLS', True)
+CACHE_KEY_PREFIX = os.getenv(
+    'DJANGO_CACHE_KEY_PREFIX',
+    'codelabx',
+).strip()
+CACHE_DEFAULT_TIMEOUT = env_int(
+    'DJANGO_CACHE_DEFAULT_TIMEOUT',
+    300,
+)
+CACHE_SOCKET_TIMEOUT_SECONDS = env_int(
+    'DJANGO_CACHE_SOCKET_TIMEOUT_SECONDS',
+    5,
+)
+SHARED_CACHE_CONFIGURED = bool(REDIS_URL)
+
+USE_WHITENOISE = env_bool(
+    'DJANGO_USE_WHITENOISE',
+    False,
+)
+TRUST_X_FORWARDED_PROTO = env_bool(
+    'DJANGO_TRUST_X_FORWARDED_PROTO',
+    False,
+)
+TRUST_X_FORWARDED_HOST = env_bool(
+    'DJANGO_USE_X_FORWARDED_HOST',
+    False,
+)
+
+CSP_LEGACY_INLINE_ALLOWED = True
+
 AI_RATE_LIMIT_WINDOW_SECONDS = env_int(
     'AI_RATE_LIMIT_WINDOW_SECONDS',
     60,
@@ -185,6 +229,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    *(
+        ['whitenoise.middleware.WhiteNoiseMiddleware']
+        if USE_WHITENOISE
+        else []
+    ),
     'codelabx.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -226,31 +275,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'codelabx.wsgi.application'
 ASGI_APPLICATION = 'codelabx.asgi.application'
 
-sqlite_path = Path(
-    os.getenv('SQLITE_PATH', 'db.sqlite3')
+DATABASES = build_database_settings(
+    base_dir=BASE_DIR,
+    database_url=DATABASE_URL,
+    sqlite_path=os.getenv('SQLITE_PATH', 'db.sqlite3'),
+    connection_max_age=DB_CONNECTION_MAX_AGE,
+    connect_timeout=DB_CONNECT_TIMEOUT_SECONDS,
 )
 
-if not sqlite_path.is_absolute():
-    sqlite_path = BASE_DIR / sqlite_path
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': sqlite_path,
-    }
-}
-
-CACHES = {
-    'default': {
-        'BACKEND': (
-            'django.core.cache.backends.'
-            'locmem.LocMemCache'
-        ),
-        'LOCATION': (
-            'codelabx-development-security-cache'
-        ),
-    }
-}
+CACHES = build_cache_settings(
+    redis_url=REDIS_URL,
+    key_prefix=CACHE_KEY_PREFIX,
+    default_timeout=CACHE_DEFAULT_TIMEOUT,
+    socket_timeout=CACHE_SOCKET_TIMEOUT_SECONDS,
+)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -299,6 +337,23 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': (
+            'codelabx.storage.CodeLabXStaticFilesStorage'
+            if USE_WHITENOISE
+            else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+        ),
+    },
+}
+
+WHITENOISE_MAX_AGE = 31_536_000
+WHITENOISE_ALLOW_ALL_ORIGINS = False
+WHITENOISE_MANIFEST_STRICT = True
 
 EMAIL_BACKEND = os.getenv(
     'DJANGO_EMAIL_BACKEND',
@@ -351,6 +406,11 @@ SECURE_HSTS_PRELOAD = env_bool(
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'same-origin'
+
+if TRUST_X_FORWARDED_PROTO:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+USE_X_FORWARDED_HOST = TRUST_X_FORWARDED_HOST
 
 X_FRAME_OPTIONS = 'DENY'
 

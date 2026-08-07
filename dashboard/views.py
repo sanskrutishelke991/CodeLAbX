@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -30,6 +30,15 @@ def home(request):
                 distinct=True,
             )
         )
+        .prefetch_related(
+            Prefetch(
+                "days",
+                queryset=Day.objects.filter(
+                    is_completed=False,
+                ).order_by("order"),
+                to_attr="dashboard_incomplete_days",
+            )
+        )
         .order_by("-updated_at")[:3]
     )
     for roadmap in roadmaps:
@@ -44,9 +53,9 @@ def home(request):
             else 0
         )
         roadmap.next_day = (
-            roadmap.days.filter(is_completed=False)
-            .order_by("order")
-            .first()
+            roadmap.dashboard_incomplete_days[0]
+            if roadmap.dashboard_incomplete_days
+            else None
         )
 
     all_roadmaps = Roadmap.objects.filter(user=user)

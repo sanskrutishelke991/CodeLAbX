@@ -36,10 +36,10 @@ jobs:
             requirements/base.txt
             requirements/dev.txt
 
-      - name: Install development dependencies
+      - name: Install development and production dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements/dev.txt
+          python -m pip install -r requirements/dev.txt -r requirements/prod.txt
 
       - name: Run Gate A verification
         run: python scripts/verify.py
