@@ -224,3 +224,28 @@ class OperationalSecurityTests(TestCase):
         for pattern in patterns:
             found.extend(repository.rglob(pattern))
         self.assertEqual(found, [])
+
+
+class AccessibilityAndLegalTests(TestCase):
+    def test_base_has_skip_link_and_main_target(self):
+        response = self.client.get(reverse("landing"))
+        self.assertContains(response, 'class="skip-link"')
+        base = (Path(__file__).resolve().parent.parent / "templates" / "base.html").read_text(encoding="utf-8")
+        self.assertIn('id="main-content"', base)
+        self.assertIn("prefers-reduced-motion", base)
+        self.assertIn("aria-expanded", base)
+
+    def test_legal_pages_render(self):
+        self.assertEqual(self.client.get(reverse("dashboard:privacy")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("dashboard:terms")).status_code, 200)
+
+    def test_landing_does_not_make_old_false_privacy_claims(self):
+        landing = (Path(__file__).resolve().parent.parent / "templates" / "landing.html").read_text(encoding="utf-8")
+        self.assertNotIn("We never sell or share your data with third parties", landing)
+        self.assertNotIn("industry-standard encryption", landing)
+        self.assertIn("Google Gemini", landing)
+
+    def test_legacy_omnitrix_css_is_removed(self):
+        base = (Path(__file__).resolve().parent.parent / "templates" / "base.html").read_text(encoding="utf-8")
+        self.assertNotIn(".omnitrix-overlay", base)
+        self.assertIn(".omni-dial", base)

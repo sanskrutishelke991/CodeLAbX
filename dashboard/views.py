@@ -118,3 +118,12 @@ def home(request):
         ).count(),
     }
     return render(request, "dashboard/home.html", context)
+
+
+
+def privacy(request):
+    return render(request, "legal/privacy.html")
+
+
+def terms(request):
+    return render(request, "legal/terms.html")

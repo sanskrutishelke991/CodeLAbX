@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CodeLabX helps learners follow structured roadmaps, practice, complete assessments, and track verified progress.">
     <title>CodeLabX — Learn to code with an AI that understands you</title>
     
     <!-- Fonts -->
@@ -2752,9 +2753,11 @@
                 padding: 40px 20px;
             }
         }
+        .skip-link { position: fixed; top: 8px; left: 8px; z-index: 10000; padding: 10px 14px; border-radius: 7px; background: var(--accent); color: white; transform: translateY(-150%); } .skip-link:focus { transform: translateY(0); }
     </style>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     
     <!-- ========== NAVBAR ========== -->
     <nav class="nav">
@@ -2787,7 +2790,7 @@
     </nav>
     
     <!-- ========== HERO SECTION ========== -->
-    <section class="hero">
+    <section class="hero" id="main-content" tabindex="-1">
         <div class="hero-content">
             <div class="hero-badge">
                 <span class="hero-badge-pill">New</span>
@@ -3382,7 +3385,7 @@ df = pd.DataFrame({
                 </div>
                 <div class="showcase-feature-text">
                     <h4>Privacy First</h4>
-                    <p>Your data stays yours. No tracking, no ads, no nonsense.</p>
+                    <p>Your learning data is stored by CodeLabX. AI requests are processed by Google Gemini when you use AI features.</p>
                 </div>
             </div>
             <div class="showcase-feature">
@@ -3442,10 +3445,10 @@ df = pd.DataFrame({
                         <i class="bi bi-book-fill"></i>
                     </div>
                     <div>
-                        <span class="stat-number" data-count="500">0</span><span class="stat-suffix">+</span>
+                        <span class="stat-number" data-count="2">0</span><span class="stat-suffix"></span>
                     </div>
-                    <div class="stat-label">Topics</div>
-                    <div class="stat-description">Curated content</div>
+                    <div class="stat-label">Roadmap Tracks</div>
+                    <div class="stat-description">ML and DSA foundations</div>
                 </div>
                 
                 <div class="stat-item">
@@ -3501,7 +3504,7 @@ df = pd.DataFrame({
         <div class="faq-list">
             
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <div class="faq-question-text">Is CodeLabX really free forever?</div>
                     <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
                 </div>
@@ -3516,7 +3519,7 @@ df = pd.DataFrame({
             </div>
             
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <div class="faq-question-text">What programming languages and topics are supported?</div>
                     <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
                 </div>
@@ -3536,7 +3539,7 @@ df = pd.DataFrame({
             </div>
             
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <div class="faq-question-text">Do I need any prior coding experience?</div>
                     <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
                 </div>
@@ -3549,13 +3552,13 @@ df = pd.DataFrame({
                             <li><strong>Intermediate:</strong> For those with some coding background</li>
                             <li><strong>Advanced:</strong> Deep dive into complex topics</li>
                         </ul>
-                        The AI adapts to your pace and skill level, so you always learn at the right speed for you.
+                        Roadmaps use your selected duration, study time, and level. Generated lessons provide additional AI-assisted explanations.
                     </div>
                 </div>
             </div>
             
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <div class="faq-question-text">How does the AI code review work?</div>
                     <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
                 </div>
@@ -3576,27 +3579,27 @@ df = pd.DataFrame({
             </div>
             
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <div class="faq-question-text">Is my code and data private and secure?</div>
                     <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
                 </div>
                 <div class="faq-answer">
                     <div class="faq-answer-content">
-                        <strong>Yes, your privacy is our top priority.</strong> Here's what we do:
+                        <strong>CodeLabX uses owner-scoped access controls for private learning data.</strong>
                         <ul>
-                            <li>All data is stored securely with industry-standard encryption</li>
-                            <li>Your code and progress are visible only to you</li>
-                            <li>We never sell or share your data with third parties</li>
-                            <li>No tracking, no ads, no marketing spam</li>
-                            <li>You can delete your account and all data anytime</li>
+                            <li>Passwords are handled by Django's password hashing system</li>
+                            <li>Profiles can be public or private</li>
+                            <li>AI prompts, code, and images are sent to Google Gemini only when an AI feature is used</li>
+                            <li>You can export or permanently delete your account from Settings</li>
+                            <li>Uploaded images are validated and normalized before processing</li>
                         </ul>
-                        We believe learning should be a safe and private experience.
+                        Review the Privacy page for the current data-processing summary.
                     </div>
                 </div>
             </div>
             
             <div class="faq-item">
-                <div class="faq-question">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <div class="faq-question-text">Can I use CodeLabX on mobile devices?</div>
                     <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
                 </div>
@@ -3793,8 +3796,8 @@ df = pd.DataFrame({
                 </div>
                 
                 <div class="footer-legal">
-                    <a href="#">Privacy</a>
-                    <a href="#">Terms</a>
+                    <a href="{% url 'dashboard:privacy' %}">Privacy</a>
+                    <a href="{% url 'dashboard:terms' %}">Terms</a>
                     <a href="#">Cookies</a>
                 </div>
             </div>
@@ -3894,6 +3897,7 @@ df = pd.DataFrame({
             faqItems.forEach(item => {
                 const question = item.querySelector('.faq-question');
                 
+                question.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); question.click(); } });
                 question.addEventListener('click', () => {
                     const isOpen = item.classList.contains('open');
                     
