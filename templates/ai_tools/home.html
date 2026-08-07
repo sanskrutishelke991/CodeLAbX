@@ -6,13 +6,13 @@
 {% block extra_css %}
 <style>
     body { background: var(--bg-primary); }
-    
+
     .ai-container {
         max-width: 1280px;
         margin: 0 auto;
         padding: 24px;
     }
-    
+
     /* HERO - Compact */
     .ai-hero {
         position: relative;
@@ -23,7 +23,7 @@
         margin-bottom: 20px;
         overflow: hidden;
     }
-    
+
     .ai-hero::before {
         content: '';
         position: absolute;
@@ -35,7 +35,7 @@
         filter: blur(60px);
         animation: heroPulse 6s ease-in-out infinite;
     }
-    
+
     .ai-hero::after {
         content: '';
         position: absolute;
@@ -47,12 +47,12 @@
         filter: blur(60px);
         animation: heroPulse 8s ease-in-out infinite reverse;
     }
-    
+
     @keyframes heroPulse {
         0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
         50% { transform: translate(30px, 20px) scale(1.1); opacity: 1; }
     }
-    
+
     .ai-hero-content {
         position: relative;
         z-index: 1;
@@ -61,7 +61,7 @@
         gap: 20px;
         flex-wrap: wrap;
     }
-    
+
     .ai-hero-icon {
         width: 64px;
         height: 64px;
@@ -77,7 +77,7 @@
         overflow: hidden;
         flex-shrink: 0;
     }
-    
+
     .ai-hero-icon::before {
         content: '';
         position: absolute;
@@ -85,16 +85,16 @@
         background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3));
         animation: iconRotate 4s linear infinite;
     }
-    
+
     @keyframes iconRotate {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
-    
+
     .ai-hero-text {
         flex: 1;
     }
-    
+
     .ai-hero-eyebrow {
         display: inline-flex;
         align-items: center;
@@ -110,7 +110,7 @@
         letter-spacing: 0.1em;
         margin-bottom: 4px;
     }
-    
+
     .ai-hero h1 {
         font-family: 'Inter Tight', sans-serif;
         font-size: 1.75rem;
@@ -120,20 +120,20 @@
         line-height: 1.1;
         margin: 0 0 4px 0;
     }
-    
+
     .ai-hero h1 span {
         background: linear-gradient(135deg, #A855F7, #14B8A6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    
+
     .ai-hero p {
         color: var(--text-secondary);
         font-size: 0.85rem;
         margin: 0;
     }
-    
+
     .ai-hero-stats {
         display: flex;
         gap: 24px;
@@ -142,11 +142,11 @@
         border: 1px solid var(--border-default);
         border-radius: 12px;
     }
-    
+
     .hero-stat {
         text-align: center;
     }
-    
+
     .hero-stat-value {
         font-family: 'Inter Tight', sans-serif;
         font-size: 1.5rem;
@@ -155,7 +155,7 @@
         line-height: 1;
         margin-bottom: 2px;
     }
-    
+
     .hero-stat-label {
         font-size: 0.65rem;
         color: var(--text-tertiary);
@@ -163,7 +163,7 @@
         letter-spacing: 0.08em;
         font-weight: 700;
     }
-    
+
     /* FEATURED TOOL - Study Buddy */
     .featured-tool {
         background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
@@ -178,7 +178,7 @@
         gap: 24px;
         align-items: center;
     }
-    
+
     .featured-tool::before {
         content: '';
         position: absolute;
@@ -190,7 +190,7 @@
         filter: blur(60px);
         pointer-events: none;
     }
-    
+
     .featured-badge {
         position: absolute;
         top: 16px;
@@ -205,7 +205,7 @@
         letter-spacing: 0.1em;
         z-index: 2;
     }
-    
+
     .featured-icon {
         width: 72px;
         height: 72px;
@@ -220,12 +220,12 @@
         position: relative;
         z-index: 1;
     }
-    
+
     .featured-content {
         position: relative;
         z-index: 1;
     }
-    
+
     .featured-content h2 {
         font-family: 'Inter Tight', sans-serif;
         font-size: 1.3rem;
@@ -233,13 +233,13 @@
         color: var(--text-primary);
         margin: 0 0 4px 0;
     }
-    
+
     .featured-content p {
         color: var(--text-secondary);
         font-size: 0.85rem;
         margin: 0;
     }
-    
+
     .featured-launch {
         padding: 12px 24px;
         background: linear-gradient(135deg, #14B8A6, #06B6D4);
@@ -259,13 +259,13 @@
         position: relative;
         z-index: 1;
     }
-    
+
     .featured-launch:hover {
         transform: translateY(-2px);
         color: white;
         box-shadow: 0 8px 24px rgba(20, 184, 166, 0.4);
     }
-    
+
     /* CATEGORY TABS */
     .category-tabs {
         display: flex;
@@ -277,7 +277,7 @@
         margin-bottom: 20px;
         overflow-x: auto;
     }
-    
+
     .cat-tab {
         padding: 8px 16px;
         background: transparent;
@@ -293,23 +293,23 @@
         align-items: center;
         gap: 6px;
     }
-    
+
     .cat-tab:hover {
         color: var(--text-primary);
     }
-    
+
     .cat-tab.active {
         background: linear-gradient(135deg, #8B5CF6, #14B8A6);
         color: white;
     }
-    
+
     /* TOOLS GRID - COMPACT */
     .tools-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 16px;
     }
-    
+
     /* TOOL CARD - COMPACT & COLORFUL */
     .tool-card {
         background: var(--bg-secondary);
@@ -326,7 +326,10 @@
         gap: 12px;
         min-height: 200px;
     }
-    
+
+    button.tool-card { width: 100%; text-align: left; font: inherit; cursor: pointer; }
+    .tool-card[hidden] { display: none; }
+
     .tool-card::before {
         content: '';
         position: absolute;
@@ -340,22 +343,22 @@
         transition: opacity 0.3s;
         pointer-events: none;
     }
-    
+
     .tool-card:hover {
         transform: translateY(-4px);
         border-color: var(--tool-color);
         color: inherit;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
-    
+
     .tool-card:hover::before {
         opacity: 0.25;
     }
-    
+
     .tool-card:hover .tool-icon {
         transform: scale(1.1) rotate(-5deg);
     }
-    
+
     /* Tool Colors */
     .tool-card.chat { --tool-color: #14B8A6; }
     .tool-card.image { --tool-color: #EC4899; }
@@ -363,7 +366,7 @@
     .tool-card.roadmap { --tool-color: #0EA5E9; }
     .tool-card.challenges { --tool-color: #F59E0B; }
     .tool-card.test { --tool-color: #A855F7; }
-    
+
     /* Card Header */
     .tool-header {
         display: flex;
@@ -372,7 +375,7 @@
         position: relative;
         z-index: 1;
     }
-    
+
     .tool-icon {
         width: 48px;
         height: 48px;
@@ -388,14 +391,14 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .tool-icon::after {
         content: '';
         position: absolute;
         inset: 0;
         background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
     }
-    
+
     .tool-status {
         display: inline-flex;
         align-items: center;
@@ -407,31 +410,31 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
-    
+
     .tool-status.new {
         background: linear-gradient(135deg, #F59E0B, #EF4444);
         color: white;
     }
-    
+
     .tool-status.beta {
         background: rgba(139, 92, 246, 0.15);
         color: #A78BFA;
         border: 1px solid rgba(139, 92, 246, 0.3);
     }
-    
+
     .tool-status.popular {
         background: rgba(14, 165, 233, 0.15);
         color: #38BDF8;
         border: 1px solid rgba(14, 165, 233, 0.3);
     }
-    
+
     /* Card Body */
     .tool-body {
         flex: 1;
         position: relative;
         z-index: 1;
     }
-    
+
     .tool-title {
         font-family: 'Inter Tight', sans-serif;
         font-size: 1rem;
@@ -440,7 +443,7 @@
         margin: 0 0 6px 0;
         letter-spacing: -0.01em;
     }
-    
+
     .tool-desc {
         color: var(--text-secondary);
         font-size: 0.8rem;
@@ -451,7 +454,7 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    
+
     /* Card Footer */
     .tool-footer {
         display: flex;
@@ -462,7 +465,7 @@
         position: relative;
         z-index: 1;
     }
-    
+
     .tool-meta {
         display: flex;
         align-items: center;
@@ -470,11 +473,11 @@
         font-size: 0.7rem;
         color: var(--text-tertiary);
     }
-    
+
     .tool-meta i {
         color: var(--tool-color);
     }
-    
+
     .tool-launch {
         display: inline-flex;
         align-items: center;
@@ -484,24 +487,24 @@
         font-weight: 700;
         transition: gap 0.2s;
     }
-    
+
     .tool-card:hover .tool-launch {
         gap: 8px;
     }
-    
+
     /* Responsive */
     @media (max-width: 1024px) {
         .tools-grid { grid-template-columns: repeat(3, 1fr); }
         .featured-tool { grid-template-columns: 1fr; text-align: center; }
         .featured-launch { justify-self: center; }
     }
-    
+
     @media (max-width: 768px) {
         .tools-grid { grid-template-columns: repeat(2, 1fr); }
         .ai-hero-content { flex-direction: column; align-items: flex-start; }
         .ai-hero-stats { width: 100%; justify-content: space-around; }
     }
-    
+
     @media (max-width: 480px) {
         .ai-container { padding: 16px; }
         .ai-hero { padding: 20px; }
@@ -512,40 +515,40 @@
 
 {% block content %}
 <div class="ai-container">
-    
+
     <!-- COMPACT HERO -->
     <div class="ai-hero">
         <div class="ai-hero-content">
             <div class="ai-hero-icon">
                 <i class="bi bi-robot"></i>
             </div>
-            
+
             <div class="ai-hero-text">
                 <div class="ai-hero-eyebrow">
                     <i class="bi bi-lightning-charge-fill"></i>
                     <span>Powered by Gemini AI</span>
                 </div>
                 <h1>AI <span>Toolbox</span></h1>
-                <p>Powerful AI features to supercharge your learning journey.</p>
+                <p>Optional AI-assisted tools backed by Gemini when configured and enabled.</p>
             </div>
-            
+
             <div class="ai-hero-stats">
                 <div class="hero-stat">
                     <div class="hero-stat-value">6</div>
                     <div class="hero-stat-label">Tools</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="hero-stat-value">24/7</div>
-                    <div class="hero-stat-label">Available</div>
+                    <div class="hero-stat-value">Config</div>
+                    <div class="hero-stat-label">Required</div>
                 </div>
                 <div class="hero-stat">
-                    <div class="hero-stat-value">∞</div>
-                    <div class="hero-stat-label">Queries</div>
+                    <div class="hero-stat-value">25/day</div>
+                    <div class="hero-stat-label">Default quota</div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- FEATURED TOOL - Study Buddy -->
     <div class="featured-tool">
         <span class="featured-badge">⭐ Featured</span>
@@ -554,66 +557,66 @@
         </div>
         <div class="featured-content">
             <h2>AI Study Buddy</h2>
-            <p>Your personal AI tutor available 24/7. Ask anything, get instant answers.</p>
+            <p>Ask study questions when AI features are configured and within quota.</p>
         </div>
-        <button class="featured-launch" onclick="if(typeof toggleChat === 'function') toggleChat();">
+        <button type="button" class="featured-launch" data-open-chat>
             <i class="bi bi-chat-dots"></i>
             <span>Start Chatting</span>
         </button>
     </div>
-    
+
     <!-- CATEGORY TABS -->
     <div class="category-tabs">
-        <button class="cat-tab active">
+        <button type="button" class="cat-tab active" data-tool-filter="all" aria-pressed="true">
             <i class="bi bi-grid-fill"></i>
             All Tools
         </button>
-        <button class="cat-tab">
+        <button type="button" class="cat-tab" data-tool-filter="generation" aria-pressed="false">
             <i class="bi bi-magic"></i>
             AI Generation
         </button>
-        <button class="cat-tab">
+        <button type="button" class="cat-tab" data-tool-filter="coding" aria-pressed="false">
             <i class="bi bi-code-slash"></i>
             Coding
         </button>
-        <button class="cat-tab">
+        <button type="button" class="cat-tab" data-tool-filter="vision" aria-pressed="false">
             <i class="bi bi-image"></i>
             Vision AI
         </button>
-        <button class="cat-tab">
+        <button type="button" class="cat-tab" data-tool-filter="popular" aria-pressed="false">
             <i class="bi bi-star-fill"></i>
-            Popular
+            Featured
         </button>
     </div>
-    
+
     <!-- TOOLS GRID -->
     <div class="tools-grid">
-        
+
         <!-- AI Study Buddy -->
-        <a href="#" onclick="if(typeof toggleChat === 'function') toggleChat(); return false;" class="tool-card chat">
+        <button type="button" class="tool-card chat" data-open-chat data-tool-categories="generation popular">
             <div class="tool-header">
                 <div class="tool-icon">
                     <i class="bi bi-chat-dots-fill"></i>
                 </div>
-                <span class="tool-status popular">Popular</span>
+                <span class="tool-status popular">Featured</span>
             </div>
             <div class="tool-body">
                 <h3 class="tool-title">Study Buddy</h3>
-                <p class="tool-desc">Chat with AI about any topic. Get instant answers and explanations.</p>
+                <p class="tool-desc">Ask study questions and receive quota-limited, AI-generated explanations.</p>
             </div>
             <div class="tool-footer">
                 <div class="tool-meta">
                     <i class="bi bi-lightning-fill"></i>
-                    <span>Instant</span>
+                    <span>AI chat</span>
                 </div>
                 <span class="tool-launch">
                     Open <i class="bi bi-arrow-right"></i>
                 </span>
             </div>
-        </a>
-        
+        </button>
+
         <!-- Image Analyzer -->
-        <a href="{% url 'ai_tools:image_analyzer' %}" class="tool-card image">
+        <a href="{% url 'ai_tools:image_analyzer' %}" class="tool-card image" data-tool-categories="vision popular">
             <div class="tool-header">
                 <div class="tool-icon">
                     <i class="bi bi-image-fill"></i>
@@ -622,7 +625,7 @@
             </div>
             <div class="tool-body">
                 <h3 class="tool-title">Image Analyzer</h3>
-                <p class="tool-desc">Upload photos of notes, code, math or diagrams. AI explains everything!</p>
+                <p class="tool-desc">Submit validated images for an AI-generated explanation when the feature is enabled.</p>
             </div>
             <div class="tool-footer">
                 <div class="tool-meta">
@@ -634,9 +637,9 @@
                 </span>
             </div>
         </a>
-        
+
         <!-- Code Examiner -->
-        <a href="{% url 'practice:examiner' %}" class="tool-card code">
+        <a href="{% url 'practice:examiner' %}" class="tool-card code" data-tool-categories="coding popular">
             <div class="tool-header">
                 <div class="tool-icon">
                     <i class="bi bi-code-slash"></i>
@@ -644,7 +647,7 @@
             </div>
             <div class="tool-body">
                 <h3 class="tool-title">Code Examiner</h3>
-                <p class="tool-desc">Get instant AI feedback on your code with detailed analysis.</p>
+                <p class="tool-desc">Request AI-generated code feedback. Submitted code is not executed.</p>
             </div>
             <div class="tool-footer">
                 <div class="tool-meta">
@@ -656,17 +659,17 @@
                 </span>
             </div>
         </a>
-        
+
         <!-- AI Roadmap Generator -->
-        <a href="{% url 'learning:roadmap_create' %}" class="tool-card roadmap">
+        <a href="{% url 'learning:roadmap_create' %}" class="tool-card roadmap" data-tool-categories="generation">
             <div class="tool-header">
                 <div class="tool-icon">
                     <i class="bi bi-map-fill"></i>
                 </div>
             </div>
             <div class="tool-body">
-                <h3 class="tool-title">Roadmap AI</h3>
-                <p class="tool-desc">Personalized learning paths tailored to your goals and pace.</p>
+                <h3 class="tool-title">Roadmap Builder</h3>
+                <p class="tool-desc">Create an ML or DSA path from your selected level, duration, and study time.</p>
             </div>
             <div class="tool-footer">
                 <div class="tool-meta">
@@ -678,18 +681,18 @@
                 </span>
             </div>
         </a>
-        
+
         <!-- Daily Challenges -->
-        <a href="{% url 'challenges:dashboard' %}" class="tool-card challenges">
+        <a href="{% url 'challenges:dashboard' %}" class="tool-card challenges" data-tool-categories="coding">
             <div class="tool-header">
                 <div class="tool-icon">
                     <i class="bi bi-lightning-charge-fill"></i>
                 </div>
-                <span class="tool-status popular">Popular</span>
+                <span class="tool-status popular">Featured</span>
             </div>
             <div class="tool-body">
                 <h3 class="tool-title">Daily Challenges</h3>
-                <p class="tool-desc">AI-generated coding and theory challenges every single day.</p>
+                <p class="tool-desc">Review generated coding and theory challenges when a daily set is available.</p>
             </div>
             <div class="tool-footer">
                 <div class="tool-meta">
@@ -701,9 +704,9 @@
                 </span>
             </div>
         </a>
-        
+
         <!-- AI Test Generator -->
-        <a href="{% url 'assessments:create' %}" class="tool-card test">
+        <a href="{% url 'assessments:create' %}" class="tool-card test" data-tool-categories="generation">
             <div class="tool-header">
                 <div class="tool-icon">
                     <i class="bi bi-clipboard-check-fill"></i>
@@ -723,7 +726,7 @@
                 </span>
             </div>
         </a>
-        
+
     </div>
 </div>
 {% endblock %}

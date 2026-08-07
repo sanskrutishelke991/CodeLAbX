@@ -1,3 +1,6 @@
+import hashlib
+import json
+import re
 from pathlib import Path
 from unittest.mock import patch
 
@@ -215,7 +218,8 @@ class OperationalSecurityTests(TestCase):
         self.assertIn("Permissions-Policy", response)
         self.assertEqual(response["X-Permitted-Cross-Domain-Policies"], "none")
         self.assertEqual(response["X-DNS-Prefetch-Control"], "off")
-        self.assertIn("Content-Security-Policy-Report-Only", response)
+        self.assertIn("Content-Security-Policy", response)
+        self.assertNotIn("Content-Security-Policy-Report-Only", response)
 
     def test_obsolete_backup_files_are_removed(self):
         repository = Path(__file__).resolve().parent.parent
@@ -232,7 +236,8 @@ class AccessibilityAndLegalTests(TestCase):
         self.assertContains(response, 'class="skip-link"')
         base = (Path(__file__).resolve().parent.parent / "templates" / "base.html").read_text(encoding="utf-8")
         self.assertIn('id="main-content"', base)
-        self.assertIn("prefers-reduced-motion", base)
+        base_css = (Path(__file__).resolve().parent.parent / "static" / "css" / "base.css").read_text(encoding="utf-8")
+        self.assertIn("prefers-reduced-motion", base_css)
         self.assertIn("aria-expanded", base)
 
     def test_legal_pages_render(self):
@@ -247,5 +252,85 @@ class AccessibilityAndLegalTests(TestCase):
 
     def test_legacy_omnitrix_css_is_removed(self):
         base = (Path(__file__).resolve().parent.parent / "templates" / "base.html").read_text(encoding="utf-8")
-        self.assertNotIn(".omnitrix-overlay", base)
-        self.assertIn(".omni-dial", base)
+        base_css = (Path(__file__).resolve().parent.parent / "static" / "css" / "base.css").read_text(encoding="utf-8")
+        self.assertNotIn(".omnitrix-overlay", base_css)
+        self.assertIn(".omni-dial", base_css)
+
+class FrontendTrustTests(TestCase):
+    def setUp(self):
+        self.repository = Path(__file__).resolve().parent.parent
+
+    def test_browser_dependencies_are_local_and_versioned(self):
+        checked_templates = [
+            self.repository / "templates" / "base.html",
+            self.repository / "templates" / "landing.html",
+            self.repository / "templates" / "progress" / "analytics.html",
+        ]
+        combined = "\n".join(
+            path.read_text(encoding="utf-8") for path in checked_templates
+        )
+        self.assertNotIn("cdn.jsdelivr.net", combined)
+        self.assertNotIn("fonts.googleapis.com", combined)
+        self.assertNotIn("fonts.gstatic.com", combined)
+
+        manifest_path = self.repository / "static" / "vendor" / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.assertEqual(manifest["bootstrap"]["version"], "5.3.8")
+        self.assertEqual(manifest["bootstrap-icons"]["version"], "1.13.1")
+        self.assertEqual(manifest["chart.js"]["version"], "4.5.1")
+        for relative_path, expected_digest in manifest["sha256"].items():
+            asset = self.repository / "static" / "vendor" / relative_path
+            self.assertTrue(asset.is_file())
+            self.assertGreater(asset.stat().st_size, 1000)
+            self.assertEqual(
+                hashlib.sha256(asset.read_bytes()).hexdigest(),
+                expected_digest,
+            )
+
+    def test_base_and_landing_styles_and_scripts_are_static(self):
+        for relative_path in ["templates/base.html", "templates/landing.html"]:
+            source = (self.repository / relative_path).read_text(encoding="utf-8")
+            self.assertNotIn("<style>", source)
+            self.assertIsNone(
+                re.search(r"<script(?![^>]*src\s*=)[^>]*>", source)
+            )
+
+    def test_templates_have_no_empty_fragment_links(self):
+        empty_links = []
+        for template in (self.repository / "templates").rglob("*.html"):
+            source = template.read_text(encoding="utf-8")
+            if re.search(r"href\s*=\s*[\"']#[\"']", source):
+                empty_links.append(str(template.relative_to(self.repository)))
+        self.assertEqual(empty_links, [])
+
+    def test_landing_avoids_unverified_scale_and_pricing_claims(self):
+        landing = (
+            self.repository / "templates" / "landing.html"
+        ).read_text(encoding="utf-8")
+        for unsupported_claim in [
+            "Free forever",
+            "100% free",
+            "Trusted by 1000+ learners",
+            "Join thousands of learners",
+            "senior developer reviewing your code 24/7",
+            "mobile app is coming soon",
+            "actually understands you",
+            "instant code reviews",
+            "adapt to your pace",
+            "growth, and predictions",
+            "No waiting, just learning",
+            "codelabx.com/dashboard",
+        ]:
+            self.assertNotIn(unsupported_claim, landing)
+        self.assertIn("Development preview", landing)
+        self.assertIn("not a correctness verdict", landing)
+
+        toolbox = (
+            self.repository / "templates" / "ai_tools" / "home.html"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("24/7", toolbox)
+        self.assertNotIn(">∞<", toolbox)
+        self.assertNotIn("every single day", toolbox)
+        self.assertNotIn("Powerful AI features", toolbox)
+        self.assertNotIn(">Popular<", toolbox)
+        self.assertIn("Default quota", toolbox)

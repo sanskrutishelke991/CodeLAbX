@@ -15,13 +15,13 @@ class SecurityHeadersMiddleware:
         response.setdefault("X-DNS-Prefetch-Control", "off")
         response.setdefault("Cross-Origin-Resource-Policy", "same-site")
         response.setdefault(
-            "Content-Security-Policy-Report-Only",
+            "Content-Security-Policy",
             "; ".join(
                 [
                     "default-src 'self'",
-                    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
-                    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
-                    "font-src 'self' https://fonts.gstatic.com data:",
+                    "script-src 'self' 'unsafe-inline'",
+                    "style-src 'self' 'unsafe-inline'",
+                    "font-src 'self' data:",
                     "img-src 'self' data: blob: https://img.youtube.com",
                     "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
                     "connect-src 'self'",

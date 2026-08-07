@@ -170,3 +170,41 @@ class AnalyticsCorrectnessTests(TestCase):
         source = (Path(__file__).resolve().parent.parent / "templates" / "progress" / "analytics.html").read_text()
         self.assertNotIn("|safe", source)
         self.assertContains(response, 'id="weekly-activity-labels"')
+
+class AnalyticsExportTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="analytics-export-user",
+            password="StrongPass123!",
+        )
+        self.other_user = User.objects.create_user(
+            username="other-analytics-user",
+            password="StrongPass123!",
+        )
+        DailyActivity.objects.create(
+            user=self.user,
+            date=timezone.localdate(),
+            minutes_studied=37,
+        )
+        DailyActivity.objects.create(
+            user=self.other_user,
+            date=timezone.localdate(),
+            minutes_studied=999,
+        )
+
+    def test_export_requires_authentication(self):
+        response = self.client.get(reverse("progress:analytics_export"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_export_is_private_download_with_recorded_data(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("progress:analytics_export"))
+        body = response.content.decode("utf-8")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response["Content-Type"].startswith("text/csv"))
+        self.assertIn("attachment;", response["Content-Disposition"])
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertIn("Recorded study hours,0.6", body)
+        self.assertIn(",37", body)
+        self.assertNotIn("999", body)

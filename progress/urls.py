@@ -9,4 +9,5 @@ urlpatterns = [
     path('badge/<int:badge_id>/', views.badge_detail, name='badge_detail'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('analytics/', views.analytics, name='analytics'),
+    path('analytics/export.csv', views.analytics_export, name='analytics_export'),
 ]

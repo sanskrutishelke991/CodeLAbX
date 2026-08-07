@@ -6,13 +6,13 @@
 {% block extra_css %}
 <style>
     body { background: var(--bg-primary); }
-    
+
     .an-container {
         max-width: 1280px;
         margin: 0 auto;
         padding: 24px;
     }
-    
+
     /* HERO */
     .an-hero {
         background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
@@ -23,7 +23,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .an-hero::before {
         content: '';
         position: absolute;
@@ -35,12 +35,12 @@
         filter: blur(60px);
         animation: heroGlow 8s ease-in-out infinite;
     }
-    
+
     @keyframes heroGlow {
         0%, 100% { transform: translate(0, 0) scale(1); }
         50% { transform: translate(50px, 30px) scale(1.1); }
     }
-    
+
     .an-hero-content {
         position: relative;
         z-index: 1;
@@ -50,7 +50,7 @@
         gap: 24px;
         flex-wrap: wrap;
     }
-    
+
     .an-hero-text h1 {
         font-family: 'Inter Tight', sans-serif;
         font-size: 2.5rem;
@@ -60,20 +60,20 @@
         margin-bottom: 8px;
         line-height: 1.1;
     }
-    
+
     .an-hero-text h1 span {
         background: linear-gradient(135deg, #0EA5E9, #A855F7);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
-    
+
     .an-hero-text p {
         color: var(--text-secondary);
         font-size: 1rem;
         max-width: 500px;
     }
-    
+
     .an-hero-eyebrow {
         display: inline-flex;
         align-items: center;
@@ -89,7 +89,7 @@
         letter-spacing: 0.1em;
         margin-bottom: 16px;
     }
-    
+
     .btn-export {
         padding: 12px 24px;
         background: var(--bg-secondary);
@@ -105,13 +105,13 @@
         transition: all 0.2s;
         text-decoration: none;
     }
-    
+
     .btn-export:hover {
         background: var(--bg-tertiary);
         border-color: var(--accent);
         color: var(--accent);
     }
-    
+
     /* KEY METRICS */
     .metrics-grid {
         display: grid;
@@ -119,7 +119,7 @@
         gap: 16px;
         margin-bottom: 24px;
     }
-    
+
     .metric-card {
         background: var(--bg-secondary);
         border: 1px solid var(--border-default);
@@ -129,7 +129,7 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .metric-card::before {
         content: '';
         position: absolute;
@@ -142,24 +142,24 @@
         opacity: 0.15;
         pointer-events: none;
     }
-    
+
     .metric-card:hover {
         transform: translateY(-4px);
         border-color: var(--metric-color);
     }
-    
+
     .metric-card.hours { --metric-color: #14B8A6; }
     .metric-card.days { --metric-color: #8B5CF6; }
     .metric-card.streak { --metric-color: #F59E0B; }
     .metric-card.consistency { --metric-color: #EC4899; }
-    
+
     .metric-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
     }
-    
+
     .metric-icon {
         width: 40px;
         height: 40px;
@@ -172,7 +172,7 @@
         font-size: 1.1rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    
+
     .metric-trend {
         display: inline-flex;
         align-items: center;
@@ -182,17 +182,17 @@
         font-size: 0.75rem;
         font-weight: 700;
     }
-    
+
     .metric-trend.up {
         background: rgba(16, 185, 129, 0.15);
         color: #10B981;
     }
-    
+
     .metric-trend.down {
         background: rgba(239, 68, 68, 0.15);
         color: #EF4444;
     }
-    
+
     .metric-value {
         font-family: 'Inter Tight', sans-serif;
         font-size: 2.25rem;
@@ -202,13 +202,13 @@
         margin-bottom: 4px;
         letter-spacing: -0.02em;
     }
-    
+
     .metric-value small {
         font-size: 1rem;
         color: var(--text-tertiary);
         font-weight: 600;
     }
-    
+
     .metric-label {
         font-size: 0.75rem;
         color: var(--text-tertiary);
@@ -216,7 +216,7 @@
         letter-spacing: 0.08em;
         font-weight: 600;
     }
-    
+
     /* CHARTS GRID */
     .charts-grid {
         display: grid;
@@ -224,7 +224,7 @@
         gap: 20px;
         margin-bottom: 24px;
     }
-    
+
     .chart-card {
         background: var(--bg-secondary);
         border: 1px solid var(--border-default);
@@ -234,18 +234,18 @@
         position: relative;
         overflow: hidden;
     }
-    
+
     .chart-card:hover {
         border-color: var(--chart-color);
     }
-    
+
     /* Individual chart colors */
     .chart-card.study-time { --chart-color: #14B8A6; }
     .chart-card.topic-dist { --chart-color: #A855F7; }
     .chart-card.consistency { --chart-color: #EC4899; }
     .chart-card.test-perf { --chart-color: #F59E0B; }
     .chart-card.weekly { --chart-color: #0EA5E9; }
-    
+
     .chart-card::before {
         content: '';
         position: absolute;
@@ -258,7 +258,7 @@
         opacity: 0.08;
         pointer-events: none;
     }
-    
+
     .chart-header {
         display: flex;
         justify-content: space-between;
@@ -267,13 +267,13 @@
         position: relative;
         z-index: 1;
     }
-    
+
     .chart-title-group {
         display: flex;
         align-items: center;
         gap: 12px;
     }
-    
+
     .chart-icon {
         width: 36px;
         height: 36px;
@@ -286,7 +286,7 @@
         font-size: 1rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    
+
     .chart-title {
         font-family: 'Inter Tight', sans-serif;
         font-size: 1.1rem;
@@ -294,13 +294,13 @@
         color: var(--text-primary);
         letter-spacing: -0.01em;
     }
-    
+
     .chart-subtitle {
         font-size: 0.75rem;
         color: var(--text-tertiary);
         margin-top: 2px;
     }
-    
+
     .chart-badge {
         padding: 4px 10px;
         background: var(--chart-color);
@@ -312,47 +312,47 @@
         letter-spacing: 0.05em;
         opacity: 0.9;
     }
-    
+
     .chart-container {
         position: relative;
         height: 280px;
         z-index: 1;
     }
-    
+
     .chart-container.small {
         height: 220px;
     }
-    
+
     /* INSIGHTS SECTION */
     .insights-section {
         margin-bottom: 24px;
     }
-    
+
     .insights-header {
         display: flex;
         align-items: center;
         gap: 12px;
         margin-bottom: 16px;
     }
-    
+
     .insights-header i {
         color: #A855F7;
         font-size: 1.3rem;
     }
-    
+
     .insights-title {
         font-family: 'Inter Tight', sans-serif;
         font-size: 1.25rem;
         font-weight: 700;
         color: var(--text-primary);
     }
-    
+
     .insights-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 16px;
     }
-    
+
     .insight-card {
         background: var(--bg-secondary);
         border: 1px solid var(--border-default);
@@ -362,12 +362,12 @@
         gap: 14px;
         transition: all 0.3s;
     }
-    
+
     .insight-card:hover {
         border-color: var(--insight-color);
         transform: translateY(-2px);
     }
-    
+
     .insight-icon {
         width: 44px;
         height: 44px;
@@ -380,27 +380,27 @@
         font-size: 1.2rem;
         flex-shrink: 0;
     }
-    
+
     .insight-card.time {
         --insight-color: #14B8A6;
         --insight-bg: rgba(20, 184, 166, 0.15);
     }
-    
+
     .insight-card.streak {
         --insight-color: #F59E0B;
         --insight-bg: rgba(245, 158, 11, 0.15);
     }
-    
+
     .insight-card.prediction {
         --insight-color: #A855F7;
         --insight-bg: rgba(168, 85, 247, 0.15);
     }
-    
+
     .insight-card.performance {
         --insight-color: #0EA5E9;
         --insight-bg: rgba(14, 165, 233, 0.15);
     }
-    
+
     .insight-content h4 {
         font-family: 'Inter Tight', sans-serif;
         font-size: 0.9rem;
@@ -408,19 +408,19 @@
         color: var(--text-primary);
         margin-bottom: 4px;
     }
-    
+
     .insight-content p {
         font-size: 0.8rem;
         color: var(--text-secondary);
         line-height: 1.5;
         margin: 0;
     }
-    
+
     .insight-content strong {
         color: var(--insight-color);
         font-weight: 700;
     }
-    
+
     /* QUICK ACTIONS */
     .quick-actions {
         background: var(--bg-secondary);
@@ -428,7 +428,7 @@
         border-radius: 16px;
         padding: 20px 24px;
     }
-    
+
     .quick-actions-title {
         font-family: 'Inter Tight', sans-serif;
         font-size: 1.1rem;
@@ -439,13 +439,13 @@
         align-items: center;
         gap: 10px;
     }
-    
+
     .quick-actions-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 10px;
     }
-    
+
     .quick-action-btn {
         padding: 12px;
         background: var(--bg-tertiary);
@@ -460,18 +460,18 @@
         font-weight: 600;
         transition: all 0.2s;
     }
-    
+
     .quick-action-btn:hover {
         border-color: var(--accent);
         color: var(--accent);
         transform: translateX(3px);
     }
-    
+
     .quick-action-btn i {
         color: var(--accent);
         font-size: 1rem;
     }
-    
+
     /* Responsive */
     @media (max-width: 900px) {
         .metrics-grid { grid-template-columns: repeat(2, 1fr); }
@@ -479,7 +479,7 @@
         .insights-grid { grid-template-columns: 1fr; }
         .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
     }
-    
+
     @media (max-width: 640px) {
         .an-container { padding: 16px; }
         .an-hero { padding: 24px; }
@@ -491,64 +491,64 @@
 
 {% block content %}
 <div class="an-container">
-    
+
     <!-- HERO -->
     <div class="an-hero">
         <div class="an-hero-content">
             <div>
                 <div class="an-hero-eyebrow">
                     <i class="bi bi-graph-up-arrow"></i>
-                    <span>Deep Insights</span>
+                    <span>Recorded analytics</span>
                 </div>
                 <h1>Your <span>Analytics</span></h1>
-                <p>Track your progress, discover patterns, and get AI-powered insights into your learning journey.</p>
+                <p>Charts and summaries below are calculated from your stored learning records.</p>
             </div>
-            <a href="#" class="btn-export">
+            <a href="{% url 'progress:analytics_export' %}" class="btn-export">
                 <i class="bi bi-download"></i>
                 Export Report
             </a>
         </div>
     </div>
-    
+
     <!-- KEY METRICS -->
     <div class="metrics-grid">
         <div class="metric-card hours">
             <div class="metric-header">
                 <div class="metric-icon"><i class="bi bi-clock-fill"></i></div>
-                <span class="metric-trend up"><i class="bi bi-arrow-up"></i> 12%</span>
+                <span class="metric-trend">Recorded</span>
             </div>
             <div class="metric-value">{{ stats.total_hours }}<small>h</small></div>
             <div class="metric-label">Total Hours</div>
         </div>
-        
+
         <div class="metric-card days">
             <div class="metric-header">
                 <div class="metric-icon"><i class="bi bi-calendar-check-fill"></i></div>
-                <span class="metric-trend up"><i class="bi bi-arrow-up"></i> 8%</span>
+                <span class="metric-trend">Recorded</span>
             </div>
             <div class="metric-value">{{ stats.completed_days }}</div>
             <div class="metric-label">Days Completed</div>
         </div>
-        
+
         <div class="metric-card streak">
             <div class="metric-header">
                 <div class="metric-icon"><i class="bi bi-fire"></i></div>
-                <span class="metric-trend up"><i class="bi bi-arrow-up"></i> 2 days</span>
+                <span class="metric-trend">Recorded</span>
             </div>
             <div class="metric-value">{{ stats.current_streak }}</div>
             <div class="metric-label">Current Streak</div>
         </div>
-        
+
         <div class="metric-card consistency">
             <div class="metric-header">
                 <div class="metric-icon"><i class="bi bi-lightning-charge-fill"></i></div>
-                <span class="metric-trend up"><i class="bi bi-arrow-up"></i> 5%</span>
+                <span class="metric-trend">Recorded</span>
             </div>
             <div class="metric-value">{{ consistency }}<small>%</small></div>
             <div class="metric-label">Consistency</div>
         </div>
     </div>
-    
+
     <!-- MAIN CHARTS ROW 1 -->
     <div class="charts-grid">
         <!-- Study Time Chart -->
@@ -567,7 +567,7 @@
                 <canvas id="studyTimeChart"></canvas>
             </div>
         </div>
-        
+
         <!-- Consistency Ring -->
         <div class="chart-card consistency">
             <div class="chart-header">
@@ -585,7 +585,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- CHARTS ROW 2 -->
     <div class="charts-grid">
         <!-- Topic Distribution -->
@@ -604,7 +604,7 @@
                 <canvas id="topicChart"></canvas>
             </div>
         </div>
-        
+
         <!-- Test Performance -->
         <div class="chart-card test-perf">
             <div class="chart-header">
@@ -622,41 +622,41 @@
             </div>
         </div>
     </div>
-    
-    <!-- AI INSIGHTS -->
+
+    <!-- VERIFIED SUMMARY -->
     <div class="insights-section">
         <div class="insights-header">
-            <i class="bi bi-lightbulb-fill"></i>
-            <div class="insights-title">AI-Powered Insights</div>
+            <i class="bi bi-clipboard-data-fill"></i>
+            <div class="insights-title">Recorded learning summary</div>
         </div>
-        
+
         <div class="insights-grid">
             <div class="insight-card time">
                 <div class="insight-icon"><i class="bi bi-clock-fill"></i></div>
                 <div class="insight-content">
-                    <h4>Peak Learning Time</h4>
-                    <p>You perform best between <strong>9-11 AM</strong>. Try scheduling difficult topics during this window.</p>
+                    <h4>Recorded study activity</h4>
+                    <p><strong>{{ stats.total_hours }} hours</strong> across {{ stats.total_activity_days }} activity day{{ stats.total_activity_days|pluralize }}.</p>
                 </div>
             </div>
-            
+
             <div class="insight-card streak">
                 <div class="insight-icon"><i class="bi bi-fire"></i></div>
                 <div class="insight-content">
-                    <h4>Streak Milestone</h4>
-                    <p>You're just <strong>{{ stats.longest_streak|add:"-"|add:stats.current_streak }} days away</strong> from beating your longest streak of {{ stats.longest_streak }} days!</p>
+                    <h4>Streak record</h4>
+                    <p>Current streak: <strong>{{ stats.current_streak }} day{{ stats.current_streak|pluralize }}</strong>. Longest recorded streak: {{ stats.longest_streak }} day{{ stats.longest_streak|pluralize }}.</p>
                 </div>
             </div>
-            
+
             <div class="insight-card prediction">
-                <div class="insight-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="insight-icon"><i class="bi bi-map-fill"></i></div>
                 <div class="insight-content">
-                    <h4>Completion Forecast</h4>
-                    <p>At current pace, you'll complete your active roadmaps in <strong>{{ stats.estimated_days_to_finish }} days</strong>.</p>
+                    <h4>Roadmap completion</h4>
+                    <p><strong>{{ stats.completed_days }} of {{ stats.total_days }} days</strong> completed across your roadmaps.</p>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- QUICK ACTIONS -->
     <div class="quick-actions">
         <div class="quick-actions-title">
@@ -692,7 +692,7 @@
 {{ topic_data|json_script:"topic-data" }}
 {{ test_labels|json_script:"test-labels" }}
 {{ test_data|json_script:"test-data" }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
 <script>
     const weeklyActivityLabels = JSON.parse(document.getElementById('weekly-activity-labels').textContent);
     const weeklyActivityData = JSON.parse(document.getElementById('weekly-activity-data').textContent);
@@ -703,13 +703,13 @@
     Chart.defaults.color = '#A1A1AA';
     Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
     Chart.defaults.font.family = "'Inter', sans-serif";
-    
+
     // ========== STUDY TIME CHART - TEAL AREA ==========
     const studyCtx = document.getElementById('studyTimeChart').getContext('2d');
     const studyGradient = studyCtx.createLinearGradient(0, 0, 0, 300);
     studyGradient.addColorStop(0, 'rgba(20, 184, 166, 0.5)');
     studyGradient.addColorStop(1, 'rgba(20, 184, 166, 0)');
-    
+
     new Chart(studyCtx, {
         type: 'line',
         data: {
@@ -764,7 +764,7 @@
             }
         }
     });
-    
+
     // ========== CONSISTENCY RING - PINK GLOW ==========
     const consistencyCtx = document.getElementById('consistencyChart').getContext('2d');
     new Chart(consistencyCtx, {
@@ -794,24 +794,24 @@
             afterDraw: (chart) => {
                 const { ctx, chartArea: { top, width, height } } = chart;
                 ctx.save();
-                
+
                 // Percentage
                 ctx.fillStyle = '#FAFAFA';
                 ctx.font = 'bold 42px Inter Tight';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('{{ consistency }}%', width / 2, top + height / 2 - 8);
-                
+
                 // Label
                 ctx.fillStyle = '#71717A';
                 ctx.font = '600 11px Inter';
                 ctx.fillText('CONSISTENT', width / 2, top + height / 2 + 20);
-                
+
                 ctx.restore();
             }
         }]
     });
-    
+
     // ========== TOPIC DISTRIBUTION - RAINBOW ==========
     {% if has_topic_data %}
     const topicCtx = document.getElementById('topicChart').getContext('2d');
@@ -873,14 +873,14 @@
     {% else %}
     document.getElementById('topicChart').parentElement.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-tertiary);"><div style="text-align: center;"><i class="bi bi-pie-chart" style="font-size: 3rem; opacity: 0.3;"></i><p style="margin-top: 12px;">Start a learning path to see topic distribution</p></div></div>';
     {% endif %}
-    
+
     // ========== TEST PERFORMANCE - AMBER BARS ==========
     {% if has_test_data %}
     const testCtx = document.getElementById('testChart').getContext('2d');
     const testGradient = testCtx.createLinearGradient(0, 0, 0, 220);
     testGradient.addColorStop(0, 'rgba(245, 158, 11, 1)');
     testGradient.addColorStop(1, 'rgba(245, 158, 11, 0.3)');
-    
+
     new Chart(testCtx, {
         type: 'bar',
         data: {
@@ -920,8 +920,8 @@
                     beginAtZero: true,
                     max: 100,
                     grid: { color: 'rgba(255, 255, 255, 0.03)' },
-                    ticks: { 
-                        color: '#71717A', 
+                    ticks: {
+                        color: '#71717A',
                         font: { size: 11 },
                         callback: function(value) { return value + '%'; }
                     }

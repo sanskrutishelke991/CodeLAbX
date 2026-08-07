@@ -1,0 +1,34 @@
+{
+  "bootstrap": {
+    "files": [
+      "bootstrap/bootstrap.min.css",
+      "bootstrap/bootstrap.bundle.min.js"
+    ],
+    "license": "MIT",
+    "version": "5.3.8"
+  },
+  "bootstrap-icons": {
+    "files": [
+      "bootstrap-icons/bootstrap-icons.min.css",
+      "bootstrap-icons/fonts/bootstrap-icons.woff2",
+      "bootstrap-icons/fonts/bootstrap-icons.woff"
+    ],
+    "license": "MIT",
+    "version": "1.13.1"
+  },
+  "chart.js": {
+    "files": [
+      "chartjs/chart.umd.min.js"
+    ],
+    "license": "MIT",
+    "version": "4.5.1"
+  },
+  "sha256": {
+    "bootstrap-icons/bootstrap-icons.min.css": "a5d6387a32ca3baec4d02336b5b3edab50c9dd518355576a011ea3dd9c1d884e",
+    "bootstrap-icons/fonts/bootstrap-icons.woff": "f55513b7b591cb84a3b87ff0e34ea24d4831d6fedc22e54b911ca64b5b544a15",
+    "bootstrap-icons/fonts/bootstrap-icons.woff2": "6c75710364a1ca5604267716f6d28997b26319fdb078cf11e0b42ab66ff2ea61",
+    "bootstrap/bootstrap.bundle.min.js": "e4fd49181388c48ec5040bd3fe66f57c29c8e67fcd8502b3354b96ec7ab47cc7",
+    "bootstrap/bootstrap.min.css": "d85327d99c7a3ee1f9b5d0500d1370acea3ad2db39c163c2f51f232baedbdede",
+    "chartjs/chart.umd.min.js": "48444a82d4edcb5bec0f1965faacdde18d9c17db3063d042abada2f705c9f54a"
+  }
+}

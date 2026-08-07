@@ -68,6 +68,12 @@ python manage.py makemigrations --check --dry-run
 - Idempotent XP transactions
 - Server-controlled assessment timing
 - Privacy-scoped profiles, chats, and leaderboards
+- Self-hosted, version-pinned browser dependencies
+- Enforced origin-restricting CSP (legacy inline allowances remain)
+
+## Frontend dependencies
+
+Bootstrap, Bootstrap Icons, and Chart.js are checked into `static/vendor/` with exact versions, SHA-256 digests, and upstream MIT licenses. Pages do not fetch those runtime assets from a third-party CDN.
 
 ## Data backup
 
