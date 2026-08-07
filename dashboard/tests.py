@@ -202,3 +202,25 @@ class DashboardTruthTests(TestCase):
     def test_heatmap_contains_exactly_365_days(self):
         response = self.client.get(reverse("dashboard:home"))
         self.assertEqual(len(response.context["heatmap_data"]), 365)
+
+
+class OperationalSecurityTests(TestCase):
+    def test_health_endpoint_checks_database(self):
+        response = self.client.get(reverse("health"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "healthy", "database": "ok"})
+
+    def test_security_headers_are_present(self):
+        response = self.client.get(reverse("landing"))
+        self.assertIn("Permissions-Policy", response)
+        self.assertEqual(response["X-Permitted-Cross-Domain-Policies"], "none")
+        self.assertEqual(response["X-DNS-Prefetch-Control"], "off")
+        self.assertIn("Content-Security-Policy-Report-Only", response)
+
+    def test_obsolete_backup_files_are_removed(self):
+        repository = Path(__file__).resolve().parent.parent
+        patterns = ["*.backup", "*.old", "*.before_*", "*.pre_*"]
+        found = []
+        for pattern in patterns:
+            found.extend(repository.rglob(pattern))
+        self.assertEqual(found, [])
