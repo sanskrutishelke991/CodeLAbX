@@ -50,6 +50,8 @@ class Roadmap(models.Model):
     
     @property
     def completed_days(self):
+        if hasattr(self, "completed_days_count"):
+            return self.completed_days_count
         return self.days.filter(is_completed=True).count()
     
     @property

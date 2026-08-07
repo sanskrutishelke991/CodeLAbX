@@ -801,3 +801,22 @@ class ImageAnalysisValidationTests(TestCase):
 
 from io import BytesIO
 from PIL import Image
+
+
+class ChatSessionsPageTests(TestCase):
+    def test_page_is_owner_scoped(self):
+        owner = User.objects.create_user(
+            username="chat-page-owner",
+            password="StrongPass123!",
+        )
+        other = User.objects.create_user(
+            username="chat-page-other",
+            password="StrongPass123!",
+        )
+        ChatSession.objects.create(user=owner, title="Owner session")
+        ChatSession.objects.create(user=other, title="Other session")
+        self.client.force_login(owner)
+        response = self.client.get(reverse("ai_tools:chat_sessions_page"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Owner session")
+        self.assertNotContains(response, "Other session")

@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db import transaction
+from django.core.paginator import Paginator
 from ai_tools.api import provider_error_response, safe_api_errors
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
@@ -32,7 +33,12 @@ def roadmap_list(request):
     view_mode = request.GET.get('view', 'grid')
     
     # Base queryset
-    roadmaps = Roadmap.objects.filter(user=request.user)
+    roadmaps = Roadmap.objects.filter(user=request.user).annotate(
+        completed_days_count=Count(
+            "days",
+            filter=Q(days__is_completed=True),
+        )
+    )
     
     # Apply filters
     if status_filter != 'all':
@@ -62,7 +68,12 @@ def roadmap_list(request):
         roadmaps = roadmaps.order_by('-total_days')
     
     # Calculate real statistics
-    all_user_roadmaps = Roadmap.objects.filter(user=request.user)
+    all_user_roadmaps = Roadmap.objects.filter(user=request.user).annotate(
+        completed_days_count=Count(
+            "days",
+            filter=Q(days__is_completed=True),
+        )
+    )
     
     total_paths = all_user_roadmaps.count()
     active_paths = all_user_roadmaps.filter(status='active').count()
@@ -104,8 +115,11 @@ def roadmap_list(request):
     # Recently updated roadmap (for "Continue" quick action)
     recent_roadmap = all_user_roadmaps.filter(status='active').order_by('-updated_at').first()
     
+    page_obj = Paginator(roadmaps, 9).get_page(request.GET.get('page'))
+
     context = {
-        'roadmaps': roadmaps,
+        'roadmaps': page_obj,
+        'page_obj': page_obj,
         'total_paths': total_paths,
         'active_paths': active_paths,
         'completed_paths': completed_paths,

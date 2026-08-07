@@ -5,6 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Q
+from django.core.paginator import Paginator
 import json
 from .models import Note, Bookmark
 from ai_tools.api import (
@@ -37,8 +38,11 @@ def notes_list(request):
     for note in Note.objects.filter(user=request.user):
         all_tags.update(note.tags)
     
+    page_obj = Paginator(notes, 12).get_page(request.GET.get('page'))
+
     context = {
-        'notes': notes,
+        'notes': page_obj,
+        'page_obj': page_obj,
         'query': query,
         'color_filter': color_filter,
         'all_tags': sorted(all_tags),

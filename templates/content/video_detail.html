@@ -143,6 +143,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="mb-3">{% include 'partials/bookmark_button.html' with bookmark_title=video.title bookmark_type='other' %}</div>
 <div class="breadcrumb-custom">
     <a href="{% url 'content:library' %}"><i class="bi bi-arrow-left"></i> Library</a> / 
     <a href="?category={{ video.category.slug }}">{{ video.category.name }}</a> / 

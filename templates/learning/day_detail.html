@@ -168,6 +168,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="mb-3">{% include 'partials/bookmark_button.html' with bookmark_title=day.title bookmark_type='day' %}</div>
 <div class="breadcrumb-custom">
     <a href="{% url 'learning:roadmaps' %}">Roadmaps</a> / 
     <a href="{% url 'learning:roadmap_detail' roadmap.id %}">{{ roadmap.title }}</a> / 

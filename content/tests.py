@@ -28,3 +28,21 @@ class VideoRewardIntegrityTests(TestCase):
         self.assertEqual(UserLevel.objects.get(user=user).total_xp_earned, 10)
         self.assertEqual(XPTransaction.objects.filter(user=user).count(), 1)
         self.assertTrue(UserVideoProgress.objects.get(user=user, video=video).is_watched)
+
+
+class ContentPaginationTests(TestCase):
+    def test_library_is_paginated(self):
+        user = User.objects.create_user(username="page-user", password="StrongPass123!")
+        category = VideoCategory.objects.create(name="Paging", slug="paging")
+        for index in range(13):
+            Video.objects.create(
+                title=f"Video {index}",
+                description="Test",
+                youtube_id=f"id-{index}",
+                category=category,
+            )
+        self.client.force_login(user)
+        response = self.client.get(reverse("content:library"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["videos"]), 12)
+        self.assertEqual(response.context["page_obj"].paginator.num_pages, 2)

@@ -6,6 +6,8 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.utils.html import escape
 from django.urls import reverse
+from django.core.paginator import Paginator
+from django.db.models import Count
 import json
 import logging
 from .api import (
@@ -402,9 +404,12 @@ def image_history(request):
     
     analyses = ImageAnalysis.objects.filter(user=request.user).order_by('-created_at')
     
+    total_count = analyses.count()
+    page_obj = Paginator(analyses, 12).get_page(request.GET.get("page"))
     context = {
-        'analyses': analyses,
-        'total_count': analyses.count(),
+        "analyses": page_obj,
+        "page_obj": page_obj,
+        "total_count": total_count,
     }
     
     return render(request, 'ai_tools/image_history.html', context)
@@ -421,3 +426,18 @@ def image_delete(request, analysis_id):
     analysis.delete()
     
     return JsonResponse({'success': True})
+
+@login_required
+def chat_sessions_page(request):
+    """Render an owner-scoped UI for saved chat sessions."""
+    sessions = (
+        ChatSession.objects.filter(user=request.user)
+        .annotate(message_count=Count("messages"))
+        .order_by("-updated_at")
+    )
+    page_obj = Paginator(sessions, 20).get_page(request.GET.get("page"))
+    return render(
+        request,
+        "ai_tools/chat_sessions.html",
+        {"sessions": page_obj, "page_obj": page_obj},
+    )

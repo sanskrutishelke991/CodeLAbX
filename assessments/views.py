@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
+from django.core.paginator import Paginator
 from django.urls import reverse
 import json
 import logging
@@ -108,8 +109,11 @@ def quiz_list(request):
     
     total_hours = round(total_time_seconds / 3600, 1)
     
+    page_obj = Paginator(tests, 12).get_page(request.GET.get('page'))
+
     context = {
-        'tests': tests,
+        'tests': page_obj,
+        'page_obj': page_obj,
         'total_tests': total_tests,
         'completed_tests': completed_tests,
         'in_progress': in_progress,

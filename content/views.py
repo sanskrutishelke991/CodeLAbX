@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Count
 from django.db import transaction
+from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import VideoCategory, Video, UserVideoProgress
 
@@ -15,7 +16,7 @@ def library(request):
     category_slug = request.GET.get('category', '')
     difficulty = request.GET.get('difficulty', '')
     
-    videos = Video.objects.filter(is_active=True)
+    videos = Video.objects.filter(is_active=True).select_related('category')
     
     if query:
         videos = videos.filter(
@@ -29,7 +30,7 @@ def library(request):
         videos = videos.filter(difficulty=difficulty)
     
     # Get featured videos separately
-    featured_videos = Video.objects.filter(is_active=True, is_featured=True)[:6]
+    featured_videos = Video.objects.filter(is_active=True, is_featured=True).select_related('category')[:6]
     
     # Categories with count
     categories = VideoCategory.objects.annotate(
@@ -42,8 +43,11 @@ def library(request):
         is_watched=True
     ).values_list('video_id', flat=True))
     
+    page_obj = Paginator(videos, 12).get_page(request.GET.get('page'))
+
     context = {
-        'videos': videos,
+        'videos': page_obj,
+        'page_obj': page_obj,
         'featured_videos': featured_videos,
         'categories': categories,
         'query': query,
