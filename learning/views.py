@@ -334,3 +334,35 @@ def mark_day_complete(request, roadmap_id, day_number):
         }
     )
 
+
+
+@login_required
+@require_POST
+def roadmap_action(request, roadmap_id, action):
+    """Apply an owner-authorized roadmap lifecycle action."""
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+
+    if action == "pause" and roadmap.status == "active":
+        roadmap.status = "paused"
+        roadmap.save(update_fields=["status", "updated_at"])
+        messages.success(request, "Roadmap paused.")
+    elif action == "resume" and roadmap.status in {"paused", "archived"}:
+        roadmap.status = "active"
+        roadmap.save(update_fields=["status", "updated_at"])
+        messages.success(request, "Roadmap resumed.")
+    elif action == "archive" and roadmap.status != "archived":
+        roadmap.status = "archived"
+        roadmap.save(update_fields=["status", "updated_at"])
+        messages.success(request, "Roadmap archived.")
+    elif action == "delete":
+        roadmap.delete()
+        messages.success(request, "Roadmap deleted.")
+        return redirect("learning:roadmaps")
+    else:
+        messages.warning(request, "That action is not available for this roadmap.")
+
+    return redirect("learning:roadmap_detail", roadmap_id=roadmap.id)

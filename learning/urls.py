@@ -4,6 +4,7 @@ from . import views
 app_name = 'learning'
 
 urlpatterns = [
+    path('roadmaps/<int:roadmap_id>/action/<str:action>/', views.roadmap_action, name='roadmap_action'),
     path('roadmaps/', views.roadmap_list, name='roadmaps'),
     path('roadmaps/create/', views.roadmap_create, name='roadmap_create'),
     path('roadmaps/<int:roadmap_id>/', views.roadmap_detail, name='roadmap_detail'),

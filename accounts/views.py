@@ -1,12 +1,16 @@
+import json
+
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
 from django.conf import settings as django_settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from assessments.models import Test
@@ -17,7 +21,7 @@ from notes.models import Note
 from progress.models import DailyActivity, UserBadge, UserLevel, UserStreak
 from codelabx.throttling import is_rate_limited
 
-from .forms import ProfileUpdateForm
+from .forms import ProfileUpdateForm, RegistrationForm
 from .models import UserProfile
 
 
@@ -32,18 +36,18 @@ def register(request):
             django_settings.AUTH_REGISTER_ATTEMPTS,
             django_settings.AUTH_REGISTER_WINDOW_SECONDS,
         ):
-            form = UserCreationForm(request.POST)
+            form = RegistrationForm(request.POST)
             messages.error(request, "Too many registration attempts. Please try again later.")
             return render(request, 'accounts/register.html', {'form': form}, status=429)
 
-        form = UserCreationForm(request.POST)
+        form = RegistrationForm(request.POST)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
             return redirect('accounts:login')
     else:
-        form = UserCreationForm()
+        form = RegistrationForm()
 
     return render(request, 'accounts/register.html', {'form': form})
 
@@ -267,3 +271,91 @@ def public_profile(request, username):
 @login_required
 def settings(request):
     return render(request, 'accounts/settings.html')
+
+
+@login_required
+@require_POST
+def export_account_data(request):
+    """Download a privacy-safe JSON export of the current user's data."""
+    user = request.user
+    profile = user.profile
+
+    payload = {
+        "exported_at": timezone.now(),
+        "account": {
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "date_joined": user.date_joined,
+            "last_login": user.last_login,
+        },
+        "profile": {
+            "bio": profile.bio,
+            "location": profile.location,
+            "skills": profile.skills,
+            "learning_goals": profile.learning_goals,
+            "is_public": profile.is_public,
+            "github_url": profile.github_url,
+            "linkedin_url": profile.linkedin_url,
+            "twitter_url": profile.twitter_url,
+            "website_url": profile.website_url,
+            "avatar_file": profile.avatar.name if profile.avatar else None,
+        },
+        "roadmaps": list(user.roadmaps.values()),
+        "days": list(Day.objects.filter(roadmap__user=user).values()),
+        "tests": list(user.tests.values()),
+        "test_attempts": list(user.test_attempts.values()),
+        "notes": list(user.notes.values()),
+        "bookmarks": list(user.bookmarks.values()),
+        "video_progress": list(user.video_progress.values()),
+        "challenge_attempts": list(user.challenge_attempts.values()),
+        "xp_transactions": list(user.xp_transactions.values()),
+        "badges": list(user.badges.values()),
+        "chat_sessions": list(user.chat_sessions.values()),
+        "image_analyses": list(
+            user.image_analyses.values(
+                "id",
+                "analysis_type",
+                "user_question",
+                "created_at",
+            )
+        ),
+    }
+
+    response = HttpResponse(
+        json.dumps(payload, cls=DjangoJSONEncoder, indent=2),
+        content_type="application/json",
+    )
+    response["Content-Disposition"] = (
+        f'attachment; filename="codelabx-{user.username}-export.json"'
+    )
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@login_required
+@require_POST
+def delete_account(request):
+    """Delete the authenticated account after password and username confirmation."""
+    user = request.user
+    confirmation = request.POST.get("confirmation", "").strip()
+    password = request.POST.get("password", "")
+
+    if confirmation != user.username or not user.check_password(password):
+        messages.error(
+            request,
+            "Account deletion was not confirmed. Check your username and password.",
+        )
+        return redirect("accounts:settings")
+
+    if user.profile.avatar:
+        user.profile.avatar.delete(save=False)
+    for analysis in user.image_analyses.all():
+        analysis.image.delete(save=False)
+
+    username = user.username
+    logout(request)
+    user.delete()
+    messages.success(request, f"Account {username} and its data were deleted.")
+    return redirect("landing")

@@ -266,3 +266,55 @@ class DayRewardIntegrityTests(TestCase):
         self.assertEqual(activity.minutes_studied, 60)
         roadmap.refresh_from_db()
         self.assertEqual(roadmap.status, "completed")
+
+
+class RoadmapLifecycleTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username="lifecycle-owner",
+            password="StrongPass123!",
+        )
+        self.other = User.objects.create_user(
+            username="lifecycle-other",
+            password="StrongPass123!",
+        )
+        self.roadmap = Roadmap.objects.create(
+            user=self.owner,
+            topic="ML",
+            title="Lifecycle roadmap",
+            total_days=1,
+            daily_hours=1,
+        )
+
+    def action(self, action):
+        return reverse(
+            "learning:roadmap_action",
+            args=[self.roadmap.id, action],
+        )
+
+    def test_actions_require_post(self):
+        self.client.force_login(self.owner)
+        self.assertEqual(self.client.get(self.action("pause")).status_code, 405)
+
+    def test_owner_can_pause_resume_and_archive(self):
+        self.client.force_login(self.owner)
+        self.client.post(self.action("pause"))
+        self.roadmap.refresh_from_db()
+        self.assertEqual(self.roadmap.status, "paused")
+        self.client.post(self.action("resume"))
+        self.roadmap.refresh_from_db()
+        self.assertEqual(self.roadmap.status, "active")
+        self.client.post(self.action("archive"))
+        self.roadmap.refresh_from_db()
+        self.assertEqual(self.roadmap.status, "archived")
+
+    def test_other_user_cannot_change_roadmap(self):
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.post(self.action("delete")).status_code, 404)
+        self.assertTrue(Roadmap.objects.filter(id=self.roadmap.id).exists())
+
+    def test_owner_can_delete_roadmap(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(self.action("delete"))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Roadmap.objects.filter(id=self.roadmap.id).exists())

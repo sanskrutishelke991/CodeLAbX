@@ -299,6 +299,15 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+EMAIL_BACKEND = os.getenv(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend',
+)
+DEFAULT_FROM_EMAIL = os.getenv(
+    'DJANGO_DEFAULT_FROM_EMAIL',
+    'CodeLabX <noreply@localhost>',
+)
+
 LOGIN_URL = 'accounts:login'
 
 DEFAULT_AUTO_FIELD = (
