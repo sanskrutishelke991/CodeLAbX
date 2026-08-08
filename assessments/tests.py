@@ -321,3 +321,60 @@ class AssessmentAttemptLifecycleTests(TestCase):
         attempt.refresh_from_db()
         self.assertTrue(attempt.is_finalized)
         self.assertEqual(attempt.score, 0)
+
+
+class AssessmentModelPropertyTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="assessment-model-user",
+            password="StrongPass123!",
+        )
+        self.test = Test.objects.create(
+            user=self.user,
+            title="Property test",
+            topic="Python",
+            score=None,
+            total_marks=100,
+        )
+
+    def test_percentage_handles_missing_and_zero_denominator(self):
+        self.assertEqual(self.test.percentage, 0)
+        self.test.score = 25
+        self.test.total_marks = 50
+        self.assertEqual(self.test.percentage, 50.0)
+        self.test.total_marks = 0
+        self.assertEqual(self.test.percentage, 0)
+
+    def test_grade_boundaries_are_deterministic(self):
+        boundaries = {
+            100: "A+",
+            95: "A",
+            91: "A-",
+            88: "B+",
+            84: "B",
+            81: "B-",
+            78: "C+",
+            74: "C",
+            71: "C-",
+            68: "D+",
+            64: "D",
+            61: "D-",
+            59: "F",
+        }
+        self.test.total_marks = 100
+        for score, grade in boundaries.items():
+            with self.subTest(score=score):
+                self.test.score = score
+                self.assertEqual(self.test.grade, grade)
+
+    def test_attempt_percentage_handles_unscored_attempt(self):
+        self.test.total_marks = 80
+        self.test.save(update_fields=["total_marks"])
+        attempt = TestAttempt.objects.create(
+            test=self.test,
+            user=self.user,
+            score=None,
+        )
+        self.assertEqual(attempt.percentage, 0)
+        attempt.score = 40
+        self.assertEqual(attempt.percentage, 50.0)

@@ -288,11 +288,11 @@ class Command(BaseCommand):
             else:
                 updated_count += 1
                 self.stdout.write(
-                    self.style.WARNING(f'Badge already exists: {badge.icon} {badge.name}')
+                    self.style.WARNING(f'Updated badge: {badge.icon} {badge.name}')
                 )
         
         self.stdout.write(
             self.style.SUCCESS(
-                f'\nSummary: {created_count} badges created, {updated_count} already exist. Total: {Badge.objects.count()}'
+                f'\nSummary: {created_count} badges created, {updated_count} updated. Total: {Badge.objects.count()}'
             )
         )

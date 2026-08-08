@@ -29,8 +29,12 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Validate challenge submissions and hide internal errors
 - [x] Make challenge attempt, XP, and streak updates transactional
 - [x] Add direct Gemini structured-response and challenge-service tests
-- [ ] Continue replacing broad exception handlers in non-AI legacy views
-- [ ] Raise the critical service coverage floor without testing implementation trivia
+- [x] Make roadmap creation, code-review rewards, and generated-day writes atomic
+- [x] Replace raw learning errors/prints and silent progress fallbacks
+- [x] Validate note input/export filenames and generated practice problems
+- [x] Add direct roadmap, analytics, seed-command, note, practice, and model tests
+- [ ] Continue reviewing broad exception handlers at intentional API/provider boundaries
+- [ ] Raise remaining low service coverage without testing implementation trivia
 
 ## Next frontend-security phase
 

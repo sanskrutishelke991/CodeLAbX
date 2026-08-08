@@ -318,3 +318,132 @@ class RoadmapLifecycleTests(TestCase):
         response = self.client.post(self.action("delete"))
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Roadmap.objects.filter(id=self.roadmap.id).exists())
+
+
+from datetime import date
+from decimal import Decimal
+
+from .services import RoadmapGenerator
+
+
+class RoadmapGeneratorServiceTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="roadmap-service-user",
+            password="StrongPass123!",
+        )
+
+    def test_generation_creates_exact_days_and_inclusive_end_date(self):
+        roadmap = RoadmapGenerator.generate_roadmap(
+            user=self.user,
+            topic="ML",
+            duration_months=1,
+            daily_hours=Decimal("1.5"),
+            level="beginner",
+            start_date=date(2026, 8, 1),
+        )
+        days = list(roadmap.days.order_by("order"))
+
+        self.assertEqual(roadmap.total_days, 30)
+        self.assertEqual(roadmap.end_date, date(2026, 8, 30))
+        self.assertEqual(len(days), 30)
+        self.assertEqual(days[0].day_number, 1)
+        self.assertEqual(days[-1].day_number, 30)
+        self.assertEqual(days[-1].order, 30)
+        self.assertTrue(all(day.estimated_hours == Decimal("1.5") for day in days))
+
+    def test_invalid_inputs_create_no_partial_roadmap(self):
+        invalid_cases = [
+            {"topic": "UNKNOWN"},
+            {"duration_months": 0},
+            {"duration_months": True},
+            {"daily_hours": "not-a-number"},
+            {"daily_hours": 9},
+            {"level": "expert"},
+            {"start_date": "2026-08-01"},
+        ]
+        defaults = {
+            "topic": "DSA",
+            "duration_months": 1,
+            "daily_hours": 1,
+            "level": "intermediate",
+            "start_date": None,
+        }
+        for changes in invalid_cases:
+            values = {**defaults, **changes}
+            with self.subTest(changes=changes):
+                with self.assertRaises(ValueError):
+                    RoadmapGenerator.generate_roadmap(
+                        user=self.user,
+                        **values,
+                    )
+        self.assertFalse(Roadmap.objects.filter(user=self.user).exists())
+
+    @patch("learning.services.Day.objects.bulk_create")
+    def test_day_write_failure_rolls_back_roadmap(self, bulk_create):
+        bulk_create.side_effect = RuntimeError("day write failed")
+        with self.assertRaises(RuntimeError):
+            RoadmapGenerator.generate_roadmap(
+                user=self.user,
+                topic="ML",
+                duration_months=1,
+                daily_hours=1,
+            )
+        self.assertFalse(Roadmap.objects.filter(user=self.user).exists())
+
+    def test_helper_outputs_cover_module_positions(self):
+        self.assertEqual(
+            RoadmapGenerator._generate_day_title("Arrays", 1, 1),
+            "Arrays",
+        )
+        self.assertIn(
+            "Introduction",
+            RoadmapGenerator._generate_day_title("Arrays", 1, 3),
+        )
+        self.assertIn(
+            "Part 2",
+            RoadmapGenerator._generate_day_title("Arrays", 2, 4),
+        )
+        self.assertIn(
+            "Practice & Review",
+            RoadmapGenerator._generate_day_title("Arrays", 3, 3),
+        )
+        self.assertEqual(
+            RoadmapGenerator.estimate_completion_date(
+                date(2026, 1, 1),
+                1,
+            ),
+            date(2026, 1, 30),
+        )
+        self.assertIsNone(
+            RoadmapGenerator.estimate_completion_date(None, 1)
+        )
+
+
+class RoadmapCreationFailureTests(TestCase):
+    @patch(
+        "learning.views.BadgeManager.add_xp",
+        side_effect=RuntimeError("SECRET_ROADMAP_REWARD_FAILURE"),
+    )
+    def test_reward_failure_rolls_back_and_shows_generic_message(self, add_xp):
+        user = User.objects.create_user(
+            username="roadmap-rollback-user",
+            password="StrongPass123!",
+        )
+        self.client.force_login(user)
+        with self.assertLogs("learning.views", level="ERROR"):
+            response = self.client.post(
+                reverse("learning:roadmap_create"),
+                {
+                    "topic": "ML",
+                    "duration_months": 1,
+                    "daily_hours": "1.0",
+                    "level": "beginner",
+                    "description": "Should roll back",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Roadmap.objects.filter(user=user).exists())
+        self.assertContains(response, "No changes were saved")
+        self.assertNotContains(response, "SECRET_ROADMAP_REWARD_FAILURE")

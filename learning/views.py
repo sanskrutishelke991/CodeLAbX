@@ -1,18 +1,25 @@
 import logging
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+
 from django.contrib import messages
-from .models import Roadmap, Day
-from .forms import RoadmapCreateForm
-from .services import RoadmapGenerator
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.utils import timezone
-from django.db import transaction
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Count, Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
 from ai_tools.api import provider_error_response, safe_api_errors
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
+from progress.models import UserStreak
+from progress.services import BadgeManager
+
+from .forms import RoadmapCreateForm
+from .models import Day, Roadmap
+from .services import RoadmapGenerator
+
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +27,6 @@ logger = logging.getLogger(__name__)
 @login_required
 def roadmap_list(request):
     """Display all roadmaps for the current user with real stats."""
-    from django.db.models import Sum, Count, Q, Avg
-    from datetime import timedelta
-    from django.utils import timezone
-    
     # Get filter params
     status_filter = request.GET.get('status', 'all')
     topic_filter = request.GET.get('topic', 'all')
@@ -96,15 +99,8 @@ def roadmap_list(request):
     else:
         avg_progress = 0
     
-    # Get streak from progress app if available
-    current_streak = 0
-    try:
-        from progress.models import UserStreak
-        streak_obj = UserStreak.objects.filter(user=request.user).first()
-        if streak_obj:
-            current_streak = streak_obj.current_streak
-    except:
-        pass
+    streak_obj = UserStreak.objects.filter(user=request.user).first()
+    current_streak = streak_obj.current_streak if streak_obj else 0
     
     # Get available topics for filter
     available_topics = all_user_roadmaps.values_list('topic', flat=True).distinct()
@@ -150,22 +146,21 @@ def roadmap_create(request):
         form = RoadmapCreateForm(request.POST)
         if form.is_valid():
             try:
-                roadmap = RoadmapGenerator.generate_roadmap(
-                    user=request.user,
-                    topic=form.cleaned_data['topic'],
-                    duration_months=form.cleaned_data['duration_months'],
-                    daily_hours=form.cleaned_data['daily_hours'],
-                    level=form.cleaned_data['level'],
-                    start_date=form.cleaned_data.get('start_date')
-                )
-                
-                if form.cleaned_data.get('description'):
-                    roadmap.description = form.cleaned_data['description']
-                    roadmap.save()
-                
-                # Award XP for creating first roadmap
-                try:
-                    from progress.services import BadgeManager
+                with transaction.atomic():
+                    roadmap = RoadmapGenerator.generate_roadmap(
+                        user=request.user,
+                        topic=form.cleaned_data["topic"],
+                        duration_months=form.cleaned_data["duration_months"],
+                        daily_hours=form.cleaned_data["daily_hours"],
+                        level=form.cleaned_data["level"],
+                        start_date=form.cleaned_data.get("start_date"),
+                    )
+                    description = form.cleaned_data.get("description")
+                    if description:
+                        roadmap.description = description
+                        roadmap.save(
+                            update_fields=["description", "updated_at"]
+                        )
                     BadgeManager.add_xp(
                         request.user,
                         25,
@@ -176,14 +171,25 @@ def roadmap_create(request):
                         source_object_id=roadmap.id,
                     )
                     BadgeManager.check_and_award_badges(request.user)
-                except Exception as e:
-                    print(f"Badge error: {e}")
-                
-                messages.success(request, f'Roadmap "{roadmap.title}" created successfully with {roadmap.total_days} days!')
-                return redirect('learning:roadmap_detail', roadmap_id=roadmap.id)
-                
-            except Exception as e:
-                messages.error(request, f'Error creating roadmap: {str(e)}')
+            except Exception:
+                logger.exception(
+                    "Roadmap creation rolled back",
+                    extra={"user_id": request.user.pk},
+                )
+                messages.error(
+                    request,
+                    "The roadmap could not be created. No changes were saved.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f'Roadmap "{roadmap.title}" created with '
+                    f"{roadmap.total_days} days.",
+                )
+                return redirect(
+                    "learning:roadmap_detail",
+                    roadmap_id=roadmap.id,
+                )
     else:
         form = RoadmapCreateForm()
     

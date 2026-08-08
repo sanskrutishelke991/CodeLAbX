@@ -2,10 +2,12 @@
 Progress tracking services
 """
 
-from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.models import User
+
 from django.db import transaction
+from django.db.models import Count, Q, Sum
+from django.utils import timezone
+
 from .models import (
     Badge,
     DailyActivity,
@@ -22,7 +24,7 @@ class ActivityLogger:
     @staticmethod
     def log_day_completion(user, day):
         """Log when a user completes a day"""
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         # Get or create today's activity
         activity, created = DailyActivity.objects.get_or_create(
@@ -48,8 +50,14 @@ class ActivityLogger:
     
     @staticmethod
     def get_heatmap_data(user, days=365):
-        """Get heatmap data for last N days"""
-        today = timezone.now().date()
+        """Get heatmap data for a positive bounded day window."""
+        if (
+            isinstance(days, bool)
+            or not isinstance(days, int)
+            or not 1 <= days <= 3660
+        ):
+            raise ValueError("days must be an integer between 1 and 3660.")
+        today = timezone.localdate()
         start_date = today - timedelta(days=days - 1)
         
         activities = DailyActivity.objects.filter(
@@ -79,8 +87,11 @@ class ActivityLogger:
         """Get comprehensive user statistics"""
         streak, _ = UserStreak.objects.get_or_create(user=user)
         
-        total_minutes = sum(
-            a.minutes_studied for a in DailyActivity.objects.filter(user=user)
+        total_minutes = (
+            DailyActivity.objects.filter(user=user).aggregate(
+                total=Sum("minutes_studied")
+            )["total"]
+            or 0
         )
         
         total_hours = round(total_minutes / 60, 1)
@@ -455,7 +466,7 @@ class AnalyticsService:
         from datetime import timedelta
         from django.utils import timezone
         
-        today = timezone.now().date()
+        today = timezone.localdate()
         start_date = today - timedelta(days=(weeks * 7) - 1)
         
         activities = DailyActivity.objects.filter(
@@ -486,8 +497,13 @@ class AnalyticsService:
         """Get time spent per topic"""
         from learning.models import Roadmap
         
-        roadmaps = Roadmap.objects.filter(user=user)
-        
+        roadmaps = Roadmap.objects.filter(user=user).annotate(
+            completed_days_count=Count(
+                "days",
+                filter=Q(days__is_completed=True),
+            )
+        )
+
         topic_data = {}
         for roadmap in roadmaps:
             topic_name = roadmap.get_topic_display()
@@ -505,41 +521,29 @@ class AnalyticsService:
     
     @staticmethod
     def get_test_performance(user):
-        """Get test scores over time"""
-        try:
-            from assessments.models import Test
-            
-            tests = list(
-                Test.objects.filter(
-                    user=user,
-                    status='completed',
-                ).order_by('-completed_at')[:20]
-            )
-            tests.reverse()
+        """Return the latest twenty completed, scoreable tests in time order."""
+        from assessments.models import Test
 
-            labels = []
-            scores = []
-            for test in tests:
-                labels.append(test.completed_at.strftime('%b %d'))
-                if test.total_marks > 0:
-                    percentage = (test.score / test.total_marks) * 100
-                    scores.append(round(percentage, 1))
-                else:
-                    scores.append(0)
-            
-            return {
-                'labels': labels,
-                'data': scores
-            }
-        except Exception:
-            return {'labels': [], 'data': []}
+        tests = list(
+            Test.objects.filter(
+                user=user,
+                status="completed",
+                completed_at__isnull=False,
+                score__isnull=False,
+            ).order_by("-completed_at")[:20]
+        )
+        tests.reverse()
+        return {
+            "labels": [test.completed_at.strftime("%b %d") for test in tests],
+            "data": [test.percentage for test in tests],
+        }
     
     @staticmethod
     def get_learning_stats(user):
         """Get comprehensive learning statistics"""
-        from learning.models import Roadmap, Day
-        from django.db.models import Sum, Count, Avg
-        
+        from assessments.models import Test
+        from learning.models import Day, Roadmap
+
         # Roadmaps
         total_roadmaps = Roadmap.objects.filter(user=user).count()
         active_roadmaps = Roadmap.objects.filter(user=user, status='active').count()
@@ -558,25 +562,23 @@ class AnalyticsService:
         # Streak
         streak, _ = UserStreak.objects.get_or_create(user=user)
         
-        # Tests
-        try:
-            from assessments.models import Test
-            total_tests = Test.objects.filter(user=user, status='completed').count()
-            avg_score = Test.objects.filter(user=user, status='completed').aggregate(
-                avg=Avg('score')
-            )['avg'] or 0
-        except:
-            total_tests = 0
-            avg_score = 0
-        
-        # Predictions
+        completed_tests = list(
+            Test.objects.filter(
+                user=user,
+                status="completed",
+                completed_at__isnull=False,
+                score__isnull=False,
+            )
+        )
+        percentages = [test.percentage for test in completed_tests]
+        total_tests = len(completed_tests)
+        avg_score = (
+            sum(percentages) / len(percentages)
+            if percentages
+            else 0
+        )
+
         avg_daily_minutes = total_minutes / max(total_activity_days, 1)
-        remaining_days = total_days - completed_days
-        estimated_days_to_finish = 0
-        if avg_daily_minutes > 0 and remaining_days > 0:
-            avg_daily_hours = avg_daily_minutes / 60
-            days_per_completion = 2  # Assume 2 hours per day
-            estimated_days_to_finish = int(remaining_days * (days_per_completion / max(avg_daily_hours, 1)))
         
         return {
             'total_roadmaps': total_roadmaps,
@@ -593,16 +595,19 @@ class AnalyticsService:
             'longest_streak': streak.longest_streak,
             'total_tests': total_tests,
             'avg_test_score': round(avg_score, 1),
-            'estimated_days_to_finish': estimated_days_to_finish,
         }
     
     @staticmethod
     def get_study_consistency(user, days=30):
-        """Calculate study consistency percentage"""
-        from datetime import timedelta
-        from django.utils import timezone
-        
-        today = timezone.now().date()
+        """Calculate bounded study consistency for a positive day window."""
+        if (
+            isinstance(days, bool)
+            or not isinstance(days, int)
+            or not 1 <= days <= 3660
+        ):
+            raise ValueError("days must be an integer between 1 and 3660.")
+
+        today = timezone.localdate()
         start_date = today - timedelta(days=days - 1)
         
         active_days = DailyActivity.objects.filter(

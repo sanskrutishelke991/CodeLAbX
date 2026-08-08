@@ -124,7 +124,7 @@ class XPTransactionTests(TestCase):
 from datetime import timedelta
 from django.utils import timezone
 from .models import DailyActivity
-from .services import AnalyticsService
+from .services import ActivityLogger, AnalyticsService
 from assessments.models import Test
 
 
@@ -208,3 +208,167 @@ class AnalyticsExportTests(TestCase):
         self.assertIn("Recorded study hours,0.6", body)
         self.assertIn(",37", body)
         self.assertNotIn("999", body)
+
+
+from io import StringIO
+
+from django.core.management import call_command
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+
+from learning.models import Day, Roadmap
+
+
+class ProgressServiceHardeningTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="progress-service-user",
+            password="StrongPass123!",
+        )
+
+    def test_activity_totals_and_windows_are_bounded(self):
+        today = timezone.localdate()
+        DailyActivity.objects.create(
+            user=self.user,
+            date=today,
+            minutes_studied=75,
+            days_completed=1,
+        )
+        DailyActivity.objects.create(
+            user=self.user,
+            date=today - timedelta(days=1),
+            minutes_studied=45,
+            days_completed=1,
+        )
+        stats = AnalyticsService.get_learning_stats(self.user)
+        user_stats = AnalyticsService.get_study_consistency(self.user, days=2)
+
+        self.assertEqual(stats["total_minutes"], 120)
+        self.assertEqual(stats["total_hours"], 2.0)
+        self.assertEqual(user_stats, 100.0)
+        self.assertEqual(len(AnalyticsService.get_weekly_activity(self.user)["labels"]), 28)
+        with self.assertRaises(ValueError):
+            AnalyticsService.get_study_consistency(self.user, days=0)
+        with self.assertRaises(ValueError):
+            ActivityLogger.get_heatmap_data(self.user, days=4000)
+
+    def test_test_statistics_use_percentages_and_skip_unfinished_rows(self):
+        Test.objects.create(
+            user=self.user,
+            title="Full marks",
+            topic="Python",
+            status="completed",
+            score=50,
+            total_marks=50,
+            completed_at=timezone.now() - timedelta(days=1),
+        )
+        Test.objects.create(
+            user=self.user,
+            title="Half marks",
+            topic="Python",
+            status="completed",
+            score=50,
+            total_marks=100,
+            completed_at=timezone.now(),
+        )
+        Test.objects.create(
+            user=self.user,
+            title="Missing completion time",
+            topic="Python",
+            status="completed",
+            score=100,
+            total_marks=100,
+            completed_at=None,
+        )
+
+        performance = AnalyticsService.get_test_performance(self.user)
+        stats = AnalyticsService.get_learning_stats(self.user)
+
+        self.assertEqual(performance["data"], [100.0, 50.0])
+        self.assertEqual(stats["total_tests"], 2)
+        self.assertEqual(stats["avg_test_score"], 75.0)
+        self.assertNotIn("estimated_days_to_finish", stats)
+
+    def test_topic_distribution_uses_annotated_completed_days(self):
+        roadmap = Roadmap.objects.create(
+            user=self.user,
+            topic="ML",
+            title="Distribution roadmap",
+            total_days=2,
+            daily_hours=2,
+        )
+        Day.objects.create(
+            roadmap=roadmap,
+            day_number=1,
+            title="Done",
+            estimated_hours=2,
+            order=1,
+            is_completed=True,
+        )
+        Day.objects.create(
+            roadmap=roadmap,
+            day_number=2,
+            title="Pending",
+            estimated_hours=2,
+            order=2,
+        )
+        result = AnalyticsService.get_topic_distribution(self.user)
+        self.assertEqual(result["labels"], ["Machine Learning"])
+        self.assertEqual(result["data"], [2.0])
+
+
+class AchievementPageQueryTests(TestCase):
+    def test_earned_badges_render_without_per_badge_queries(self):
+        user = User.objects.create_user(
+            username="achievement-query-user",
+            password="StrongPass123!",
+        )
+        badges = []
+        for index in range(20):
+            badges.append(
+                Badge.objects.create(
+                    name=f"Query badge {index}",
+                    description="Query test",
+                    icon="Q",
+                    category="learning",
+                    rarity="common",
+                    xp_reward=1,
+                    requirement_type="topics_completed",
+                    requirement_value=index + 1,
+                )
+            )
+        from .models import UserBadge
+
+        UserBadge.objects.create(user=user, badge=badges[0])
+        self.client.force_login(user)
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(reverse("progress:achievements"))
+
+        self.assertEqual(response.status_code, 200)
+        earned_entry = response.context["categorized"]["learning"][0]
+        self.assertTrue(earned_entry["is_earned"])
+        self.assertIsNotNone(earned_entry["earned_at"])
+        self.assertLessEqual(
+            len(queries),
+            14,
+            msg=f"Achievement page exceeded query budget: {len(queries)}",
+        )
+
+
+class SeedBadgesCommandTests(TestCase):
+    def test_seed_badges_is_idempotent_and_repairs_values(self):
+        output = StringIO()
+        call_command("seed_badges", stdout=output, no_color=True)
+        first_count = Badge.objects.count()
+        badge = Badge.objects.get(name="First Steps")
+        badge.description = "Drifted description"
+        badge.save(update_fields=["description"])
+
+        second_output = StringIO()
+        call_command("seed_badges", stdout=second_output, no_color=True)
+        badge.refresh_from_db()
+
+        self.assertGreater(first_count, 0)
+        self.assertEqual(Badge.objects.count(), first_count)
+        self.assertNotEqual(badge.description, "Drifted description")
+        self.assertIn("updated", second_output.getvalue().lower())

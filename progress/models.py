@@ -52,7 +52,7 @@ class UserStreak(models.Model):
     
     def update_streak(self):
         """Update streak based on today's activity"""
-        today = timezone.now().date()
+        today = timezone.localdate()
         yesterday = today - timedelta(days=1)
         
         if self.last_activity_date == today:

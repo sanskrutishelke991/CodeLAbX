@@ -443,3 +443,20 @@ class DocumentationTruthTests(TestCase):
         for path in document_paths:
             source = path.read_text(encoding="utf-8")
             self.assertIn("Last reviewed: 2026-08-08", source)
+
+
+class LegacyQualityRegressionTests(TestCase):
+    def test_hardened_legacy_modules_have_no_bare_except_or_print(self):
+        repository = Path(__file__).resolve().parent.parent
+        for relative_path in [
+            "learning/views.py",
+            "progress/services.py",
+            "progress/views.py",
+            "notes/views.py",
+            "practice/views.py",
+        ]:
+            source = (repository / relative_path).read_text(encoding="utf-8")
+            with self.subTest(path=relative_path):
+                self.assertIsNone(re.search(r"except\s*:\s*", source))
+                self.assertNotIn("print(", source)
+                self.assertNotIn("str(e)", source)

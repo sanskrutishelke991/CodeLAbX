@@ -116,6 +116,66 @@ class PracticeAPIValidationTests(TestCase):
             response.content.decode(),
         )
 
+    @patch("practice.views.GeminiService")
+    def test_generated_problem_is_parsed_and_normalized(self, service_class):
+        service_class.return_value.generate_practice_problem.return_value = {
+            "success": True,
+            "content": (
+                "```json\n"
+                '{"title":" Arrays ","description":" Solve it ",'
+                '"hints":[" First hint "],"difficulty":"hard"}'
+                "\n```"
+            ),
+        }
+        response = self.post(
+            self.problem_url,
+            {"topic": "arrays", "difficulty": "easy"},
+        )
+        self.assertEqual(response.status_code, 200)
+        problem = response.json()["problem"]
+        self.assertEqual(problem["title"], "Arrays")
+        self.assertEqual(problem["hints"], ["First hint"])
+        self.assertEqual(problem["difficulty"], "easy")
+
+    @patch("practice.views.GeminiService")
+    def test_generated_problem_missing_required_fields_is_rejected(
+        self,
+        service_class,
+    ):
+        service_class.return_value.generate_practice_problem.return_value = {
+            "success": True,
+            "content": '{"description":"No title"}',
+        }
+        response = self.post(
+            self.problem_url,
+            {"topic": "arrays", "difficulty": "easy"},
+        )
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json()["error_code"], "AI_INVALID_RESPONSE")
+
+    @patch(
+        "practice.views.BadgeManager.add_xp",
+        side_effect=RuntimeError("SECRET_REVIEW_REWARD_FAILURE"),
+    )
+    @patch("practice.views.GeminiService")
+    def test_reward_failure_rolls_back_review_and_hides_details(
+        self,
+        service_class,
+        add_xp,
+    ):
+        service_class.return_value.review_code.return_value = {
+            "success": True,
+            "feedback_html": "<p>Feedback</p>",
+        }
+        with self.assertLogs("practice.views", level="ERROR"):
+            response = self.post(
+                self.review_url,
+                {"code": "print(1)", "language": "python"},
+            )
+        self.assertEqual(response.status_code, 500)
+        self.assertNotIn("SECRET_REVIEW_REWARD_FAILURE", response.content.decode())
+        self.assertFalse(CodeReview.objects.filter(user=self.user).exists())
+
 
 from progress.models import UserLevel, XPTransaction
 from .models import CodeReview

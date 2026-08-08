@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 defaults=cat_data,
             )
             categories[cat_data['slug']] = cat
-            status = 'Created' if created else 'Exists'
+            status = 'Created' if created else 'Updated'
             self.stdout.write(f"{status}: {cat.name}")
         
         # Sample videos (Popular ones on YouTube)
@@ -158,6 +158,7 @@ class Command(BaseCommand):
         ]
         
         created_count = 0
+        updated_count = 0
         for video_data in videos_data:
             category_slug = video_data.pop('category')
             video_data['category'] = categories[category_slug]
@@ -170,7 +171,13 @@ class Command(BaseCommand):
             if created:
                 created_count += 1
                 self.stdout.write(f"Created: {video.title}")
-        
-        self.stdout.write(self.style.SUCCESS(
-            f'\nSuccessfully seeded {len(categories)} categories and {created_count} videos!'
-        ))
+            else:
+                updated_count += 1
+                self.stdout.write(f"Updated: {video.title}")
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"\nSeeded {len(categories)} categories; "
+                f"{created_count} videos created and {updated_count} updated."
+            )
+        )

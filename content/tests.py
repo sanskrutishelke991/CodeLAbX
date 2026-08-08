@@ -77,3 +77,32 @@ class ContentPaginationTests(TestCase):
             10,
             msg=f"Library exceeded query budget: {len(queries)}",
         )
+
+
+from io import StringIO
+
+from django.core.management import call_command
+
+
+class SeedVideosCommandTests(TestCase):
+    def test_seed_videos_is_idempotent_and_repairs_values(self):
+        call_command("seed_videos", stdout=StringIO(), no_color=True)
+        category_count = VideoCategory.objects.count()
+        video_count = Video.objects.count()
+        category = VideoCategory.objects.get(slug="python")
+        video = Video.objects.get(youtube_id="rfscVS0vtbw")
+        category.name = "Drifted category"
+        category.save(update_fields=["name"])
+        video.title = "Drifted video"
+        video.save(update_fields=["title"])
+
+        output = StringIO()
+        call_command("seed_videos", stdout=output, no_color=True)
+        category.refresh_from_db()
+        video.refresh_from_db()
+
+        self.assertEqual(VideoCategory.objects.count(), category_count)
+        self.assertEqual(Video.objects.count(), video_count)
+        self.assertEqual(category.name, "Python")
+        self.assertEqual(video.title, "Python Full Course for Beginners")
+        self.assertIn("updated", output.getvalue().lower())

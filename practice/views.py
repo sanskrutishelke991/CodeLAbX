@@ -1,8 +1,8 @@
-import json
 import logging
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
@@ -17,7 +17,11 @@ from ai_tools.api import (
     text_field,
 )
 from ai_tools.security import protect_ai_endpoint
-from ai_tools.services import GeminiService
+from ai_tools.services import (
+    GeminiService,
+    parse_json_object_response,
+)
+from progress.services import BadgeManager
 
 from .models import CodeReview
 
@@ -33,6 +37,79 @@ SUPPORTED_LANGUAGES = {
     "rust",
     "ruby",
 }
+
+
+def _generated_text(data, key, maximum, required=True):
+    value = data.get(key, "")
+    if not isinstance(value, str):
+        raise ValueError(f"{key} must be text.")
+    value = value.strip()
+    if required and not value:
+        raise ValueError(f"{key} is required.")
+    if len(value) > maximum:
+        raise ValueError(f"{key} is too long.")
+    return value
+
+
+def validate_practice_problem(data, difficulty):
+    """Normalize one generated problem before returning it to the browser."""
+    hints = data.get("hints", [])
+    if not isinstance(hints, list) or len(hints) > 5:
+        raise ValueError("hints must be a list of at most five items.")
+    normalized_hints = []
+    for hint in hints:
+        if not isinstance(hint, str) or not hint.strip() or len(hint) > 500:
+            raise ValueError("each hint must be bounded text.")
+        normalized_hints.append(hint.strip())
+
+    return {
+        "title": _generated_text(data, "title", 200),
+        "description": _generated_text(data, "description", 5000),
+        "input_format": _generated_text(
+            data,
+            "input_format",
+            2000,
+            required=False,
+        ),
+        "output_format": _generated_text(
+            data,
+            "output_format",
+            2000,
+            required=False,
+        ),
+        "constraints": _generated_text(
+            data,
+            "constraints",
+            2000,
+            required=False,
+        ),
+        "example_input": _generated_text(
+            data,
+            "example_input",
+            5000,
+            required=False,
+        ),
+        "example_output": _generated_text(
+            data,
+            "example_output",
+            5000,
+            required=False,
+        ),
+        "explanation": _generated_text(
+            data,
+            "explanation",
+            5000,
+            required=False,
+        ),
+        "hints": normalized_hints,
+        "starter_code_python": _generated_text(
+            data,
+            "starter_code_python",
+            20_000,
+            required=False,
+        ),
+        "difficulty": difficulty,
+    }
 
 
 @login_required
@@ -110,20 +187,12 @@ def check_code(request):
             result.get("error"),
         )
 
-    response_data = {
-        "success": True,
-        "feedback": result["feedback_html"],
-    }
-
-    review_record, review_created = CodeReview.objects.get_or_create(
-        user=request.user,
-        code_hash=CodeReview.hash_code(language, code),
-        defaults={"language": language},
-    )
-
-    try:
-        from progress.services import BadgeManager
-
+    with transaction.atomic():
+        review_record, _ = CodeReview.objects.get_or_create(
+            user=request.user,
+            code_hash=CodeReview.hash_code(language, code),
+            defaults={"language": language},
+        )
         xp_result = BadgeManager.add_xp(
             request.user,
             15,
@@ -133,38 +202,22 @@ def check_code(request):
             source_object_type="code-review",
             source_object_id=review_record.id,
         )
+        new_badges = BadgeManager.check_and_award_badges(request.user)
 
-        new_badges = (
-            BadgeManager.check_and_award_badges(
-                request.user
-            )
-        )
-
-        response_data.update(
-            {
-                "xp_earned": xp_result["xp_added"],
-                "xp_reason": "Code reviewed",
-                "leveled_up": xp_result.get(
-                    "leveled_up",
-                    False,
-                ),
-                "new_level": xp_result.get(
-                    "new_level"
-                ),
-                "new_badges": [
-                    _badge_payload(item)
-                    for item in new_badges
-                ],
-            }
-        )
-
-    except Exception:
-        logger.warning(
-            "XP/badge update failed after code review",
-            exc_info=True,
-        )
-
-    return JsonResponse(response_data)
+    return JsonResponse(
+        {
+            "success": True,
+            "feedback": result["feedback_html"],
+            "xp_earned": xp_result["xp_added"],
+            "xp_reason": "Code reviewed",
+            "leveled_up": xp_result.get("leveled_up", False),
+            "new_level": xp_result.get("new_level"),
+            "new_badges": [
+                _badge_payload(item)
+                for item in new_badges
+            ],
+        }
+    )
 
 
 @login_required
@@ -211,51 +264,21 @@ def generate_problem(request):
             result.get("error"),
         )
 
-    content = result.get(
-        "content",
-        "",
-    ).strip()
-
-    if content.startswith("```"):
-        parts = content.split("```")
-
-        if len(parts) >= 2:
-            content = parts[1]
-
-            if content.startswith("json"):
-                content = content[4:]
-
-            content = content.strip()
-
     try:
-        problem_data = json.loads(content)
-
-    except json.JSONDecodeError as exc:
+        problem_data = parse_json_object_response(
+            result.get("content", "")
+        )
+        problem_data = validate_practice_problem(
+            problem_data,
+            difficulty,
+        )
+    except ValueError as exc:
         raise APIRequestError(
             "AI_INVALID_RESPONSE",
-            (
-                "The AI returned an invalid "
-                "practice problem."
-            ),
+            "The AI returned an invalid practice problem.",
             502,
         ) from exc
 
-    if not isinstance(
-        problem_data,
-        dict,
-    ):
-        raise APIRequestError(
-            "AI_INVALID_RESPONSE",
-            (
-                "The AI returned an invalid "
-                "practice problem."
-            ),
-            502,
-        )
-
     return JsonResponse(
-        {
-            "success": True,
-            "problem": problem_data,
-        }
+        {"success": True, "problem": problem_data}
     )

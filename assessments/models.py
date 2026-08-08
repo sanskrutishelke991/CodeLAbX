@@ -105,6 +105,6 @@ class TestAttempt(models.Model):
     
     @property
     def percentage(self):
-        if self.test.total_marks == 0:
+        if self.score is None or self.test.total_marks == 0:
             return 0
         return round((self.score / self.test.total_marks) * 100, 1)
