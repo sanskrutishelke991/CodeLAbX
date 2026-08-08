@@ -266,6 +266,16 @@
         window.closeOmnitrixNew = close;
     }
 
+    function initializeConfirmations() {
+        document.querySelectorAll("form[data-confirm]").forEach(function (form) {
+            form.addEventListener("submit", function (event) {
+                if (!window.confirm(form.dataset.confirm)) {
+                    event.preventDefault();
+                }
+            });
+        });
+    }
+
     function initializeToolFilters() {
         const controls = document.querySelectorAll("[data-tool-filter]");
         const cards = document.querySelectorAll("[data-tool-categories]");
@@ -291,6 +301,7 @@
         initializeNavigation();
         initializeChat();
         initializeOmnitrix();
+        initializeConfirmations();
         initializeToolFilters();
     });
 }());

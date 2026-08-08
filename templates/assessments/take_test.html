@@ -1,26 +1,8 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Take Test - CodeLabX{% endblock %}
 {% block extra_css %}
-<style>
-body { background: #0A0A0A; color: #e0e0e0; }
-.test-header { background: var(--accent); border-radius: 8px; padding: 20px; margin-bottom: 25px; color: white; }
-.question-card { background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.2); border-radius: 8px; padding: 30px; margin-bottom: 20px; }
-.timer-display { font-size: 2rem; font-weight: 700; color: white; }
-.timer-warning { color: #FF6B6B; animation: pulse 1s infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-.progress-bar-custom { background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; }
-.progress-fill { background: linear-gradient(90deg, #14B8A6 0%, #00D4AA 100%); height: 100%; border-radius: 10px; transition: width 0.3s; }
-.option-label { display: block; padding: 15px 20px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
-.option-label:hover { border-color: rgba(108,99,255,0.5); background: rgba(108,99,255,0.1); }
-.option-label.selected { border-color: #14B8A6; background: rgba(108,99,255,0.15); }
-.option-input { display: none; }
-.option-text { color: #e0e0e0; font-size: 1rem; }
-.btn-nav { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 30px; border-radius: 10px; }
-.btn-nav:hover { background: rgba(108,99,255,0.2); border-color: #14B8A6; color: white; }
-.btn-submit { background: linear-gradient(135deg, #00D4AA 0%, #00b894 100%); border: none; color: white; padding: 12px 40px; border-radius: 10px; font-weight: 600; }
-.btn-submit:hover { transform: translateY(-2px); color: white; }
-.question-number { background: #14B8A6; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 15px; }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/assessments-take_test.css' %}">
 {% endblock %}
 {% block content %}
 <div class="test-header">

@@ -89,16 +89,27 @@ Still required before public launch:
 - focus trapping/restoration for custom overlays
 - automated browser tests at mobile and desktop breakpoints
 
-## CSP/static migration plan
+## CSP/static migration status
 
-1. Inventory remaining template `<style>`, inline `<script>`, `style=`, and
-   `on*=` attributes.
-2. Move one feature area at a time to app-namespaced static files.
-3. Pass server values through escaped data attributes or `json_script`.
+Completed in the first page-extraction tranche:
+
+- all 41 template `<style>` blocks moved to 37 versioned page stylesheets
+- 10 non-dynamic inline scripts moved to page JavaScript files
+- shared `data-confirm` form behavior replaced four inline submit handlers
+- roadmap, assessment-list, note, image-history, and code-review controls moved
+  from inline event attributes to listeners
+
+Measured remaining template debt is bounded by tests: 10 inline script blocks,
+34 inline event attributes, and 209 `style=` attributes across 10 templates.
+
+Next steps:
+
+1. Pass remaining server values through escaped data attributes or `json_script`.
+2. Extract the 10 dynamic feature scripts.
+3. Replace the remaining event and style attributes.
 4. Add CSP violation reporting in staging.
-5. Remove inline event handlers.
-6. Remove `'unsafe-inline'` from `script-src`, then from `style-src`.
-7. Enforce the stricter policy only after browser smoke tests pass.
+5. Remove `'unsafe-inline'` from `script-src`, then from `style-src`.
+6. Enforce the stricter policy only after browser smoke tests pass.
 
 ## UI acceptance checklist
 

@@ -1,55 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Analysis History - CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: #0A0A0A; color: #e0e0e0; }
-    
-    .header-card {
-        background: var(--bg-secondary);
-        border-radius: 8px;
-        padding: 30px;
-        color: white;
-        margin-bottom: 25px;
-    }
-    
-    .history-item {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 15px;
-        display: flex;
-        gap: 15px;
-        transition: all 0.3s;
-    }
-    
-    .history-item:hover {
-        border-color: #14B8A6;
-        transform: translateX(5px);
-    }
-    
-    .history-thumb {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 10px;
-        flex-shrink: 0;
-    }
-    
-    .history-info { flex-grow: 1; }
-    .history-title { color: white; font-weight: 600; margin-bottom: 5px; }
-    .history-meta { color: #a0a0a0; font-size: 0.85rem; }
-    
-    .empty-state {
-        text-align: center;
-        padding: 80px 20px;
-        color: #a0a0a0;
-    }
-    
-    .empty-state i { font-size: 5rem; color: #14B8A6; opacity: 0.4; }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/ai_tools-image_history.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -90,7 +45,7 @@
             <a href="{% url 'ai_tools:image_result' analysis.id %}" class="btn btn-sm btn-outline-light">
                 <i class="bi bi-eye"></i> View
             </a>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteAnalysis({{ analysis.id }})">
+            <button type="button" class="btn btn-sm btn-outline-danger" data-delete-analysis="{{ analysis.id }}">
                 <i class="bi bi-trash"></i>
             </button>
         </div>
@@ -110,37 +65,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function getCookie(name) {
-    let value = null;
-    if (document.cookie) {
-        for (let c of document.cookie.split(';')) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) {
-                value = decodeURIComponent(c.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return value;
-}
-
-async function deleteAnalysis(id) {
-    if (!confirm('Delete this analysis?')) return;
-    
-    try {
-        const response = await fetch(`/ai-tools/image/${id}/delete/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') }
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            location.reload();
-        }
-    } catch (error) {
-        alert('Error: ' + error.message);
-    }
-}
-</script>
+<script src="{% static 'js/pages/ai_tools-image_history.js' %}"></script>
 {% endblock %}

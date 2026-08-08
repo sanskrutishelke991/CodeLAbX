@@ -1,106 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ roadmap.title }} - CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: #0A0A0A; color: #e0e0e0; }
-    
-    .roadmap-header {
-        background: var(--accent);
-        border-radius: 8px;
-        padding: 30px;
-        margin-bottom: 30px;
-        color: white;
-    }
-    
-    .progress-custom {
-        height: 12px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
-        overflow: hidden;
-        margin: 15px 0;
-    }
-    
-    .progress-bar-custom {
-        height: 100%;
-        background: white;
-        border-radius: 10px;
-    }
-    
-    .day-card {
-        background: var(--bg-secondary);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 12px;
-        transition: all 0.3s;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-    }
-    
-    .day-card:hover {
-        border-color: #14B8A6;
-        transform: translateX(5px);
-        color: inherit;
-        text-decoration: none;
-    }
-    
-    .day-card.completed {
-        border-color: rgba(0, 212, 170, 0.3);
-        background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 212, 170, 0.02) 100%);
-    }
-    
-    .day-number {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        margin-right: 15px;
-        flex-shrink: 0;
-        background: rgba(20, 184, 166, 0.2);
-        color: #14B8A6;
-    }
-    
-    .day-card.completed .day-number {
-        background: rgba(0, 212, 170, 0.2);
-        color: #00D4AA;
-    }
-    
-    .day-info { flex-grow: 1; }
-    
-    .day-info h5 { color: white; margin-bottom: 5px; }
-    
-    .day-meta { color: #a0a0a0; font-size: 0.85rem; }
-    
-    .day-status i { font-size: 1.5rem; }
-    
-    .completed .day-status i { color: #00D4AA; }
-    .pending .day-status i { color: #a0a0a0; opacity: 0.3; }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
-        margin-top: 20px;
-    }
-    
-    .stat-box {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-    }
-    
-    .stat-box .value { font-size: 1.8rem; font-weight: 700; }
-    .stat-box .label { font-size: 0.85rem; opacity: 0.8; }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/learning-roadmap_detail.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -144,7 +48,7 @@
     {% if roadmap.status == 'active' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'pause' %}">{% csrf_token %}<button class="btn btn-outline-warning btn-sm" type="submit"><i class="bi bi-pause"></i> Pause</button></form>{% endif %}
     {% if roadmap.status == 'paused' or roadmap.status == 'archived' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'resume' %}">{% csrf_token %}<button class="btn btn-outline-success btn-sm" type="submit"><i class="bi bi-play"></i> Resume</button></form>{% endif %}
     {% if roadmap.status != 'archived' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'archive' %}">{% csrf_token %}<button class="btn btn-outline-light btn-sm" type="submit"><i class="bi bi-archive"></i> Archive</button></form>{% endif %}
-    <form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'delete' %}" onsubmit="return confirm('Delete this roadmap and all its days?');">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i> Delete</button></form>
+    <form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'delete' %}" data-confirm="Delete this roadmap and all its days?">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i> Delete</button></form>
 </div>
 <h3 class="mb-3" style="color: white;">
     <i class="bi bi-list-check me-2" style="color: #14B8A6;"></i>Learning Timeline

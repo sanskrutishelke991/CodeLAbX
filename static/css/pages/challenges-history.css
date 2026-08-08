@@ -1,0 +1,31 @@
+/* Extracted page styles: challenges-history.css */
+body { background: #0A0A0A; color: #e0e0e0; }
+
+    .header-card {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 30px;
+        color: white;
+        margin-bottom: 25px;
+    }
+
+    .stat-mini {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .attempt-row {
+        background: var(--bg-secondary);
+        border: 1px solid rgba(20, 184, 166, 0.15);
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .attempt-row.correct { border-color: rgba(0, 212, 170, 0.4); }
+    .attempt-row.incorrect { border-color: rgba(255, 107, 107, 0.4); }

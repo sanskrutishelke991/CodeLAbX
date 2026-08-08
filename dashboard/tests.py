@@ -359,6 +359,89 @@ class FrontendTrustTests(TestCase):
         self.assertIn("Default quota", toolbox)
 
 
+class FrontendExtractionBudgetTests(TestCase):
+    def test_page_assets_are_static_and_inline_debt_only_decreases(self):
+        repository = Path(__file__).resolve().parent.parent
+        templates = list((repository / "templates").rglob("*.html"))
+        style_blocks = 0
+        inline_scripts = 0
+        event_handlers = 0
+        style_attributes = 0
+        affected_templates = 0
+
+        for template in templates:
+            source = template.read_text(encoding="utf-8")
+            styles = len(re.findall(r"<style(?:\s|>)", source, re.I))
+            scripts = len(
+                re.findall(
+                    r"<script(?![^>]*\bsrc\s*=)[^>]*>",
+                    source,
+                    re.I,
+                )
+            )
+            handlers = len(
+                re.findall(r"\son[a-z]+\s*=", source, re.I)
+            )
+            inline_styles = len(
+                re.findall(r"\sstyle\s*=", source, re.I)
+            )
+            style_blocks += styles
+            inline_scripts += scripts
+            event_handlers += handlers
+            style_attributes += inline_styles
+            if styles or scripts or handlers:
+                affected_templates += 1
+
+        self.assertEqual(style_blocks, 0)
+        self.assertLessEqual(inline_scripts, 10)
+        self.assertLessEqual(event_handlers, 34)
+        self.assertLessEqual(style_attributes, 209)
+        self.assertLessEqual(affected_templates, 10)
+
+        page_css = list((repository / "static" / "css" / "pages").glob("*.css"))
+        page_js = list((repository / "static" / "js" / "pages").glob("*.js"))
+        self.assertEqual(len(page_css), 37)
+        self.assertEqual(len(page_js), 11)
+        for asset in page_css + page_js:
+            source = asset.read_text(encoding="utf-8")
+            self.assertNotIn("{%", source)
+            self.assertNotIn("{{", source)
+
+    def test_destructive_forms_use_shared_confirmation_hook(self):
+        repository = Path(__file__).resolve().parent.parent
+        paths = [
+            "templates/accounts/settings.html",
+            "templates/learning/roadmap_detail.html",
+            "templates/notes/bookmarks_list.html",
+            "templates/notes/notes_list.html",
+        ]
+        for relative_path in paths:
+            source = (repository / relative_path).read_text(encoding="utf-8")
+            self.assertIn("data-confirm=", source)
+            self.assertNotIn("onsubmit=", source)
+        base_js = (repository / "static" / "js" / "base.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('form[data-confirm]', base_js)
+
+    def test_first_migrated_interactions_have_no_inline_handlers(self):
+        repository = Path(__file__).resolve().parent.parent
+        migrated = [
+            "templates/ai_tools/image_history.html",
+            "templates/assessments/quiz_list.html",
+            "templates/learning/roadmap_create.html",
+            "templates/learning/roadmap_list.html",
+            "templates/notes/notes_list.html",
+            "templates/practice/code_examiner.html",
+        ]
+        for relative_path in migrated:
+            source = (repository / relative_path).read_text(encoding="utf-8")
+            with self.subTest(path=relative_path):
+                self.assertIsNone(
+                    re.search(r"\son[a-z]+\s*=", source, re.I)
+                )
+
+
 class DashboardQueryBudgetTests(TestCase):
     def test_dashboard_query_count_stays_bounded_with_many_roadmaps(self):
         user = User.objects.create_user(

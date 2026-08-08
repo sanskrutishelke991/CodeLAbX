@@ -1,228 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}My Notes - CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: #0A0A0A; color: #e0e0e0; }
-    
-    .notes-header {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 30px;
-        margin-bottom: 30px;
-        color: white;
-    }
-    
-    .search-bar {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 12px 20px;
-        color: white;
-        width: 100%;
-    }
-    
-    .search-bar:focus {
-        outline: none;
-        background: rgba(255, 255, 255, 0.15);
-        border-color: white;
-    }
-    
-    .search-bar::placeholder {
-        color: rgba(255, 255, 255, 0.6);
-    }
-    
-    .note-card {
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        transition: all 0.3s;
-        cursor: pointer;
-        min-height: 200px;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-    
-    .note-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-    
-    .note-card.purple {
-        background: linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(20, 184, 166, 0.05) 100%);
-        border: 1px solid var(--border-default);
-    }
-    
-    .note-card.blue {
-        background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(74, 144, 226, 0.05) 100%);
-        border: 2px solid rgba(74, 144, 226, 0.3);
-    }
-    
-    .note-card.green {
-        background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 212, 170, 0.05) 100%);
-        border: 2px solid rgba(0, 212, 170, 0.3);
-    }
-    
-    .note-card.red {
-        background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 107, 107, 0.05) 100%);
-        border: 2px solid rgba(255, 107, 107, 0.3);
-    }
-    
-    .note-card.yellow {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
-        border: 2px solid rgba(245, 158, 11, 0.3);
-    }
-    
-    .note-card.pink {
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(236, 72, 153, 0.05) 100%);
-        border: 2px solid rgba(236, 72, 153, 0.3);
-    }
-    
-    .note-title {
-        color: white;
-        font-weight: 700;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-    }
-    
-    .pin-btn {
-        background: transparent;
-        border: none;
-        color: #a0a0a0;
-        cursor: pointer;
-        font-size: 1.2rem;
-        transition: all 0.2s;
-    }
-    
-    .pin-btn:hover, .pin-btn.pinned {
-        color: #f59e0b;
-        transform: scale(1.2);
-    }
-    
-    .note-content {
-        color: #e0e0e0;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        flex-grow: 1;
-        margin-bottom: 15px;
-        white-space: pre-wrap;
-    }
-    
-    .note-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-bottom: 10px;
-    }
-    
-    .note-tag {
-        background: rgba(255, 255, 255, 0.1);
-        color: #e0e0e0;
-        padding: 3px 10px;
-        border-radius: 10px;
-        font-size: 0.75rem;
-    }
-    
-    .note-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .note-date {
-        color: #a0a0a0;
-        font-size: 0.8rem;
-    }
-    
-    .note-actions {
-        display: flex;
-        gap: 8px;
-    }
-    
-    .note-action-btn {
-        background: transparent;
-        border: none;
-        color: #a0a0a0;
-        cursor: pointer;
-        padding: 5px;
-        transition: all 0.2s;
-    }
-    
-    .note-action-btn:hover {
-        color: white;
-        transform: scale(1.1);
-    }
-    
-    .btn-create-note {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border: none;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-    }
-    
-    .btn-create-note:hover {
-        transform: translateY(-2px);
-        color: white;
-        box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
-    }
-    
-    .filter-chip {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #e0e0e0;
-        padding: 6px 15px;
-        border-radius: 15px;
-        text-decoration: none;
-        display: inline-block;
-        margin-right: 8px;
-        margin-bottom: 8px;
-        transition: all 0.2s;
-    }
-    
-    .filter-chip.active {
-        background: rgba(20, 184, 166, 0.3);
-        border-color: #14B8A6;
-        color: white;
-    }
-    
-    .filter-chip:hover {
-        background: rgba(20, 184, 166, 0.2);
-        color: white;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 80px 20px;
-        color: #a0a0a0;
-    }
-    
-    .empty-state i {
-        font-size: 5rem;
-        color: #14B8A6;
-        opacity: 0.4;
-    }
-    
-    .pinned-indicator {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        color: #f59e0b;
-        font-size: 1.2rem;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/notes-notes_list.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -286,8 +68,8 @@
                         <i class="bi bi-clock me-1"></i>{{ note.updated_at|date:"M d, Y" }}
                     </span>
                     <div class="note-actions">
-                        <button class="note-action-btn pin-btn {% if note.is_pinned %}pinned{% endif %}" 
-                                onclick="togglePin({{ note.id }}, this)" title="Pin">
+                        <button type="button" class="note-action-btn pin-btn {% if note.is_pinned %}pinned{% endif %}"
+                                data-note-pin="{{ note.id }}" title="Pin">
                             <i class="bi bi-pin{% if note.is_pinned %}-fill{% endif %}"></i>
                         </button>
                         <a href="{% url 'notes:edit' note.id %}" class="note-action-btn" title="Edit">
@@ -296,7 +78,7 @@
                         <a href="{% url 'notes:export' note.id %}" class="note-action-btn" title="Export">
                             <i class="bi bi-download"></i>
                         </a>
-                        <form method="post" action="{% url 'notes:delete' note.id %}" style="display: inline;" onsubmit="return confirm('Delete this note?');">
+                        <form method="post" action="{% url 'notes:delete' note.id %}" style="display: inline;" data-confirm="Delete this note?">
                             {% csrf_token %}
                             <button type="submit" class="note-action-btn" title="Delete" style="color: #FF6B6B;">
                                 <i class="bi bi-trash"></i>
@@ -322,31 +104,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-async function togglePin(noteId, btn) {
-    try {
-        const response = await fetch(`/notes/${noteId}/pin/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            const icon = btn.querySelector('i');
-            if (data.is_pinned) {
-                icon.className = 'bi bi-pin-fill';
-                btn.classList.add('pinned');
-            } else {
-                icon.className = 'bi bi-pin';
-                btn.classList.remove('pinned');
-            }
-            setTimeout(() => location.reload(), 500);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-</script>
+<script src="{% static 'js/pages/notes-notes_list.js' %}"></script>
 {% endblock %}

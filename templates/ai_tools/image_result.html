@@ -1,87 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load ai_content %}
 
 {% block title %}Analysis Result - CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: #0A0A0A; color: #e0e0e0; }
-    
-    .breadcrumb-custom { color: #a0a0a0; margin-bottom: 15px; }
-    .breadcrumb-custom a { color: #14B8A6; text-decoration: none; }
-    
-    .image-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    
-    .analyzed-image {
-        max-width: 100%;
-        border-radius: 12px;
-        max-height: 500px;
-    }
-    
-    .analysis-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 30px;
-        margin-bottom: 20px;
-    }
-    
-    #analysisContent {
-        color: #e0e0e0;
-        line-height: 1.8;
-    }
-    
-    #analysisContent h1, #analysisContent h2, #analysisContent h3 {
-        color: white;
-        margin-top: 25px;
-        margin-bottom: 15px;
-    }
-    
-    #analysisContent h2 {
-        border-bottom: 2px solid #14B8A6;
-        padding-bottom: 10px;
-    }
-    
-    #analysisContent code {
-        background: rgba(20, 184, 166, 0.15);
-        padding: 2px 8px;
-        border-radius: 4px;
-        color: #FF6B6B;
-    }
-    
-    #analysisContent pre {
-        background: #0A0A0A;
-        border: 1px solid rgba(20, 184, 166, 0.3);
-        border-radius: 10px;
-        padding: 20px;
-        overflow-x: auto;
-    }
-    
-    #analysisContent pre code {
-        background: none;
-        color: #00D4AA;
-    }
-    
-    #analysisContent strong { color: white; }
-    
-    .type-tag {
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 8px;
-        background: rgba(20, 184, 166, 0.2);
-        color: #14B8A6;
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 15px;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/ai_tools-image_result.css' %}">
 {% endblock %}
 
 {% block content %}

@@ -18,6 +18,8 @@ migration plan, not a claim that all templates are already consolidated.
 - Legacy shared CSS: `static/css/style.css`
 - Self-hosted browser packages: `static/vendor/`
 - Page-specific templates: `templates/<app>/`
+- Extracted page styles: `static/css/pages/` (37 files; no template style blocks)
+- Extracted non-dynamic page behavior: `static/js/pages/` (11 files)
 - Theme variables: dark/light custom properties in the shared CSS
 
 Bootstrap, Bootstrap Icons, and Chart.js are versioned and checksum-tracked.
@@ -117,6 +119,9 @@ for extraction.
 
 ## Remaining debt
 
-Most feature templates still include inline page CSS and JavaScript. The current
-CSP therefore retains legacy inline allowances. Completing this document's steps
-is required before claiming a strict CSP or a finished design-system migration.
+No template `<style>` blocks remain. Ten dynamic inline scripts, 34 inline event
+attributes, and 209 template `style=` attributes remain in 10 feature templates.
+Some extracted JavaScript also creates elements with style attributes. The CSP
+therefore still retains legacy inline allowances. Complete the dynamic-script and
+style-attribute migration plus browser testing before claiming a strict CSP or a
+finished design-system migration.

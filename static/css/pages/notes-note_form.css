@@ -1,0 +1,100 @@
+/* Extracted page styles: notes-note_form.css */
+body { background: #0A0A0A; color: #e0e0e0; }
+
+    .form-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 40px;
+    }
+
+    .form-title-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+        padding: 15px;
+        width: 100%;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .form-title-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-content-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 15px;
+        width: 100%;
+        border-radius: 10px;
+        min-height: 300px;
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: vertical;
+    }
+
+    .form-content-input:focus {
+        outline: none;
+        border-color: #14B8A6;
+    }
+
+    .form-tags-input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 12px 15px;
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .color-picker {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .color-option {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .color-option:hover {
+        transform: scale(1.1);
+    }
+
+    .color-option.selected {
+        border-color: white;
+        transform: scale(1.15);
+    }
+
+    .color-purple { background: #14B8A6; }
+    .color-blue { background: #4a90e2; }
+    .color-green { background: #00D4AA; }
+    .color-red { background: #FF6B6B; }
+    .color-yellow { background: #f59e0b; }
+    .color-pink { background: #ec4899; }
+
+    .btn-save {
+        background: linear-gradient(135deg, #14B8A6 0%, #ec4899 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .label { color: white; font-weight: 500; margin-bottom: 10px; display: block; }

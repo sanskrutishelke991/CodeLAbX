@@ -1,0 +1,68 @@
+/* Extracted page styles: notes-bookmarks_list.css */
+body { background: #0A0A0A; color: #e0e0e0; }
+
+    .bookmark-header {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+    }
+
+    .bookmark-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .bookmark-card:hover {
+        border-color: #14B8A6;
+        transform: translateX(5px);
+        color: inherit;
+    }
+
+    .bookmark-icon {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: rgba(20, 184, 166, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bookmark-info {
+        flex-grow: 1;
+    }
+
+    .bookmark-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .bookmark-meta {
+        color: #a0a0a0;
+        font-size: 0.85rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #a0a0a0;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #f59e0b;
+        opacity: 0.4;
+    }
