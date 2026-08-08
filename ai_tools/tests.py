@@ -6,7 +6,11 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .models import ChatMessage, ChatSession
-from .services import GeminiService
+from .services import (
+    GeminiService,
+    parse_json_object_response,
+    strip_json_code_fence,
+)
 
 from django.template import Context, Template
 from django.test import SimpleTestCase
@@ -820,3 +824,51 @@ class ChatSessionsPageTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Owner session")
         self.assertNotContains(response, "Other session")
+
+
+class AIServiceStructuredResponseTests(SimpleTestCase):
+    def test_json_fence_parser_accepts_complete_optional_fence(self):
+        raw = '```json\n{"value": 1}\n```'
+        self.assertEqual(strip_json_code_fence(raw), '{"value": 1}')
+        self.assertEqual(parse_json_object_response(raw), {"value": 1})
+
+    def test_json_fence_parser_rejects_partial_fence_and_non_object(self):
+        with self.assertRaisesRegex(ValueError, "invalid JSON code fence"):
+            strip_json_code_fence('```json\n{"value": 1}')
+        with self.assertRaisesRegex(ValueError, "JSON object"):
+            parse_json_object_response('[1, 2, 3]')
+
+    def test_daily_challenge_parses_fenced_object(self):
+        service = _service_with_response(
+            "```json\n"
+            '{"title":"Question","description":"Choose",'
+            '"options":[],"correct_option":0,"explanation":"Why"}'
+            "\n```"
+        )
+        result = service.generate_daily_challenge(
+            challenge_type="theory",
+            difficulty="medium",
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["data"]["title"], "Question")
+
+    def test_daily_challenge_rejects_non_object_json(self):
+        service = _service_with_response('[{"title": "Wrong shape"}]')
+        result = service.generate_daily_challenge("coding", "easy")
+        self.assertFalse(result["success"])
+        self.assertIn("JSON object", result["error"])
+
+    def test_daily_challenge_rejects_invalid_arguments_before_provider_call(self):
+        service = _service_with_response("{}")
+        with self.assertRaisesRegex(ValueError, "challenge_type"):
+            service.generate_daily_challenge("unknown", "easy")
+        with self.assertRaisesRegex(ValueError, "difficulty"):
+            service.generate_daily_challenge("coding", "extreme")
+        with self.assertRaisesRegex(ValueError, "user_level"):
+            service.generate_daily_challenge("coding", "easy", user_level=0)
+
+    def test_video_recommendations_require_a_list(self):
+        service = _service_with_response('{"recommendations": "not-a-list"}')
+        result = service.recommend_videos("Python")
+        self.assertFalse(result["success"])
+        self.assertIn("must be a list", result["error"])

@@ -1,175 +1,109 @@
-# CodeLabX - Product Requirements Document
+# CodeLabX product requirements
 
-## Project Overview
+Last reviewed: 2026-08-08
 
-CodeLabX is a personalized AI-powered learning platform for students to learn Machine Learning (ML), Artificial Intelligence (AI), Data Science (DS), Data Structures and Algorithms (DSA), and related technical topics.
+## Product purpose
 
-## Goals
+CodeLabX is a development-stage learning platform for structured ML and DSA
+roadmaps, recorded practice, assessments, challenges, notes, video progress, and
+optional AI-assisted explanations. It must show real stored learner activity and
+must distinguish AI feedback from verified results.
 
-### Primary Goals
-- Provide personalized learning roadmaps based on user preferences (topic, duration, daily study hours)
-- Deliver day-by-day structured learning paths with clear milestones
-- Offer comprehensive theory content for each topic
-- Include visual explanations to enhance understanding
-- Provide practice tasks and projects for hands-on learning
-- Implement tests to assess knowledge retention
-- Motivate users through GitHub-style activity heatmaps
+## Intended users
 
-### Secondary Goals
-- Create a free and accessible learning platform
-- Build a foundation for future mobile app development
-- Design architecture that supports API integration for third-party tools
+- Learners building consistent study habits
+- Beginners through advanced learners selecting an explicit roadmap level
+- Developers who want explanatory, non-executing code feedback
+- Project administrators curating videos, badges, and operational data
 
-## MVP Scope
+## Current functional scope
 
-### Core Features (Phase 1)
-1. **User Authentication**
-   - User registration and login
-   - Profile management (name, email, preferences)
+### Accounts
 
-2. **Learning Path Generation**
-   - Topic selection (ML, AI, DS, DSA)
-   - Duration input (months)
-   - Daily study hours input
-   - Automated roadmap generation
+- Username/password registration with unique normalized email
+- Login/register throttling and POST-only logout
+- Profile visibility, editing, password reset, JSON export, and confirmed deletion
 
-3. **Daily Learning Interface**
-   - Day-by-day curriculum display
-   - Theory content delivery
-   - Visual explanations (diagrams, charts)
-   - Practice tasks
-   - Mini-projects
+### Learning
 
-4. **Progress Tracking**
-   - Activity heatmap (GitHub-style)
-   - Progress bars per topic
-   - Completion status for each day
+- Rule-based Machine Learning and Data Structures & Algorithms roadmaps
+- User-selected duration, daily hours, level, and optional start date
+- Pause, resume, archive, and delete lifecycle actions
+- Daily completion with idempotent activity and XP
+- Optional AI-generated lesson explanation
 
-5. **Assessment System**
-   - Quizzes after each module
-   - Basic test scoring
-   - Performance analytics
+### Assessment and practice
 
-6. **Content Management**
-   - Admin interface for content upload
-   - Static content storage (text, images)
-   - Basic content categorization
+- Validated generated MCQ assessments
+- Answer keys retained server-side
+- Server-controlled deadlines and authoritative finalization
+- Practice-problem generation with bounded input/output validation
+- Sanitized AI code review clearly labeled as non-executing feedback
 
-### Technical Constraints (MVP)
-- Single Django application with modular apps
-- SQLite database
-- Django templates with Bootstrap 5
-- No external AI integration (static content initially)
-- No real-time features
-- No mobile app
-- No payment system (completely free)
+### Challenges
 
-## Future Scope
+- One global coding and theory challenge per date
+- Scheduler-oriented management command, not AI work during page GET
+- Deterministic theory scoring
+- Coding attempt credit plus optional AI feedback; never verified correctness
+- Idempotent rewards and owner-scoped history
 
-### Phase 2 Features
-- AI-powered personalized recommendations
-- Adaptive learning paths based on performance
-- Community features (forums, discussion boards)
-- Code execution environment
-- Interactive coding challenges
-- Certificate generation upon completion
+### Progress and content
 
-### Phase 3 Features
-- Mobile applications (iOS/Android)
-- REST API for third-party integrations
-- VS Code live integration
-- Handwritten solution photo checking
-- Video content support
-- Live classes and webinars
-- Progress sharing with mentors
-- Gamification elements (badges, leaderboards)
+- XP transaction ledger, levels, streaks, badges, and public-profile leaderboard
+- 365-day activity view and stored analytics
+- Paginated video library, watched/favorite state, notes, bookmarks, chats, images,
+  roadmaps, and assessments
 
-### Advanced Features (Future)
-- Multi-language support
-- Offline mode
-- Advanced analytics dashboard
-- Integration with popular IDEs
-- AI chatbot for doubt resolution
-- Collaborative projects
-- Job placement assistance
+## Product truth requirements
 
-## Constraints
+- Do not claim learner counts, ratings, availability, speed, pricing guarantees,
+  encryption, mobile apps, or support channels without evidence.
+- Demo/interface values must be labeled illustrative.
+- AI output may be incomplete or incorrect and must not be called authoritative.
+- Code feedback does not execute submitted code.
+- Analytics must derive from owner-scoped stored records.
+- Disabled/unconfigured features must fail closed with clear generic messages.
 
-### Technical Constraints
-- **Technology Stack**: Python 3.8+, Django 4.x
-- **Database**: SQLite (MVP), PostgreSQL (future)
-- **Frontend**: Django Templates + Bootstrap 5
-- **Hosting**: Can be deployed on any standard Django hosting platform
-- **No External APIs**: MVP will not depend on external AI services
+## Security and privacy requirements
 
-### Business Constraints
-- **Free Forever**: Core features remain free
-- **Solo Development**: MVP must be achievable by a single developer
-- **No Microservices**: Monolithic Django application for MVP
-- **Scalability**: Architecture should support future scaling without major rewrites
+- No committed secrets, databases, or media
+- CSRF protection and POST for state changes
+- Owner filtering on private objects
+- Bounded JSON and image uploads
+- Decoded/normalized images with metadata removed
+- Allowlisted AI HTML sanitizer
+- Shared production throttling through Redis
+- Idempotency keys for rewards
+- Generic public provider/internal errors
+- Account export and deletion controls
 
-### Time Constraints
-- **MVP Timeline**: 3-4 months for initial release
-- **Content Creation**: Focus on one topic (e.g., DSA) for initial launch
-- **Iterative Development**: Release with minimal viable content, expand over time
+## Non-goals for the current stage
 
-### User Constraints
-- **Target Audience**: Students and self-learners
-- **Skill Level**: Beginner to intermediate
-- **Device**: Desktop/laptop web browser (MVP)
-- **Internet**: Required for web access (no offline mode initially)
+- Public production launch
+- Native mobile application
+- Social login or public API
+- Microservices
+- Executing untrusted learner code
+- Guaranteed AI correctness or 24/7 availability
+- Billing or a permanent pricing promise
 
-## Non-Functional Requirements
+## Operational acceptance gates
 
-### Performance
-- Page load time < 3 seconds
-- Support 100+ concurrent users (MVP)
-- Database query optimization for roadmap generation
+A change is complete only when focused tests and `scripts/verify.py` pass. Public
+production additionally requires PostgreSQL/Redis staging, private object
+storage, asynchronous AI jobs, real email, monitoring, enforceable CSP without
+legacy inline allowances, backup restoration, rollback rehearsal, and authorized
+load testing.
 
-### Security
-- Secure user authentication
-- CSRF protection
-- SQL injection prevention
-- XSS protection
+## Success measures
 
-### Usability
-- Intuitive navigation
-- Mobile-responsive design (for future mobile app)
-- Clear progress indicators
-- Accessible content (WCAG 2.1 AA compliance)
+Use measurable internal signals rather than marketing claims:
 
-### Maintainability
-- Clean code structure
-- Comprehensive documentation
-- Modular Django apps
-- Version control with Git
-
-## Success Metrics
-
-### User Engagement
-- Daily active users
-- Average session duration
-- Course completion rate
-- Return user rate
-
-### Learning Outcomes
-- Quiz pass rates
-- Project completion rates
-- Time to complete courses
-- User satisfaction scores
-
-## Assumptions
-
-- Users have basic computer literacy
-- Users have internet access
-- Content can be curated from open-source resources initially
-- Initial user base will be small (< 1000 users)
-- No need for advanced AI features in MVP
-
-## Risks
-
-- **Content Creation**: Creating high-quality educational content is time-consuming
-- **User Retention**: Keeping users motivated without gamification
-- **Technical Debt**: Rushing MVP may lead to poor architecture
-- **Competition**: Many free learning resources exist
-- **Monetization**: Unclear path to sustainability (though not required for MVP)
+- Gate A remains green on Python 3.12 and 3.14
+- Reward replay tests remain idempotent
+- Private object authorization tests remain green
+- Generated structured content is rejected when malformed
+- Query budgets do not regress
+- Readiness fails when required dependencies fail
+- Staging restore, rollback, and smoke checks are recorded before launch

@@ -1,326 +1,122 @@
-# CodeLabX Design System Migration Guide
+# CodeLabX design-system migration
 
-## Overview
-This document outlines the new design system implementation and provides guidance for migrating existing templates to the new professional, minimal aesthetic inspired by Linear, Vercel, and Cursor.
+Last reviewed: 2026-08-08
 
-## What Changed
+## Goal
 
-### 1. Color System
-**Old:** Purple gradients (#6C63FF, #4a90e2) throughout
-**New:** Monochromatic base with single electric blue accent (#0055FF)
+Move the existing interface toward a maintainable static design system without a
+visual rewrite, broken workflows, or weaker CSP. This is an incremental
+migration plan, not a claim that all templates are already consolidated.
 
-**Dark Mode:**
-- Background: #0A0A0A (pure near-black)
-- Secondary: #111111
-- Tertiary: #1A1A1A
-- Text Primary: #FAFAFA
-- Text Secondary: #A1A1A1
-- Accent: #0055FF
+## Current baseline
 
-**Light Mode:**
-- Background: #FAFAF9 (warm off-white)
-- Secondary: #FFFFFF
-- Tertiary: #F5F5F4
-- Text Primary: #0A0A0A
-- Text Secondary: #525252
-- Accent: #0055FF
+- Shared application shell: `templates/base.html`
+- Shared shell styles: `static/css/base.css`
+- Shared shell behavior: `static/js/base.js`
+- Public landing styles/behavior: `static/css/landing.css` and
+  `static/js/landing.js`
+- Legacy shared CSS: `static/css/style.css`
+- Self-hosted browser packages: `static/vendor/`
+- Page-specific templates: `templates/<app>/`
+- Theme variables: dark/light custom properties in the shared CSS
 
-### 2. Typography
-**New Font Stack:**
-- Headings: 'Instrument Serif' (editorial, sophisticated)
-- Body: 'Inter' (clean, modern)
-- Code: 'JetBrains Mono' (developer aesthetic)
+Bootstrap, Bootstrap Icons, and Chart.js are versioned and checksum-tracked.
+Google Fonts and runtime JS/CSS CDNs are not required.
 
-**Font Scale:**
-- xs: 0.75rem
-- sm: 0.875rem
-- base: 1rem
-- lg: 1.125rem
-- xl: 1.25rem
-- 2xl: 1.5rem
-- 3xl: 1.875rem
-- 4xl: 2.25rem
-- 5xl: 3rem
-- 6xl: 4rem
+## Constraints
 
-### 3. Border Radius
-**Old:** 12-20px (very rounded)
-**New:** 4-6px default (sharp, professional)
-- sm: 4px
-- md: 6px (default)
-- lg: 8px (rare)
-- xl: 12px (only for images/large elements)
-- No rounded-full except avatars/pills
+- Keep Django template rendering and the modular monolith.
+- Do not introduce a Node build pipeline only for CSS organization.
+- Preserve current URLs, form names, IDs consumed by JavaScript, and CSRF flows.
+- Keep server data escaped through template output, data attributes, or
+  `json_script`.
+- Do not remove CSP allowances before all affected templates are migrated and
+  browser-tested.
 
-### 4. Navigation
-**Old:** Top navbar with Bootstrap
-**New:** Fixed sidebar (260px) with icon + label layout
-- Active state: left border accent color
-- Collapses on mobile with overlay
-- Hamburger menu on mobile
+## Target static layout
 
-### 5. Icons
-**Old:** Bootstrap Icons + Emojis in UI
-**New:** Lucide Icons (SVG-based, consistent)
-- Load via CDN: `<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>`
-- Initialize: `lucide.createIcons()`
-- Usage: `<i data-lucide="icon-name"></i>`
-
-## Icon Replacement Strategy
-
-### Bootstrap Icons → Lucide Icons Mapping
-
-| Bootstrap Icon | Lucide Icon | Usage |
-|---------------|-------------|-------|
-| bi-house | layout-dashboard | Dashboard |
-| bi-map | map | Roadmaps |
-| bi-book | book-open | Content Library |
-| bi-clipboard-check | clipboard-check | Assessments |
-| bi-code | code | Practice |
-| bi-trophy | trophy | Achievements |
-| bi-robot | bot | AI Tools |
-| bi-person | user | Profile |
-| bi-gear | settings | Settings |
-| bi-box-arrow-right | log-out | Logout |
-| bi-moon-fill | moon | Dark theme |
-| bi-sun-fill | sun | Light theme |
-| bi-plus-lg | plus | Add/Create |
-| bi-arrow-right | arrow-right | Navigation |
-| bi-fire | flame | Streak |
-| bi-check-circle | check-circle | Success |
-| bi-calendar3 | calendar | Calendar |
-| bi-star-fill | star | Rating/Level |
-| bi-lightning | zap | Quick actions |
-| bi-award | award | Badges |
-
-### Emoji Replacement Guidelines
-
-**Remove ALL emojis from UI elements:**
-- ❌ 🚀 in welcome messages
-- ❌ 🤖 in AI features
-- ❌ 🏆 in achievements
-- ❌ ⚡ in XP notifications
-- ❌ 👑 in level ups
-
-**Replace with Lucide Icons:**
-- 🚀 → `<i data-lucide="rocket"></i>`
-- 🤖 → `<i data-lucide="bot"></i>`
-- 🏆 → `<i data-lucide="trophy"></i>`
-- ⚡ → `<i data-lucide="zap"></i>`
-- 👑 → `<i data-lucide="crown"></i>`
-
-## Template Migration Steps
-
-### Step 1: Remove Gradient Backgrounds
-**Find and replace:**
-```css
-/* Old */
-background: linear-gradient(135deg, #6C63FF 0%, #4a90e2 100%);
-
-/* New */
-background: var(--bg-secondary);
-border: 1px solid var(--border-default);
+```text
+static/
+  css/
+    tokens.css
+    base.css
+    components.css
+    pages/
+      accounts.css
+      ai-tools.css
+      assessments.css
+      challenges.css
+      content.css
+      dashboard.css
+      learning.css
+      notes.css
+      practice.css
+      progress.css
+  js/
+    base.js
+    components/
+    pages/
+  vendor/
 ```
 
-### Step 2: Update Border Radius
-**Find and replace:**
-```css
-/* Old */
-border-radius: 12px;
-border-radius: 16px;
-border-radius: 20px;
+Files should be introduced only when they replace actual inline code. Avoid empty
+layers or duplicate selectors.
 
-/* New */
-border-radius: var(--radius-md); /* 6px */
-border-radius: var(--radius-lg); /* 8px, rare */
-```
+## Migration order
 
-### Step 3: Replace Colors
-**Find and replace:**
-```css
-/* Old */
-color: #6C63FF;
-background: rgba(108, 99, 255, 0.2);
-border-color: rgba(108, 99, 255, 0.3);
+### 1. Inventory and tests
 
-/* New */
-color: var(--accent);
-background: rgba(0, 85, 255, 0.1);
-border-color: var(--border-default);
-```
+For each template, record inline style blocks, inline scripts, event attributes,
+and required server values. Add a route/template smoke test before moving code.
 
-### Step 4: Replace Icons
-**Bootstrap Icons:**
-```html
-<!-- Old -->
-<i class="bi bi-house"></i>
+### 2. Low-risk static pages
 
-<!-- New -->
-<i data-lucide="layout-dashboard"></i>
-```
+Move legal, password-reset, badge-detail, leaderboard, and simple list-page CSS
+first. These pages have little JavaScript and establish naming conventions.
 
-**Emojis:**
-```html
-<!-- Old -->
-<span>🚀 Welcome</span>
+### 3. Form and list components
 
-<!-- New -->
-<span><i data-lucide="rocket" style="width: 16px; height: 16px; vertical-align: middle;"></i> Welcome</span>
-```
+Consolidate auth boxes, cards, filters, pagination, empty states, destructive
+confirmation panels, and status badges. Keep app-prefixed class names where
+styles are not genuinely shared.
 
-### Step 5: Update Button Styles
-**Old gradient buttons:**
-```html
-<!-- Old -->
-<button class="btn btn-primary" style="background: linear-gradient(135deg, #6C63FF, #4a90e2);">
-```
+### 4. Interactive feature pages
 
-**New solid buttons:**
-```html
-<!-- New -->
-<button class="btn btn-primary">
-```
+Move chat, image upload, roadmap creation, assessment timer, code review, video
+progress, analytics, and challenge scripts one workflow at a time. Replace inline
+handlers with `addEventListener` and pass URLs/configuration through data
+attributes.
 
-### Step 6: Update Card Styles
-**Old:**
-```html
-<div class="card" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 1px solid rgba(108, 99, 255, 0.2); border-radius: 16px;">
-```
+### 5. CSP tightening
 
-**New:**
-```html
-<div class="card">
-```
+Deploy a report-only policy in staging without `script-src 'unsafe-inline'`.
+Resolve all violations, test normal/error paths, then enforce. Repeat for
+`style-src`. Do not use hashes for large changing inline blocks as a substitute
+for extraction.
 
-### Step 7: Update Typography
-**Old:**
-```html
-<h2 style="color: white; font-size: 2rem;">Title</h2>
-```
+## Naming rules
 
-**New:**
-```html
-<h2>Title</h2>
-<!-- Uses Instrument Serif automatically -->
-```
+- Tokens use `--color-*`, `--space-*`, `--radius-*`, and `--shadow-*`.
+- Reusable components use clear nouns such as `.card`, `.status-badge`, and
+  `.empty-state` only when their contract is shared.
+- Feature-specific classes retain an app prefix to avoid accidental coupling.
+- JavaScript hooks use `data-*` attributes rather than presentation classes.
+- IDs are reserved for unique controls, accessibility relationships, and
+  server-provided JSON blocks.
 
-## Component-Specific Migration
+## Validation for each migrated page
 
-### Buttons
-```html
-<!-- Primary -->
-<button class="btn btn-primary">Action</button>
+- Django route renders for authenticated/anonymous states as applicable
+- keyboard activation and focus order still work
+- mobile and desktop layout smoke check
+- no new external runtime origins
+- no `innerHTML` use for untrusted plain text
+- no empty fragment links or inline event attributes
+- CSP report has no new violation
+- focused tests and `python scripts/verify.py` pass
 
-<!-- Secondary -->
-<button class="btn btn-secondary">Cancel</button>
+## Remaining debt
 
-<!-- Ghost -->
-<button class="btn btn-ghost">Link</button>
-```
-
-### Cards
-```html
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Card Title</h3>
-    </div>
-    <div class="card-body">
-        <p>Card content</p>
-    </div>
-</div>
-```
-
-### Inputs
-```html
-<label class="form-label">Label</label>
-<input type="text" class="form-control" placeholder="Placeholder">
-```
-
-### Alerts
-```html
-<div class="alert alert-success">
-    Success message
-</div>
-```
-
-### Badges
-```html
-<span class="badge badge-primary">Primary</span>
-<span class="badge badge-success">Success</span>
-<span class="badge badge-warning">Warning</span>
-<span class="badge badge-error">Error</span>
-```
-
-## CSS Variables Reference
-
-### Colors
-```css
---bg-primary: #0A0A0A
---bg-secondary: #111111
---bg-tertiary: #1A1A1A
---border-subtle: #2A2A2A
---border-default: #333333
---text-primary: #FAFAFA
---text-secondary: #A1A1A1
---text-tertiary: #6E6E6E
---accent: #0055FF
---success: #00D084
---warning: #FFB800
---error: #FF4444
-```
-
-### Spacing
-```css
---space-1: 4px
---space-2: 8px
---space-3: 12px
---space-4: 16px
---space-6: 24px
---space-8: 32px
-```
-
-### Border Radius
-```css
---radius-sm: 4px
---radius-md: 6px
---radius-lg: 8px
---radius-xl: 12px
-```
-
-## Testing Checklist
-
-After migrating each template:
-- [ ] No purple gradients remain
-- [ ] No emojis in UI elements
-- [ ] Border radius ≤ 8px (except avatars)
-- [ ] Typography uses new fonts
-- [ ] Icons are Lucide SVGs
-- [ ] Colors use CSS variables
-- [ ] Responsive on mobile (sidebar collapses)
-- [ ] Theme toggle works
-- [ ] No inline styles where possible
-
-## Priority Migration Order
-
-1. **templates/base.html** ✅ (completed)
-2. **templates/dashboard/home.html**
-3. **templates/learning/** (roadmap_list, roadmap_detail, day_detail)
-4. **templates/assessments/** (quiz_list, create_test, take_test)
-5. **templates/practice/** (code_examiner)
-6. **templates/progress/** (achievements, leaderboard)
-7. **templates/accounts/** (login, register, profile, settings)
-8. **templates/landing.html**
-
-## Notes
-
-- Bootstrap 5 CSS is still included for grid/utilities only
-- Will phase out Bootstrap completely in future iterations
-- All new components should use the design system CSS variables
-- Custom inline styles should be avoided - use CSS classes instead
-- The design system is built to be extensible - add new variables as needed
-
-## Resources
-
-- Lucide Icons: https://lucide.dev/icons/
-- Design Tokens: See `static/css/style.css`
-- Typography: Google Fonts (Instrument Serif, Inter, JetBrains Mono)
+Most feature templates still include inline page CSS and JavaScript. The current
+CSP therefore retains legacy inline allowances. Completing this document's steps
+is required before claiming a strict CSP or a finished design-system migration.

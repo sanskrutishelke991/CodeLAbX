@@ -400,3 +400,46 @@ class DashboardQueryBudgetTests(TestCase):
             25,
             msg=f"Dashboard exceeded query budget: {len(queries)}",
         )
+
+
+class DocumentationTruthTests(TestCase):
+    def test_project_documents_describe_the_current_system(self):
+        repository = Path(__file__).resolve().parent.parent
+        document_paths = [
+            repository / "docs" / "ARCHITECTURE.md",
+            repository / "docs" / "DB_SCHEMA.md",
+            repository / "docs" / "PRD.md",
+            repository / "docs" / "TASKS.md",
+            repository / "docs" / "UI_PLAN.md",
+            repository / "DESIGN_SYSTEM_MIGRATION.md",
+        ]
+        documents = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in document_paths
+        )
+        for stale_claim in [
+            "Django 4.x",
+            "Python 3.8+",
+            "OpenAI API",
+            "### users App",
+            "### roadmaps App",
+            "future mobile app development",
+            "**Total Duration**: 3-4 months",
+            "No External APIs",
+            "Phase 3: Microservices",
+        ]:
+            self.assertNotIn(stale_claim, documents)
+
+        for current_fact in [
+            "Django 6.0.7",
+            "Google Gemini",
+            "XPTransaction",
+            "PostgreSQL",
+            "Redis",
+            "not a public production",
+        ]:
+            self.assertIn(current_fact, documents)
+
+        for path in document_paths:
+            source = path.read_text(encoding="utf-8")
+            self.assertIn("Last reviewed: 2026-08-08", source)

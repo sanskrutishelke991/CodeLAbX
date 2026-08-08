@@ -48,7 +48,7 @@ class Challenge(models.Model):
     
     @property
     def is_today(self):
-        return self.date == timezone.now().date()
+        return self.date == timezone.localdate()
 
 
 class UserChallenge(models.Model):
@@ -102,20 +102,27 @@ class ChallengeStreak(models.Model):
     def update_streak(self):
         """Update streak based on today's activity"""
         from datetime import timedelta
-        today = timezone.now().date()
+        today = timezone.localdate()
         yesterday = today - timedelta(days=1)
         
-        if self.last_challenge_date == today:
-            return
-        
-        if self.last_challenge_date == yesterday:
-            self.current_streak += 1
-        else:
-            self.current_streak = 1
-        
-        if self.current_streak > self.longest_streak:
-            self.longest_streak = self.current_streak
-        
-        self.last_challenge_date = today
         self.total_challenges_completed += 1
-        self.save()
+
+        if self.last_challenge_date != today:
+            if self.last_challenge_date == yesterday:
+                self.current_streak += 1
+            else:
+                self.current_streak = 1
+
+            if self.current_streak > self.longest_streak:
+                self.longest_streak = self.current_streak
+
+            self.last_challenge_date = today
+
+        self.save(
+            update_fields=[
+                "current_streak",
+                "longest_streak",
+                "last_challenge_date",
+                "total_challenges_completed",
+            ]
+        )
