@@ -12,7 +12,7 @@ microservices.
 ## Runtime stack
 
 - Python 3.12 or 3.14
-- Django 6.0.7
+- Django 6.0.8
 - Django templates, Bootstrap 5.3.8, Bootstrap Icons 1.13.1, and vanilla JS
 - SQLite and process-local cache by default for development
 - Optional PostgreSQL, Redis, WhiteNoise, and Gunicorn configuration for staging
@@ -117,7 +117,7 @@ blocker.
 - Daily challenge generation needs an external scheduler invoking the management
   command.
 - Local user media is not private production storage.
-- CSP still permits legacy inline script/style blocks in many page templates.
+- CSP blocks inline scripts and handlers; legacy style attributes remain temporarily allowed.
 - No staging provider, monitoring vendor, or production email service is chosen.
 - PostgreSQL/Redis support is configured and tested, but no real production data
   migration has been performed.

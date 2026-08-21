@@ -5,6 +5,13 @@
 <link rel="stylesheet" href="{% static 'css/pages/assessments-take_test.css' %}">
 {% endblock %}
 {% block content %}
+<div id="testRuntime"
+     data-storage-key="test_{{ test.id }}_answers"
+     data-seconds-remaining="{{ seconds_remaining }}"
+     data-attempt-id="{{ attempt.id }}"
+     data-submit-url="{% url 'assessments:submit' test.id %}"
+     data-result-url="{% url 'assessments:result' test.id %}"
+     hidden></div>
 <div class="test-header">
     <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div>
@@ -24,7 +31,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <span style="color: #a0a0a0;">Question <span id="currentQ">1</span> of <span id="totalQ">{{ test.num_questions }}</span></span>
-    <button class="btn btn-sm btn-outline-light" onclick="saveProgress()">
+    <button type="button" class="btn btn-sm btn-outline-light" id="saveProgressBtn">
         <i class="bi bi-save me-1"></i>Save Progress
     </button>
 </div>
@@ -40,13 +47,13 @@
     </div>
     
     <div class="d-flex justify-content-between mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.1);">
-        <button class="btn-nav" id="prevBtn" onclick="prevQuestion()" disabled>
+        <button type="button" class="btn-nav" id="prevBtn" disabled>
             <i class="bi bi-arrow-left me-2"></i>Previous
         </button>
-        <button class="btn-nav" id="nextBtn" onclick="nextQuestion()">
+        <button type="button" class="btn-nav" id="nextBtn">
             Next<i class="bi bi-arrow-right ms-2"></i>
         </button>
-        <button class="btn-submit" id="submitBtn" onclick="showSubmitModal()" style="display: none;">
+        <button type="button" class="btn-submit" id="submitBtn" style="display: none;">
             <i class="bi bi-check-circle me-2"></i>Submit Test
         </button>
     </div>
@@ -66,7 +73,7 @@
             </div>
             <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">Cancel</button>
-                <button type="button" class="btn btn-submit" onclick="submitTest()">Submit</button>
+                <button type="button" class="btn btn-submit" id="confirmSubmitBtn">Submit</button>
             </div>
         </div>
     </div>
@@ -74,201 +81,5 @@
 {% endblock %}
 {% block extra_js %}
 {{ public_questions|json_script:"test-questions-data" }}
-<script>
-const questions = JSON.parse(
-    document
-        .getElementById('test-questions-data')
-        .textContent
-);
-let currentQuestion = 0;
-let answers = {};
-let timeRemaining = {{ seconds_remaining }};
-let timerInterval;
-
-// Load saved answers from localStorage
-function loadSavedAnswers() {
-    const saved = localStorage.getItem('test_{{ test.id }}_answers');
-    if (saved) {
-        answers = JSON.parse(saved);
-    }
-}
-
-// Save answers to localStorage
-function saveProgress() {
-    localStorage.setItem('test_{{ test.id }}_answers', JSON.stringify(answers));
-}
-
-// Render current question
-function renderQuestion() {
-    const q = questions[currentQuestion];
-    document.getElementById('qNumber').textContent = currentQuestion + 1;
-    document.getElementById('currentQ').textContent = currentQuestion + 1;
-    document.getElementById('questionText').textContent = q.question;
-    
-    // Update progress bar
-    const progress = ((currentQuestion + 1) / questions.length) * 100;
-    document.getElementById('progressBar').style.width = progress + '%';
-    
-    // Render options
-    const container = document.getElementById('optionsContainer');
-    container.innerHTML = '';
-    
-    q.options.forEach((option, index) => {
-        const isSelected = answers[currentQuestion] === index;
-        const label = document.createElement('label');
-        label.className = 'option-label' + (isSelected ? ' selected' : '');
-        const input = document.createElement(
-            'input'
-        );
-
-        input.type = 'radio';
-        input.name = 'option';
-        input.className = 'option-input';
-        input.value = index;
-        input.checked = isSelected;
-
-        const text = document.createElement(
-            'span'
-        );
-
-        text.className = 'option-text';
-        text.textContent = (
-            `${String.fromCharCode(65 + index)}. `
-            + option
-        );
-
-        label.appendChild(input);
-        label.appendChild(text);
-        label.onclick = () => selectOption(index);
-        container.appendChild(label);
-    });
-    
-    // Update buttons
-    document.getElementById('prevBtn').disabled = currentQuestion === 0;
-    
-    if (currentQuestion === questions.length - 1) {
-        document.getElementById('nextBtn').style.display = 'none';
-        document.getElementById('submitBtn').style.display = 'inline-block';
-    } else {
-        document.getElementById('nextBtn').style.display = 'inline-block';
-        document.getElementById('submitBtn').style.display = 'none';
-    }
-}
-
-// Select an option
-function selectOption(index) {
-    answers[currentQuestion] = index;
-    renderQuestion();
-    saveProgress();
-}
-
-// Navigate questions
-function nextQuestion() {
-    if (currentQuestion < questions.length - 1) {
-        currentQuestion++;
-        renderQuestion();
-    }
-}
-
-function prevQuestion() {
-    if (currentQuestion > 0) {
-        currentQuestion--;
-        renderQuestion();
-    }
-}
-
-// Timer
-function updateTimer() {
-    const minutes = Math.floor(timeRemaining / 60);
-    const seconds = timeRemaining % 60;
-    const timerEl = document.getElementById('timer');
-    
-    timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    
-    if (timeRemaining <= 60) {
-        timerEl.classList.add('timer-warning');
-    }
-    
-    if (timeRemaining <= 0) {
-        clearInterval(timerInterval);
-        alert('Time is up! Submitting your test...');
-        submitTest();
-    }
-    
-    timeRemaining--;
-}
-
-// Show submit modal
-function showSubmitModal() {
-    const answered = Object.keys(answers).length;
-    document.getElementById('answeredCount').textContent = answered;
-    new bootstrap.Modal(document.getElementById('submitModal')).show();
-}
-
-// Submit test
-async function submitTest() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('submitModal'));
-    if (modal) modal.hide();
-    
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Submitting...';
-    
-    clearInterval(timerInterval);
-    
-    const timeTaken = ({{ test.time_limit_minutes }} * 60) - timeRemaining;
-    
-    try {
-        const response = await fetch('/assessments/api/submit/{{ test.id }}/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                answers: answers,
-                attempt_id: {{ attempt.id }}
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            localStorage.removeItem('test_{{ test.id }}_answers');
-            window.location.href = '/assessments/result/{{ test.id }}/';
-        } else {
-            alert('Error submitting test: ' + data.error);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Submit Test';
-        }
-    } catch (error) {
-        alert('Error: ' + error.message);
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Submit Test';
-    }
-}
-
-function getCookie(name) {
-    let v = null;
-    if (document.cookie) {
-        for (let c of document.cookie.split(';')) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) { v = decodeURIComponent(c.substring(name.length + 1)); break; }
-        }
-    }
-    return v;
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    loadSavedAnswers();
-    renderQuestion();
-    timerInterval = setInterval(updateTimer, 1000);
-});
-
-// Auto-save on page unload
-window.addEventListener('beforeunload', function() {
-    saveProgress();
-});
-</script>
+<script src="{% static 'js/pages/assessments-take_test.js' %}"></script>
 {% endblock %}

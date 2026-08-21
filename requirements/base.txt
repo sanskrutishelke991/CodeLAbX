@@ -1,4 +1,4 @@
-Django==6.0.7
+Django==6.0.8
 google-genai==2.16.0
 Markdown==3.10.3
 nh3==0.3.6

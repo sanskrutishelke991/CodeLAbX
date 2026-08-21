@@ -19,8 +19,12 @@ class SecurityHeadersMiddleware:
             "; ".join(
                 [
                     "default-src 'self'",
-                    "script-src 'self' 'unsafe-inline'",
-                    "style-src 'self' 'unsafe-inline'",
+                    "script-src 'self'",
+                    "script-src-elem 'self'",
+                    "script-src-attr 'none'",
+                    "style-src 'self'",
+                    "style-src-elem 'self'",
+                    "style-src-attr 'unsafe-inline'",
                     "font-src 'self' data:",
                     "img-src 'self' data: blob: https://img.youtube.com",
                     "frame-src https://www.youtube.com https://www.youtube-nocookie.com",

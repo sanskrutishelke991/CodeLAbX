@@ -72,7 +72,7 @@ python scripts/load_smoke.py --help
 - Server-controlled assessment timing
 - Privacy-scoped profiles, chats, and leaderboards
 - Self-hosted, version-pinned browser dependencies
-- Enforced origin-restricting CSP (legacy inline allowances remain)
+- Enforced CSP with no inline scripts/handlers; bounded legacy style attributes remain
 - Optional PostgreSQL, shared Redis cache, WhiteNoise, and bounded runtime settings
 - Separate liveness/readiness probes and a secret-safe production preflight
 

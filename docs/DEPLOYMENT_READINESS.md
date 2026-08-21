@@ -54,8 +54,8 @@ python manage.py production_preflight --strict
 ```
 
 Normal mode blocks on errors. Strict mode also blocks on known warnings. Current
-warnings intentionally document unfinished private media storage, legacy inline
-CSP allowances, background jobs, monitoring, and restore-tested backups.
+warnings intentionally document unfinished private media storage, bounded legacy
+style attributes, background jobs, monitoring, and restore-tested backups.
 
 ## Static files and process startup
 

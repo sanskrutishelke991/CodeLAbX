@@ -51,13 +51,13 @@
             <!-- Action Buttons -->
             <div class="video-actions">
                 <button class="action-btn {% if progress.is_watched %}watched{% endif %}" 
-                        id="watchedBtn" onclick="markWatched()">
+                        id="watchedBtn" data-endpoint="{% url 'content:mark_watched' video.id %}">
                     <i class="bi bi-check-circle{% if progress.is_watched %}-fill{% endif %}"></i>
                     <span>{% if progress.is_watched %}Watched{% else %}Mark Watched{% endif %}</span>
                 </button>
                 
                 <button class="action-btn {% if progress.is_favorited %}favorited{% endif %}" 
-                        id="favoriteBtn" onclick="toggleFavorite()">
+                        id="favoriteBtn" data-endpoint="{% url 'content:toggle_favorite' video.id %}">
                     <i class="bi bi-heart{% if progress.is_favorited %}-fill{% endif %}"></i>
                     <span>{% if progress.is_favorited %}Favorited{% else %}Favorite{% endif %}</span>
                 </button>
@@ -113,74 +113,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function getCookie(name) {
-    let value = null;
-    if (document.cookie) {
-        for (let c of document.cookie.split(';')) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) {
-                value = decodeURIComponent(c.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return value;
-}
-
-async function markWatched() {
-    const btn = document.getElementById('watchedBtn');
-    
-    try {
-        const response = await fetch('/content/video/{{ video.id }}/watched/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            btn.classList.add('watched');
-            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> <span>Watched</span>';
-            
-            if (typeof showToast === 'function') {
-                showToast('xp', '+10 XP', 'Video marked as watched!', '⚡');
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function toggleFavorite() {
-    const btn = document.getElementById('favoriteBtn');
-    
-    try {
-        const response = await fetch('/content/video/{{ video.id }}/favorite/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            if (data.is_favorited) {
-                btn.classList.add('favorited');
-                btn.innerHTML = '<i class="bi bi-heart-fill"></i> <span>Favorited</span>';
-            } else {
-                btn.classList.remove('favorited');
-                btn.innerHTML = '<i class="bi bi-heart"></i> <span>Favorite</span>';
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-</script>
+<script src="{% static 'js/pages/content-video_detail.js' %}"></script>
 {% endblock %}

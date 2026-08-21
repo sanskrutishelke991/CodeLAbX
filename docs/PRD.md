@@ -92,8 +92,8 @@ must distinguish AI feedback from verified results.
 
 A change is complete only when focused tests and `scripts/verify.py` pass. Public
 production additionally requires PostgreSQL/Redis staging, private object
-storage, asynchronous AI jobs, real email, monitoring, enforceable CSP without
-legacy inline allowances, backup restoration, rollback rehearsal, and authorized
+storage, asynchronous AI jobs, real email, monitoring, final CSP without legacy
+style attributes, backup restoration, rollback rehearsal, and authorized
 load testing.
 
 ## Success measures

@@ -1,2 +1,7 @@
-<button type="button" class="btn btn-outline-light bookmark-current" data-title="{{ bookmark_title }}" data-type="{{ bookmark_type }}"><i class="bi bi-bookmark-plus"></i> Save bookmark</button>
-<script>(function(){const button=document.currentScript.previousElementSibling;if(!button)return;button.addEventListener('click',async()=>{button.disabled=true;try{const response=await fetch('{% url "notes:bookmark_add" %}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':(document.cookie.match(/csrftoken=([^;]+)/)||[])[1]||''},body:JSON.stringify({title:button.dataset.title,url:window.location.pathname,type:button.dataset.type,icon:'bookmark'})});const data=await response.json();button.textContent=data.success?'Saved':'Could not save';}catch(error){button.textContent='Could not save';}finally{setTimeout(()=>{button.disabled=false;},1200);}});})();</script>
+<button type="button"
+        class="btn btn-outline-light bookmark-current"
+        data-title="{{ bookmark_title }}"
+        data-type="{{ bookmark_type }}"
+        data-endpoint="{% url 'notes:bookmark_add' %}">
+    <i class="bi bi-bookmark-plus"></i> Save bookmark
+</button>

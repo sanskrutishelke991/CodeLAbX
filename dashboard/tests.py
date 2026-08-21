@@ -243,6 +243,22 @@ class OperationalSecurityTests(TestCase):
         self.assertEqual(response["X-DNS-Prefetch-Control"], "off")
         self.assertIn("Content-Security-Policy", response)
         self.assertNotIn("Content-Security-Policy-Report-Only", response)
+        policy = response["Content-Security-Policy"]
+        directives = {
+            part.strip().split(" ", 1)[0]: part.strip()
+            for part in policy.split(";")
+            if part.strip()
+        }
+        self.assertEqual(directives["script-src"], "script-src 'self'")
+        self.assertEqual(
+            directives["script-src-attr"],
+            "script-src-attr 'none'",
+        )
+        self.assertNotIn("'unsafe-inline'", directives["style-src"])
+        self.assertEqual(
+            directives["style-src-attr"],
+            "style-src-attr 'unsafe-inline'",
+        )
 
     def test_obsolete_backup_files_are_removed(self):
         repository = Path(__file__).resolve().parent.parent
@@ -393,15 +409,15 @@ class FrontendExtractionBudgetTests(TestCase):
                 affected_templates += 1
 
         self.assertEqual(style_blocks, 0)
-        self.assertLessEqual(inline_scripts, 10)
-        self.assertLessEqual(event_handlers, 34)
-        self.assertLessEqual(style_attributes, 209)
-        self.assertLessEqual(affected_templates, 10)
+        self.assertEqual(inline_scripts, 0)
+        self.assertEqual(event_handlers, 0)
+        self.assertLessEqual(style_attributes, 201)
+        self.assertEqual(affected_templates, 0)
 
         page_css = list((repository / "static" / "css" / "pages").glob("*.css"))
         page_js = list((repository / "static" / "js" / "pages").glob("*.js"))
         self.assertEqual(len(page_css), 37)
-        self.assertEqual(len(page_js), 11)
+        self.assertEqual(len(page_js), 20)
         for asset in page_css + page_js:
             source = asset.read_text(encoding="utf-8")
             self.assertNotIn("{%", source)
@@ -514,7 +530,7 @@ class DocumentationTruthTests(TestCase):
             self.assertNotIn(stale_claim, documents)
 
         for current_fact in [
-            "Django 6.0.7",
+            "Django 6.0.8",
             "Google Gemini",
             "XPTransaction",
             "PostgreSQL",

@@ -41,9 +41,10 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Extract all page-specific inline CSS into versioned static stylesheets
 - [x] Extract non-dynamic inline scripts and remove the first 23 event handlers
 - [x] Add regression budgets so inline debt cannot increase
-- [ ] Extract the 10 remaining dynamic scripts and 34 event attributes
-- [ ] Replace the remaining template/runtime style attributes
-- [ ] Remove `'unsafe-inline'` from CSP in report-only staging first
+- [x] Extract the 10 remaining dynamic scripts and 34 event attributes
+- [x] Remove inline-script allowances and block script attributes in enforced CSP
+- [ ] Replace the remaining 201 template/runtime style attributes
+- [ ] Remove `style-src-attr 'unsafe-inline'` after staging browser tests
 - [ ] Add browser-level keyboard, responsive, and CSP smoke checks
 - [ ] Verify YouTube embedding and external navigation under the stricter policy
 

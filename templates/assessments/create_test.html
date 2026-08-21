@@ -34,7 +34,7 @@
     </div>
     
     <!-- FORM -->
-    <form method="post" class="form-wrapper" id="testForm">
+    <form method="post" class="form-wrapper" id="testForm" data-generate-endpoint="{% url 'assessments:generate' %}">
         {% csrf_token %}
         
         <!-- Section 1: Topic -->
@@ -54,14 +54,14 @@
             
             <p class="section-subtitle" style="margin-top: 12px;">💡 Popular topics right now:</p>
             <div class="suggested-topics">
-                <span class="topic-chip trending" onclick="setTopic('Python Basics')">Python Basics</span>
-                <span class="topic-chip trending" onclick="setTopic('Machine Learning')">Machine Learning</span>
-                <span class="topic-chip trending" onclick="setTopic('JavaScript ES6')">JavaScript ES6</span>
-                <span class="topic-chip" onclick="setTopic('Data Structures')">Data Structures</span>
-                <span class="topic-chip" onclick="setTopic('React Hooks')">React Hooks</span>
-                <span class="topic-chip" onclick="setTopic('SQL Queries')">SQL Queries</span>
-                <span class="topic-chip" onclick="setTopic('Docker Basics')">Docker Basics</span>
-                <span class="topic-chip" onclick="setTopic('Git Commands')">Git Commands</span>
+                <button type="button" class="topic-chip trending" data-test-topic="Python Basics">Python Basics</button>
+                <button type="button" class="topic-chip trending" data-test-topic="Machine Learning">Machine Learning</button>
+                <button type="button" class="topic-chip trending" data-test-topic="JavaScript ES6">JavaScript ES6</button>
+                <button type="button" class="topic-chip" data-test-topic="Data Structures">Data Structures</button>
+                <button type="button" class="topic-chip" data-test-topic="React Hooks">React Hooks</button>
+                <button type="button" class="topic-chip" data-test-topic="SQL Queries">SQL Queries</button>
+                <button type="button" class="topic-chip" data-test-topic="Docker Basics">Docker Basics</button>
+                <button type="button" class="topic-chip" data-test-topic="Git Commands">Git Commands</button>
             </div>
         </div>
         
@@ -74,21 +74,21 @@
             <p class="section-subtitle">How challenging should it be?</p>
             
             <div class="difficulty-grid">
-                <div class="difficulty-card easy selected" onclick="selectDifficulty('easy', this)">
+                <div class="difficulty-card easy selected" role="button" tabindex="0" data-test-difficulty="easy">
                     <span class="diff-emoji">🌱</span>
                     <div class="diff-name">Easy</div>
                     <p class="diff-desc">Perfect for beginners</p>
                     <div class="diff-badge">Beginner</div>
                 </div>
                 
-                <div class="difficulty-card medium" onclick="selectDifficulty('medium', this)">
+                <div class="difficulty-card medium" role="button" tabindex="0" data-test-difficulty="medium">
                     <span class="diff-emoji">⚡</span>
                     <div class="diff-name">Medium</div>
                     <p class="diff-desc">Balanced challenge</p>
                     <div class="diff-badge">Intermediate</div>
                 </div>
                 
-                <div class="difficulty-card hard" onclick="selectDifficulty('hard', this)">
+                <div class="difficulty-card hard" role="button" tabindex="0" data-test-difficulty="hard">
                     <span class="diff-emoji">🔥</span>
                     <div class="diff-name">Hard</div>
                     <p class="diff-desc">Test your expertise</p>
@@ -120,7 +120,7 @@
                         </div>
                         <input type="range" name="num_questions" id="countSlider" 
                                class="count-slider" min="5" max="30" value="10" step="5"
-                               oninput="updateCount(this.value)">
+                               data-question-count>
                         <div class="count-range">
                             <span>5</span>
                             <span>15</span>
@@ -135,17 +135,17 @@
                         Time Limit
                     </label>
                     <div class="time-presets">
-                        <div class="time-preset" onclick="selectTime(5, this)">
+                        <div class="time-preset" role="button" tabindex="0" data-test-time="5">
                             <div class="time-preset-icon">⚡</div>
                             <div class="time-preset-value">5</div>
                             <div class="time-preset-label">Quick</div>
                         </div>
-                        <div class="time-preset selected" onclick="selectTime(10, this)">
+                        <div class="time-preset selected" role="button" tabindex="0" data-test-time="10">
                             <div class="time-preset-icon">⏱️</div>
                             <div class="time-preset-value">10</div>
                             <div class="time-preset-label">Standard</div>
                         </div>
-                        <div class="time-preset" onclick="selectTime(20, this)">
+                        <div class="time-preset" role="button" tabindex="0" data-test-time="20">
                             <div class="time-preset-icon">🏃</div>
                             <div class="time-preset-value">20</div>
                             <div class="time-preset-label">Extended</div>
@@ -198,83 +198,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Set topic from chip
-    function setTopic(topic) {
-        document.getElementById('topicInput').value = topic;
-        document.getElementById('topicInput').focus();
-    }
-    
-    // Select difficulty
-    function selectDifficulty(diff, elem) {
-        document.querySelectorAll('.difficulty-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        elem.classList.add('selected');
-        document.getElementById('difficultyInput').value = diff;
-        updateXPPreview();
-    }
-    
-    // Select time preset
-    function selectTime(minutes, elem) {
-        document.querySelectorAll('.time-preset').forEach(p => {
-            p.classList.remove('selected');
-        });
-        elem.classList.add('selected');
-        document.getElementById('timeInput').value = minutes;
-        document.getElementById('previewTime').textContent = minutes + ' min';
-    }
-    
-    // Update question count
-    function updateCount(value) {
-        document.getElementById('countDisplay').textContent = value;
-        document.getElementById('previewQuestions').textContent = value;
-        updateXPPreview();
-    }
-    
-    // Update XP preview
-    function updateXPPreview() {
-        const questions = parseInt(document.getElementById('countSlider').value);
-        const difficulty = document.getElementById('difficultyInput').value;
-        const multiplier = { easy: 5, medium: 8, hard: 12 };
-        const xp = questions * (multiplier[difficulty] || 5);
-        document.getElementById('previewXP').textContent = '+' + xp + ' XP';
-    }
-    
-    document.getElementById('testForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const btn = document.getElementById('submitBtn');
-        const original = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split"></i><span>Generating with AI...</span>';
-
-        try {
-            const response = await fetch('{% url "assessments:generate" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({
-                    topic: document.getElementById('topicInput').value,
-                    difficulty: document.getElementById('difficultyInput').value,
-                    num_questions: parseInt(document.getElementById('countSlider').value),
-                    time_limit_minutes: parseInt(document.getElementById('timeInput').value)
-                })
-            });
-            const data = await response.json();
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || 'Unable to generate the assessment.');
-            }
-            window.location.href = data.redirect_url;
-        } catch (error) {
-            alert(error.message);
-            btn.disabled = false;
-            btn.innerHTML = original;
-        }
-    });
-    
-    // Initialize
-    updateXPPreview();
-</script>
+<script src="{% static 'js/pages/assessments-create_test.js' %}"></script>
 {% endblock %}

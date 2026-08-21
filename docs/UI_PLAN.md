@@ -5,9 +5,9 @@ Last reviewed: 2026-08-08
 ## Current interface system
 
 CodeLabX uses Django templates, self-hosted Bootstrap 5.3.8, self-hosted Bootstrap
-Icons 1.13.1, and vanilla JavaScript. The application shell and public landing
-page have extracted static CSS/JS. Many feature pages still contain scoped inline
-blocks and therefore keep a temporary CSP `'unsafe-inline'` allowance.
+Icons 1.13.1, and vanilla JavaScript. Application and feature-page CSS/JS are
+served as static files. CSP blocks inline scripts and event handlers; only bounded
+legacy style attributes remain temporarily allowed.
 
 ## Design principles
 
@@ -99,17 +99,18 @@ Completed in the first page-extraction tranche:
 - roadmap, assessment-list, note, image-history, and code-review controls moved
   from inline event attributes to listeners
 
-Measured remaining template debt is bounded by tests: 10 inline script blocks,
-34 inline event attributes, and 209 `style=` attributes across 10 templates.
+The second tranche moved all 10 dynamic scripts to static files, passed server
+configuration through escaped data attributes/`json_script`, and removed all 34
+remaining event attributes. Template regression tests now require zero style
+blocks, zero inline scripts, and zero inline handlers.
 
-Next steps:
+Remaining work:
 
-1. Pass remaining server values through escaped data attributes or `json_script`.
-2. Extract the 10 dynamic feature scripts.
-3. Replace the remaining event and style attributes.
-4. Add CSP violation reporting in staging.
-5. Remove `'unsafe-inline'` from `script-src`, then from `style-src`.
-6. Enforce the stricter policy only after browser smoke tests pass.
+1. Replace the remaining 201 template `style=` attributes and runtime-generated
+   style attributes.
+2. Add CSP violation reporting in staging.
+3. Remove the temporary `style-src-attr 'unsafe-inline'` allowance.
+4. Run browser smoke tests before enforcing the final style policy.
 
 ## UI acceptance checklist
 

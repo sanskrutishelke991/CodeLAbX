@@ -19,7 +19,7 @@ migration plan, not a claim that all templates are already consolidated.
 - Self-hosted browser packages: `static/vendor/`
 - Page-specific templates: `templates/<app>/`
 - Extracted page styles: `static/css/pages/` (37 files; no template style blocks)
-- Extracted non-dynamic page behavior: `static/js/pages/` (11 files)
+- Extracted page behavior: `static/js/pages/` (20 files; no executable inline scripts)
 - Theme variables: dark/light custom properties in the shared CSS
 
 Bootstrap, Bootstrap Icons, and Chart.js are versioned and checksum-tracked.
@@ -119,9 +119,9 @@ for extraction.
 
 ## Remaining debt
 
-No template `<style>` blocks remain. Ten dynamic inline scripts, 34 inline event
-attributes, and 209 template `style=` attributes remain in 10 feature templates.
-Some extracted JavaScript also creates elements with style attributes. The CSP
-therefore still retains legacy inline allowances. Complete the dynamic-script and
-style-attribute migration plus browser testing before claiming a strict CSP or a
-finished design-system migration.
+No template `<style>` blocks, executable inline scripts, or inline event
+attributes remain. Twenty page JavaScript files consume escaped data attributes or
+`json_script` data. CSP now blocks inline scripts and handlers. The remaining debt
+is 201 template style attributes plus styles created by a few interactive scripts;
+these require `style-src-attr 'unsafe-inline'` until the final class-based style
+migration and browser testing are complete.

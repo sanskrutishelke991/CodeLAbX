@@ -141,10 +141,15 @@ def collect_production_findings(config) -> list[Finding]:
             "PRD-W003",
             "User media still uses local filesystem storage; private object storage is pending.",
         )
-    if bool(getattr(config, "CSP_LEGACY_INLINE_ALLOWED", True)):
+    if bool(getattr(config, "CSP_LEGACY_INLINE_ALLOWED", False)):
         warning(
             "PRD-W004",
-            "CSP still permits legacy inline scripts and styles.",
+            "CSP still permits legacy inline scripts or style elements.",
+        )
+    elif bool(getattr(config, "CSP_STYLE_ATTRIBUTES_ALLOWED", True)):
+        warning(
+            "PRD-W004",
+            "CSP still permits bounded legacy style attributes.",
         )
     if not bool(getattr(config, "TRUST_X_FORWARDED_PROTO", False)):
         warning(

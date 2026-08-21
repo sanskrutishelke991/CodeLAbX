@@ -266,6 +266,40 @@
         window.closeOmnitrixNew = close;
     }
 
+    function initializeBookmarks() {
+        document.querySelectorAll(".bookmark-current[data-endpoint]").forEach(function (button) {
+            button.addEventListener("click", async function () {
+                button.disabled = true;
+                try {
+                    const token = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+                    const response = await fetch(button.dataset.endpoint, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": token ? decodeURIComponent(token[1]) : "",
+                        },
+                        body: JSON.stringify({
+                            title: button.dataset.title,
+                            url: window.location.pathname,
+                            type: button.dataset.type,
+                            icon: "bookmark",
+                        }),
+                    });
+                    const data = await response.json();
+                    button.textContent = response.ok && data.success
+                        ? "Saved"
+                        : "Could not save";
+                } catch (error) {
+                    button.textContent = "Could not save";
+                } finally {
+                    window.setTimeout(function () {
+                        button.disabled = false;
+                    }, 1200);
+                }
+            });
+        });
+    }
+
     function initializeConfirmations() {
         document.querySelectorAll("form[data-confirm]").forEach(function (form) {
             form.addEventListener("submit", function (event) {
@@ -301,6 +335,7 @@
         initializeNavigation();
         initializeChat();
         initializeOmnitrix();
+        initializeBookmarks();
         initializeConfirmations();
         initializeToolFilters();
     });

@@ -20,7 +20,7 @@
     </div>
 </div>
 
-<form id="uploadForm" enctype="multipart/form-data">
+<form id="uploadForm" enctype="multipart/form-data" data-upload-endpoint="{% url 'ai_tools:image_analyzer' %}">
     {% csrf_token %}
     
     <!-- Upload Area -->
@@ -34,7 +34,7 @@
         <div class="preview-container" id="previewContainer">
             <img id="previewImage" class="preview-image" alt="Preview">
             <p class="mt-3">
-                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeImage()">
+                <button type="button" class="btn btn-outline-danger btn-sm" data-remove-image>
                     <i class="bi bi-trash"></i> Remove
                 </button>
             </p>
@@ -51,31 +51,31 @@
         
         <div class="row g-3">
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="type-option selected" onclick="selectType('general', this)">
+                <div class="type-option selected" role="button" tabindex="0" data-analysis-type="general">
                     <div class="type-icon">🖼️</div>
                     <div class="type-name">General</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="type-option" onclick="selectType('code', this)">
+                <div class="type-option" role="button" tabindex="0" data-analysis-type="code">
                     <div class="type-icon">💻</div>
                     <div class="type-name">Code</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="type-option" onclick="selectType('math', this)">
+                <div class="type-option" role="button" tabindex="0" data-analysis-type="math">
                     <div class="type-icon">🧮</div>
                     <div class="type-name">Math</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="type-option" onclick="selectType('handwritten', this)">
+                <div class="type-option" role="button" tabindex="0" data-analysis-type="handwritten">
                     <div class="type-icon">✍️</div>
                     <div class="type-name">Notes</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="type-option" onclick="selectType('diagram', this)">
+                <div class="type-option" role="button" tabindex="0" data-analysis-type="diagram">
                     <div class="type-icon">📊</div>
                     <div class="type-name">Diagram</div>
                 </div>
@@ -111,127 +111,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-const uploadCard = document.getElementById('uploadCard');
-const imageInput = document.getElementById('imageInput');
-const previewContainer = document.getElementById('previewContainer');
-const previewImage = document.getElementById('previewImage');
-const uploadPrompt = document.getElementById('uploadPrompt');
-
-// Click to upload
-uploadCard.addEventListener('click', () => {
-    if (!previewContainer.style.display || previewContainer.style.display === 'none') {
-        imageInput.click();
-    }
-});
-
-// Drag and drop
-uploadCard.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadCard.classList.add('dragover');
-});
-
-uploadCard.addEventListener('dragleave', () => {
-    uploadCard.classList.remove('dragover');
-});
-
-uploadCard.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadCard.classList.remove('dragover');
-    if (e.dataTransfer.files.length) {
-        imageInput.files = e.dataTransfer.files;
-        showPreview(e.dataTransfer.files[0]);
-    }
-});
-
-imageInput.addEventListener('change', (e) => {
-    if (e.target.files.length) {
-        showPreview(e.target.files[0]);
-    }
-});
-
-function showPreview(file) {
-    if (file.size > 5 * 1024 * 1024) {
-        alert('File too large! Max 5MB.');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        previewImage.src = e.target.result;
-        uploadPrompt.style.display = 'none';
-        previewContainer.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-}
-
-function removeImage() {
-    imageInput.value = '';
-    previewImage.src = '';
-    uploadPrompt.style.display = 'block';
-    previewContainer.style.display = 'none';
-}
-
-function selectType(type, elem) {
-    document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
-    elem.classList.add('selected');
-    document.getElementById('analysisType').value = type;
-}
-
-function getCookie(name) {
-    let value = null;
-    if (document.cookie) {
-        for (let c of document.cookie.split(';')) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) {
-                value = decodeURIComponent(c.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return value;
-}
-
-document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    if (!imageInput.files.length) {
-        alert('Please select an image');
-        return;
-    }
-    
-    const submitBtn = document.getElementById('submitBtn');
-    const loadingContainer = document.getElementById('loadingContainer');
-    
-    submitBtn.disabled = true;
-    submitBtn.style.display = 'none';
-    loadingContainer.style.display = 'block';
-    
-    const formData = new FormData(e.target);
-    
-    try {
-        const response = await fetch('{% url "ai_tools:image_analyzer" %}', {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') },
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            window.location.href = data.redirect_url;
-        } else {
-            alert('Error: ' + data.error);
-            submitBtn.disabled = false;
-            submitBtn.style.display = 'block';
-            loadingContainer.style.display = 'none';
-        }
-    } catch (error) {
-        alert('Error: ' + error.message);
-        submitBtn.disabled = false;
-        submitBtn.style.display = 'block';
-        loadingContainer.style.display = 'none';
-    }
-});
-</script>
+<script src="{% static 'js/pages/ai_tools-image_analyzer.js' %}"></script>
 {% endblock %}
