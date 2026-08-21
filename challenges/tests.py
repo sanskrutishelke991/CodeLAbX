@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -438,3 +439,65 @@ class ChallengeSubmissionValidationTests(TestCase):
         streak = ChallengeStreak.objects.get(user=self.user)
         self.assertEqual(streak.current_streak, 1)
         self.assertEqual(streak.total_challenges_completed, 2)
+
+
+from django.tasks.base import TaskResultStatus
+
+from .tasks import generate_daily_challenges_task
+
+
+class ChallengeTaskContractTests(TestCase):
+    @patch("challenges.tasks.generate_challenges_for_date")
+    def test_immediate_backend_executes_json_safe_task(self, generate):
+        generated = SimpleNamespace(id=41)
+        generate.return_value = ChallengeGenerationReport(
+            generated=[generated],
+            existing=["theory"],
+        )
+        result = generate_daily_challenges_task.enqueue(
+            target_date="2026-08-21",
+            difficulty="hard",
+        )
+        self.assertEqual(result.status, TaskResultStatus.SUCCESSFUL)
+        self.assertEqual(
+            result.return_value,
+            {
+                "generated_ids": [41],
+                "existing": ["theory"],
+                "already_running": False,
+            },
+        )
+        generate.assert_called_once_with(
+            target_date=date(2026, 8, 21),
+            difficulty="hard",
+        )
+
+    @patch("challenges.tasks.generate_challenges_for_date")
+    def test_task_failure_is_visible_to_backend(self, generate):
+        generate.return_value = ChallengeGenerationReport(failed=["coding"])
+        result = generate_daily_challenges_task.enqueue(
+            target_date="2026-08-21"
+        )
+        self.assertEqual(result.status, TaskResultStatus.FAILED)
+        self.assertTrue(result.errors)
+
+    @patch("challenges.tasks.generate_challenges_for_date")
+    def test_enqueue_command_reports_task_identifier(self, generate):
+        generate.return_value = ChallengeGenerationReport(existing=["coding"])
+        output = StringIO()
+        call_command(
+            "enqueue_daily_challenges",
+            target_date="2026-08-21",
+            stdout=output,
+            no_color=True,
+        )
+        self.assertIn("accepted with status successful", output.getvalue())
+
+    def test_enqueue_command_rejects_invalid_date(self):
+        with self.assertRaisesRegex(CommandError, "YYYY-MM-DD"):
+            call_command(
+                "enqueue_daily_challenges",
+                target_date="21/08/2026",
+                stdout=StringIO(),
+                no_color=True,
+            )

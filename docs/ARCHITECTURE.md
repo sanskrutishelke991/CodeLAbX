@@ -113,9 +113,10 @@ blocker.
 
 ## Known architectural limits
 
-- AI calls are synchronous request work; no background worker is configured.
-- Daily challenge generation needs an external scheduler invoking the management
-  command.
+- Django's Tasks contract is configured with immediate local execution; a durable
+  third-party backend and worker are still required for production.
+- Daily challenge generation can be enqueued safely, but an external scheduler
+  must invoke the enqueue command.
 - Local user media is not private production storage.
 - CSP blocks inline scripts and handlers; legacy style attributes remain temporarily allowed.
 - No staging provider, monitoring vendor, or production email service is chosen.

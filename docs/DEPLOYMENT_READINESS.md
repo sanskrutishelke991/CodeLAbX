@@ -29,6 +29,8 @@ DJANGO_ALLOWED_HOSTS=learn.example.com
 DJANGO_CSRF_TRUSTED_ORIGINS=https://learn.example.com
 DATABASE_URL=postgresql://app-user:secret@db.example.com:5432/codelabx?sslmode=verify-full
 REDIS_URL=rediss://:secret@cache.example.com:6380/1
+DJANGO_TASK_BACKEND=provider.tasks.DurableTaskBackend
+DJANGO_TASK_QUEUES=default,ai,maintenance
 DJANGO_USE_WHITENOISE=True
 DJANGO_SECURE_SSL_REDIRECT=True
 DJANGO_SESSION_COOKIE_SECURE=True
@@ -38,7 +40,10 @@ DJANGO_HSTS_INCLUDE_SUBDOMAINS=True
 DJANGO_HSTS_PRELOAD=True
 ```
 
-Only enable `DJANGO_TRUST_X_FORWARDED_PROTO=True` when a trusted reverse proxy
+The built-in immediate and dummy task backends are development-only. Production
+preflight requires a durable third-party backend, and operators must separately
+run and monitor its worker process. Only enable
+`DJANGO_TRUST_X_FORWARDED_PROTO=True` when a trusted reverse proxy
 sets and strips `X-Forwarded-Proto`. Configure its address through
 `GUNICORN_FORWARDED_ALLOW_IPS`; never accept forwarded headers from arbitrary
 clients.
@@ -67,6 +72,9 @@ gunicorn codelabx.wsgi:application --config gunicorn.conf.py
 
 `/live/` checks only that Django can serve a request. `/health/` checks both the
 database and cache and returns HTTP 503 when either dependency is unavailable.
+A trusted external scheduler should invoke `python manage.py
+enqueue_daily_challenges`; the cache-backed generation lock prevents duplicate
+provider work.
 
 ## Bounded smoke load
 

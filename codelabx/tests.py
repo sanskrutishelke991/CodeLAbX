@@ -9,7 +9,11 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management import CommandError, call_command
 from django.test import SimpleTestCase, override_settings
 
-from .configuration import build_cache_settings, build_database_settings
+from .configuration import (
+    build_cache_settings,
+    build_database_settings,
+    build_task_settings,
+)
 from scripts.load_smoke import percentile, validate_target
 
 from .readiness import collect_production_findings
@@ -142,6 +146,27 @@ class InfrastructureConfigurationTests(SimpleTestCase):
                         socket_timeout=5,
                     )
 
+    def test_task_contract_keeps_named_queues(self):
+        tasks = build_task_settings(
+            backend="django.tasks.backends.immediate.ImmediateBackend",
+            queues=["default", "ai", "ai", "maintenance"],
+        )
+        self.assertEqual(
+            tasks["default"]["QUEUES"],
+            ["default", "ai", "maintenance"],
+        )
+
+    def test_task_contract_rejects_invalid_backend_or_queues(self):
+        invalid = [
+            ("not dotted", ["default"]),
+            ("project.tasks.Backend", ["ai"]),
+            ("project.tasks.Backend", ["default", "bad queue"]),
+        ]
+        for backend, queues in invalid:
+            with self.subTest(backend=backend, queues=queues):
+                with self.assertRaises(ImproperlyConfigured):
+                    build_task_settings(backend=backend, queues=queues)
+
 
 class ProductionPreflightTests(SimpleTestCase):
     def test_local_configuration_reports_backend_blockers(self):
@@ -167,6 +192,11 @@ class ProductionPreflightTests(SimpleTestCase):
                 }
             },
             REDIS_REQUIRE_TLS=True,
+            TASKS={
+                "default": {
+                    "BACKEND": "django.tasks.backends.immediate.ImmediateBackend"
+                }
+            },
             USE_WHITENOISE=False,
             STORAGES={
                 "default": {
@@ -192,7 +222,7 @@ class ProductionPreflightTests(SimpleTestCase):
             if item.severity == "error"
         }
         self.assertTrue(
-            {"PRD001", "PRD010", "PRD012", "PRD014"}.issubset(codes)
+            {"PRD001", "PRD010", "PRD012", "PRD014", "PRD019"}.issubset(codes)
         )
 
     def test_provider_neutral_production_configuration_clears_errors(self):
@@ -222,6 +252,9 @@ class ProductionPreflightTests(SimpleTestCase):
                 }
             },
             REDIS_REQUIRE_TLS=True,
+            TASKS={
+                "default": {"BACKEND": "project.tasks.DurableTaskBackend"}
+            },
             USE_WHITENOISE=True,
             STORAGES={
                 "default": {"BACKEND": "project.PrivateObjectStorage"},

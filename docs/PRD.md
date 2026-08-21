@@ -90,8 +90,10 @@ must distinguish AI feedback from verified results.
 
 ## Operational acceptance gates
 
-A change is complete only when focused tests and `scripts/verify.py` pass. Public
-production additionally requires PostgreSQL/Redis staging, private object
+A change is complete only when focused tests and `scripts/verify.py` pass. The
+native Django Tasks contract may execute immediately during development; this is
+not an asynchronous production worker. Public production additionally requires
+PostgreSQL/Redis staging, a durable task backend/worker, private object
 storage, asynchronous AI jobs, real email, monitoring, final CSP without legacy
 style attributes, backup restoration, rollback rehearsal, and authorized
 load testing.

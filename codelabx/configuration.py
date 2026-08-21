@@ -20,6 +20,8 @@ _POSTGRES_SSL_MODES = {
 _REDIS_SCHEMES = {"redis", "rediss"}
 _PERCENT_ESCAPE = re.compile(r"%(?![0-9a-fA-F]{2})")
 _CACHE_PREFIX = re.compile(r"^[A-Za-z0-9:_-]{1,64}$")
+_TASK_QUEUE = re.compile(r"^[A-Za-z0-9:_-]{1,50}$")
+_TASK_BACKEND = re.compile(r"^[A-Za-z_][A-Za-z0-9_.]+$")
 
 
 def _decode_url_part(value: str, label: str) -> str:
@@ -201,5 +203,42 @@ def build_cache_settings(
                 "socket_timeout": socket_timeout,
                 "health_check_interval": 30,
             },
+        }
+    }
+
+
+def build_task_settings(
+    *,
+    backend: str,
+    queues: list[str],
+) -> dict[str, dict[str, object]]:
+    """Build Django's task contract without pretending to provide a worker."""
+    backend = backend.strip()
+    if not backend or not _TASK_BACKEND.fullmatch(backend):
+        raise ImproperlyConfigured(
+            "DJANGO_TASK_BACKEND must be a dotted Python backend path."
+        )
+
+    normalized_queues = []
+    seen = set()
+    for queue in queues:
+        queue = queue.strip()
+        if not _TASK_QUEUE.fullmatch(queue):
+            raise ImproperlyConfigured(
+                "DJANGO_TASK_QUEUES contains an invalid queue name."
+            )
+        if queue not in seen:
+            seen.add(queue)
+            normalized_queues.append(queue)
+    if "default" not in seen:
+        raise ImproperlyConfigured(
+            "DJANGO_TASK_QUEUES must include the default queue."
+        )
+
+    return {
+        "default": {
+            "BACKEND": backend,
+            "QUEUES": normalized_queues,
+            "OPTIONS": {},
         }
     }

@@ -42,6 +42,7 @@ The gate runs compilation, critical Ruff checks, migration-drift detection, Djan
 
 ```bash
 python manage.py generate_daily_challenges
+python manage.py enqueue_daily_challenges
 python manage.py production_preflight
 python manage.py check --deploy
 python manage.py makemigrations --check --dry-run
@@ -75,6 +76,7 @@ python scripts/load_smoke.py --help
 - Enforced CSP with no inline scripts/handlers; bounded legacy style attributes remain
 - Optional PostgreSQL, shared Redis cache, WhiteNoise, and bounded runtime settings
 - Separate liveness/readiness probes and a secret-safe production preflight
+- Native Django Tasks contract with immediate local execution and pluggable workers
 
 ## Frontend dependencies
 

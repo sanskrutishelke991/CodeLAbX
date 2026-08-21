@@ -50,10 +50,13 @@ schedule. Completed work remains in Git history and regression tests.
 
 ## Background work phase
 
-- [ ] Select a Redis-backed job system
-- [ ] Move slow lesson, assessment, image, review, and challenge AI calls to jobs
-- [ ] Add idempotent job keys, timeout/retry policy, cancellation, and status UI
-- [ ] Configure an actual scheduler for `generate_daily_challenges`
+- [x] Configure Django's native Tasks contract and validated named queues
+- [x] Add a scheduler-safe daily challenge task and enqueue command
+- [x] Make production preflight reject development-only task backends
+- [ ] Select/install a durable third-party backend and operate its worker
+- [ ] Move slow lesson, assessment, image, and review AI calls to tracked jobs
+- [ ] Add job timeout/retry policy, cancellation, and status UI
+- [ ] Configure an actual external scheduler
 - [ ] Test duplicate delivery and worker/provider outage behavior
 
 ## Private media phase

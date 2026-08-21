@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from codelabx.configuration import (
     build_cache_settings,
     build_database_settings,
+    build_task_settings,
 )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -166,6 +167,19 @@ CACHE_SOCKET_TIMEOUT_SECONDS = env_int(
     5,
 )
 SHARED_CACHE_CONFIGURED = bool(REDIS_URL)
+
+TASK_BACKEND = os.getenv(
+    'DJANGO_TASK_BACKEND',
+    'django.tasks.backends.immediate.ImmediateBackend',
+).strip()
+TASK_QUEUES = env_list(
+    'DJANGO_TASK_QUEUES',
+    'default,ai,maintenance',
+)
+TASKS = build_task_settings(
+    backend=TASK_BACKEND,
+    queues=TASK_QUEUES,
+)
 
 USE_WHITENOISE = env_bool(
     'DJANGO_USE_WHITENOISE',

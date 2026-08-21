@@ -96,6 +96,21 @@ def collect_production_findings(config) -> list[Finding]:
         if urlsplit(location).scheme != "rediss":
             error("PRD013", "Redis must use rediss:// when TLS is required.")
 
+    task_backend = (
+        getattr(config, "TASKS", {})
+        .get("default", {})
+        .get("BACKEND", "")
+    )
+    development_task_backends = {
+        "django.tasks.backends.immediate.ImmediateBackend",
+        "django.tasks.backends.dummy.DummyBackend",
+    }
+    if not task_backend or task_backend in development_task_backends:
+        error(
+            "PRD019",
+            "Configure a durable production task backend and external worker.",
+        )
+
     if not bool(getattr(config, "USE_WHITENOISE", False)):
         error("PRD014", "Enable WhiteNoise for the current static-file strategy.")
     static_backend = (
@@ -158,7 +173,7 @@ def collect_production_findings(config) -> list[Finding]:
         )
     warning(
         "PRD-W006",
-        "Background AI jobs, error monitoring, and restore-tested backups remain pending.",
+        "Worker liveness, error monitoring, and restore-tested backups remain pending.",
     )
 
     return findings
