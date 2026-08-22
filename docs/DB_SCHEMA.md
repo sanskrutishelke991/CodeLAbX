@@ -183,6 +183,15 @@ and success-criteria objects, expected time, evidence-policy version, and lifecy
 status. Recalculating an unchanged evidence snapshot is idempotent; a changed
 snapshot expires the superseded proposal. A proposal does not mutate a roadmap.
 
+### `intelligence.RoadmapRevision` and `RoadmapNode`
+
+Versioned adaptive skill-route sidecars attached to an owned `learning.Roadmap`.
+A roadmap has at most one active and one proposed revision. Nodes store ordered
+skills, prerequisite readiness, optional mission association, expected time, and
+a learner-controlled position pin. Accept/reject/postpone decisions are recorded;
+restoration copies a superseded snapshot into a new revision instead of rewriting
+history. These tables never replace or mutate legacy `learning.Day` rows.
+
 ## Deletion and privacy behavior
 
 Most user-owned records cascade from `User`. Account deletion additionally

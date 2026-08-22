@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Adaptive Route — {{ roadmap.title }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell intel-shell-wide" aria-labelledby="route-detail-title">
+    <nav class="intel-tabs" aria-label="Learning Intelligence">
+        <a href="{% url 'intelligence:dna' %}">Learning DNA</a>
+        <a href="{% url 'intelligence:evidence' %}">Evidence explorer</a>
+        <a class="is-active" href="{% url 'intelligence:adaptive_routes' %}" aria-current="page">Adaptive routes</a>
+        <a href="{% url 'intelligence:onboarding' %}">Goal and Skill Pack</a>
+    </nav>
+
+    <header class="intel-hero intel-route-detail-hero">
+        <div>
+            <div class="intel-kicker">🧭 {{ roadmap.get_topic_display }}</div>
+            <h1 id="route-detail-title">{{ roadmap.title }}</h1>
+            <p>
+                The adaptive skill route is a reversible sidecar. Your original
+                day timeline remains the operational learning plan.
+            </p>
+        </div>
+        <a class="intel-secondary" href="{% url 'intelligence:adaptive_routes' %}">Back to routes</a>
+    </header>
+
+    <section class="intel-stat-grid" aria-label="Legacy roadmap compatibility">
+        <article class="intel-stat"><strong>{{ legacy_day_count }}</strong><span>Legacy days preserved</span></article>
+        <article class="intel-stat"><strong>{{ legacy_completed_count }}</strong><span>Legacy completions preserved</span></article>
+        <article class="intel-stat"><strong>{{ revisions|length }}</strong><span>Recorded route revisions</span></article>
+        <article class="intel-stat">
+            <strong>{% if active_revision %}Revision {{ active_revision.revision_number }}{% else %}Legacy only{% endif %}</strong>
+            <span>Current active skill route</span>
+        </article>
+    </section>
+
+    {% if not profile_matches_roadmap %}
+    <div class="intel-notice" role="alert">
+        This roadmap does not match your current {{ profile.selected_pack.name }}
+        Skill Pack. Historical revisions remain visible, but new adaptation is disabled.
+    </div>
+    {% endif %}
+
+    {% if not active_revision %}
+    <section class="intel-card intel-route-empty" aria-labelledby="initialize-route-title">
+        <div>
+            <div class="intel-card-kicker">Legacy compatibility</div>
+            <h2 id="initialize-route-title">Initialize the reviewed skill sidecar</h2>
+            <p>
+                This creates ordered skill nodes from your current Skill Pack. It
+                does not edit, delete, or reorder any existing roadmap day.
+            </p>
+        </div>
+        {% if profile_matches_roadmap and roadmap.status != 'completed' and roadmap.status != 'archived' %}
+        <form method="post" action="{% url 'intelligence:initialize_route' roadmap.id %}">
+            {% csrf_token %}
+            <button class="intel-primary" type="submit">Initialize adaptive route</button>
+        </form>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if proposed_revision %}
+    <section class="intel-card intel-revision-review" aria-labelledby="revision-review-title">
+        <div class="intel-revision-review-head">
+            <div>
+                <div class="intel-card-kicker">Your approval required</div>
+                <h2 id="revision-review-title">Review revision {{ proposed_revision.revision_number }}</h2>
+                <p>{{ proposed_revision.summary }}</p>
+            </div>
+            {% if proposed_revision.trigger_mission %}
+            <span class="intel-route-status is-proposed">
+                {{ proposed_revision.trigger_mission.expected_minutes }} min mission
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="intel-route-diff">
+            <h3>Exact route difference</h3>
+            {% for item in revision_diff.changed_items %}
+            <article>
+                <strong>{{ item.node.skill.name }}</strong>
+                <span>
+                    {% if item.change == 'added' %}
+                        Added at position {{ item.new_order }}
+                    {% elif item.change == 'mission_added' %}
+                        Mission attached at position {{ item.new_order }}
+                    {% elif item.change == 'moved_earlier' %}
+                        Moved earlier: {{ item.old_order }} → {{ item.new_order }}
+                    {% elif item.change == 'moved_later' %}
+                        Shifted: {{ item.old_order }} → {{ item.new_order }}
+                    {% else %}
+                        Mission attached and moved: {{ item.old_order }} → {{ item.new_order }}
+                    {% endif %}
+                </span>
+            </article>
+            {% empty %}
+            <p>No node-order change was needed; the proposal only records the mission decision.</p>
+            {% endfor %}
+            {% for name in revision_diff.removed_skill_names %}
+            <article><strong>{{ name }}</strong><span>Removed</span></article>
+            {% endfor %}
+        </div>
+
+        <div class="intel-revision-actions">
+            <form method="post" action="{% url 'intelligence:accept_revision' roadmap.id proposed_revision.id %}">
+                {% csrf_token %}
+                <button class="intel-primary" type="submit">Accept revision</button>
+            </form>
+            <form method="post" action="{% url 'intelligence:postpone_revision' roadmap.id proposed_revision.id %}" class="intel-postpone-form">
+                {% csrf_token %}
+                {{ postpone_form.days }}
+                <button class="intel-secondary" type="submit">Postpone</button>
+            </form>
+            <form method="post" action="{% url 'intelligence:reject_revision' roadmap.id proposed_revision.id %}" data-confirm="Reject this route revision? The decision will be recorded.">
+                {% csrf_token %}
+                <button class="intel-danger" type="submit">Reject</button>
+            </form>
+        </div>
+    </section>
+    {% elif active_revision and available_mission and profile_matches_roadmap and not postponed_revisions %}
+    <section class="intel-card intel-route-proposal" aria-labelledby="route-next-mission-title">
+        <div>
+            <div class="intel-card-kicker">Evidence-backed proposal available</div>
+            <h2 id="route-next-mission-title">{{ available_mission.title }}</h2>
+            <p>
+                Build a route diff first. The current active revision remains active
+                until you explicitly accept the result.
+            </p>
+        </div>
+        <form method="post" action="{% url 'intelligence:create_route_proposal' %}" class="intel-route-form">
+            {% csrf_token %}
+            <div class="intel-field">
+                <label for="{{ proposal_form.mission.id_for_label }}">Mission</label>
+                {{ proposal_form.mission }}
+            </div>
+            <div class="intel-field">
+                <label for="{{ proposal_form.roadmap.id_for_label }}">Roadmap</label>
+                {{ proposal_form.roadmap }}
+            </div>
+            <button class="intel-primary" type="submit">Preview route difference</button>
+        </form>
+    </section>
+    {% endif %}
+
+    {% if postponed_revisions %}
+    <section class="intel-card intel-postponed" aria-labelledby="postponed-title">
+        <h2 id="postponed-title">Postponed decisions</h2>
+        {% for revision in postponed_revisions %}
+        <div>
+            <span>
+                <strong>Revision {{ revision.revision_number }}</strong>
+                <small>Scheduled for {{ revision.postponed_until|date:"M j, Y · H:i" }}</small>
+            </span>
+            <form method="post" action="{% url 'intelligence:resume_revision' roadmap.id revision.id %}">
+                {% csrf_token %}
+                <button class="intel-secondary" type="submit">Review now</button>
+            </form>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if display_revision %}
+    <section class="intel-section-head" aria-labelledby="route-nodes-title">
+        <div>
+            <div class="intel-card-kicker">
+                {% if proposed_revision %}Proposed route{% else %}Active route{% endif %}
+            </div>
+            <h2 id="route-nodes-title">Revision {{ display_revision.revision_number }} skill order</h2>
+        </div>
+        <span class="intel-route-status {% if proposed_revision %}is-proposed{% else %}is-active{% endif %}">
+            {{ display_revision.get_status_display }}
+        </span>
+    </section>
+
+    <div class="intel-node-list">
+        {% for node in display_nodes %}
+        <article class="intel-card intel-route-node {% if node.mission %}has-mission{% endif %}">
+            <div class="intel-node-order">{{ node.order }}</div>
+            <div class="intel-node-main">
+                <div class="intel-node-title">
+                    <div>
+                        <small>{{ node.skill.domain|upper }} · BAND {{ node.skill.difficulty_band }}</small>
+                        <h3>{{ node.skill.name }}</h3>
+                    </div>
+                    <span class="intel-route-status is-{{ node.status }}">{{ node.get_status_display }}</span>
+                </div>
+                <p>{{ node.rationale }}</p>
+                <div class="intel-node-meta">
+                    <span>{{ node.expected_minutes }} expected minutes</span>
+                    {% if node.mission %}<strong><i class="bi bi-stars"></i> {{ node.mission.title }}</strong>{% endif %}
+                    {% if node.is_user_locked %}<strong><i class="bi bi-pin-angle-fill"></i> Position pinned</strong>{% endif %}
+                </div>
+            </div>
+            {% if active_revision and not proposed_revision and not postponed_revisions and node.status != 'complete' %}
+            <form method="post" action="{% url 'intelligence:toggle_route_node_lock' roadmap.id node.id %}">
+                {% csrf_token %}
+                <button class="intel-pin-button" type="submit">
+                    {% if node.is_user_locked %}Unpin{% else %}Pin{% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if revisions %}
+    <section class="intel-card intel-revision-history" aria-labelledby="revision-history-title">
+        <h2 id="revision-history-title">Revision history</h2>
+        {% for revision in revisions %}
+        <div>
+            <span>
+                <strong>Revision {{ revision.revision_number }} · {{ revision.get_status_display }}</strong>
+                <small>{{ revision.summary }} · {{ revision.created_at|date:"M j, Y · H:i" }}</small>
+            </span>
+            {% if revision.status == 'superseded' and not proposed_revision and not postponed_revisions %}
+            <form method="post" action="{% url 'intelligence:restore_route_revision' roadmap.id revision.id %}" data-confirm="Restore this historical route as a new active revision?">
+                {% csrf_token %}
+                <button class="intel-secondary" type="submit">Restore</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <div class="intel-notice">
+        Adaptive revisions organize reviewed skills and mission priorities. They do
+        not rewrite legacy day content, completion timestamps, XP, or evidence.
+    </div>
+</section>
+{% endblock %}

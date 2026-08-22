@@ -6,6 +6,8 @@ from .models import (
     LearnerIntelligenceProfile,
     LearningEvent,
     Mission,
+    RoadmapNode,
+    RoadmapRevision,
     Skill,
     SkillPack,
     SkillPackMembership,
@@ -179,6 +181,74 @@ class MissionAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+
+class RoadmapNodeInline(admin.TabularInline):
+    model = RoadmapNode
+    extra = 0
+    can_delete = False
+    readonly_fields = [field.name for field in RoadmapNode._meta.fields]
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(RoadmapRevision)
+class RoadmapRevisionAdmin(admin.ModelAdmin):
+    list_display = (
+        "roadmap",
+        "revision_number",
+        "status",
+        "reason_code",
+        "trigger_mission",
+        "created_at",
+    )
+    list_filter = ("status", "reason_code", "algorithm_version")
+    search_fields = (
+        "roadmap__title",
+        "roadmap__user__username",
+        "summary",
+    )
+    readonly_fields = [field.name for field in RoadmapRevision._meta.fields]
+    inlines = [RoadmapNodeInline]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(RoadmapNode)
+class RoadmapNodeAdmin(admin.ModelAdmin):
+    list_display = (
+        "revision",
+        "order",
+        "skill",
+        "status",
+        "is_user_locked",
+        "mission",
+    )
+    list_filter = ("status", "is_user_locked", "skill__domain")
+    search_fields = (
+        "revision__roadmap__title",
+        "revision__roadmap__user__username",
+        "skill__code",
+        "skill__name",
+    )
+    readonly_fields = [field.name for field in RoadmapNode._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(DiagnosticResponse)

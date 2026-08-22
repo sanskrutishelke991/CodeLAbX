@@ -11,6 +11,7 @@
     <nav class="intel-tabs" aria-label="Learning Intelligence">
         <a class="is-active" href="{% url 'intelligence:dna' %}" aria-current="page">Learning DNA</a>
         <a href="{% url 'intelligence:evidence' %}">Evidence explorer</a>
+        <a href="{% url 'intelligence:adaptive_routes' %}">Adaptive routes</a>
         <a href="{% url 'intelligence:onboarding' %}">Goal and Skill Pack</a>
     </nav>
 
@@ -113,19 +114,28 @@
             {% endif %}
 
             <div class="intel-mission-actions">
+                {% if matching_mission.status == 'accepted' or matching_mission.status == 'active' or matching_mission.status == 'completed' or matching_mission.status == 'postponed' or matching_mission.status == 'skipped' %}
+                <span class="intel-route-status is-{{ matching_mission.status }}">
+                    Mission {{ matching_mission.get_status_display }}
+                </span>
+                {% else %}
                 <form method="post" action="{% url 'intelligence:recalculate_recommendation' %}">
                     {% csrf_token %}
                     <button class="intel-primary" type="submit">
                         {% if mission_is_current %}Recalculate with latest evidence{% else %}Record this proposal{% endif %}
                     </button>
                 </form>
+                {% endif %}
                 <a class="intel-secondary" href="{% url 'intelligence:evidence' %}?skill={{ mission.dna.skill.code|urlencode }}">
                     Inspect its evidence
                 </a>
+                <a class="intel-secondary" href="{% url 'intelligence:adaptive_routes' %}">
+                    Review adaptive routes
+                </a>
             </div>
             <p class="intel-proposal-note">
-                This is an explainable proposal, not an automatic roadmap change.
-                Accept, reject, and postpone controls arrive with adaptive roadmap revisions.
+                This recommendation cannot change a roadmap silently. Adaptive Routes
+                shows the exact diff and requires accept, reject, or postpone.
             </p>
         </article>
     </div>

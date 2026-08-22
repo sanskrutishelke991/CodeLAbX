@@ -11,7 +11,7 @@
 <div class="roadmap-header">
     <div class="d-flex justify-content-between align-items-start flex-wrap">
         <div>
-            <h1>{% if roadmap.topic == 'ML' %}🤖{% else %}💻{% endif %} {{ roadmap.title }}</h1>
+            <h1>{% if roadmap.topic == 'ML' %}🤖{% elif roadmap.topic == 'FULLSTACK' %}🌐{% else %}💻{% endif %} {{ roadmap.title }}</h1>
             <p class="mb-0 opacity-75">{{ roadmap.description }}</p>
         </div>
         <a href="{% url 'learning:roadmaps' %}" class="btn btn-light btn-sm">
@@ -45,6 +45,10 @@
 
 
 <div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="btn btn-outline-info btn-sm" href="{% url 'intelligence:adaptive_route_detail' roadmap.id %}">
+        <i class="bi bi-signpost-split"></i>
+        {% if adaptive_proposed %}Review adaptive proposal{% elif adaptive_active %}Open adaptive route{% else %}Add adaptive route{% endif %}
+    </a>
     {% if roadmap.status == 'active' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'pause' %}">{% csrf_token %}<button class="btn btn-outline-warning btn-sm" type="submit"><i class="bi bi-pause"></i> Pause</button></form>{% endif %}
     {% if roadmap.status == 'paused' or roadmap.status == 'archived' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'resume' %}">{% csrf_token %}<button class="btn btn-outline-success btn-sm" type="submit"><i class="bi bi-play"></i> Resume</button></form>{% endif %}
     {% if roadmap.status != 'archived' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'archive' %}">{% csrf_token %}<button class="btn btn-outline-light btn-sm" type="submit"><i class="bi bi-archive"></i> Archive</button></form>{% endif %}

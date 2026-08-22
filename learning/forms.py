@@ -9,10 +9,7 @@ from .models import Roadmap
 class RoadmapCreateForm(forms.ModelForm):
     """Form for creating a new learning roadmap."""
     
-    TOPIC_CHOICES = [
-        ('ML', 'Machine Learning'),
-        ('DSA', 'Data Structures & Algorithms'),
-    ]
+    TOPIC_CHOICES = Roadmap.TOPIC_CHOICES
     
     LEVEL_CHOICES = [
         ('beginner', 'Beginner'),

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Adaptive Routes — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell intel-shell-wide" aria-labelledby="routes-title">
+    <nav class="intel-tabs" aria-label="Learning Intelligence">
+        <a href="{% url 'intelligence:dna' %}">Learning DNA</a>
+        <a href="{% url 'intelligence:evidence' %}">Evidence explorer</a>
+        <a class="is-active" href="{% url 'intelligence:adaptive_routes' %}" aria-current="page">Adaptive routes</a>
+        <a href="{% url 'intelligence:onboarding' %}">Goal and Skill Pack</a>
+    </nav>
+
+    <header class="intel-hero intel-dna-hero">
+        <div>
+            <div class="intel-kicker">🧭 Approval-based adaptation</div>
+            <h1 id="routes-title">Your route changes only when you say yes.</h1>
+            <p>
+                CodeLabX can propose a skill-order revision from your current
+                evidence. You review the exact difference before accepting,
+                rejecting, or postponing it.
+            </p>
+        </div>
+        <div class="intel-privacy-chip"><i class="bi bi-shield-check"></i> Learner controlled</div>
+    </header>
+
+    <section class="intel-route-safeguards" aria-label="Adaptive route safeguards">
+        <article><strong>No silent edits</strong><span>Every revision requires an explicit POST decision.</span></article>
+        <article><strong>Legacy-safe</strong><span>Your existing roadmap days and completion records stay unchanged.</span></article>
+        <article><strong>Reversible</strong><span>Superseded revisions remain available for restoration.</span></article>
+        <article><strong>Pin positions</strong><span>User-pinned nodes cannot be moved by a proposal.</span></article>
+    </section>
+
+    <section class="intel-card intel-route-proposal" aria-labelledby="new-route-proposal">
+        <div>
+            <div class="intel-card-kicker">Current next step</div>
+            <h2 id="new-route-proposal">Propose a mission into a matching roadmap</h2>
+            <p>
+                Your selected pack maps to <strong>{{ expected_topic|default:"no supported roadmap topic" }}</strong>.
+                Creating a proposal does not activate it.
+            </p>
+        </div>
+        {% if can_propose %}
+        <form method="post" action="{% url 'intelligence:create_route_proposal' %}" class="intel-route-form">
+            {% csrf_token %}
+            <div class="intel-field">
+                <label for="{{ form.mission.id_for_label }}">Mission</label>
+                {{ form.mission }}
+            </div>
+            <div class="intel-field">
+                <label for="{{ form.roadmap.id_for_label }}">Roadmap</label>
+                {{ form.roadmap }}
+            </div>
+            <button class="intel-primary" type="submit">Build reviewable proposal</button>
+        </form>
+        {% else %}
+        <div class="intel-no-estimate">
+            You need both a current proposed mission and an active or paused
+            {{ expected_topic }} roadmap.
+            <a href="{% url 'learning:roadmap_create' %}">Create a matching roadmap</a>
+            or return to Learning DNA to recalculate evidence.
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="intel-section-head" aria-labelledby="route-roadmaps-title">
+        <div>
+            <div class="intel-card-kicker">Compatible paths</div>
+            <h2 id="route-roadmaps-title">{{ expected_topic }} roadmaps</h2>
+        </div>
+        <a class="intel-secondary" href="{% url 'learning:roadmaps' %}">All legacy roadmaps</a>
+    </section>
+
+    <div class="intel-route-grid">
+        {% for roadmap in roadmaps %}
+        <article class="intel-card intel-route-card">
+            <div class="intel-route-card-head">
+                <div>
+                    <span>{{ roadmap.get_status_display }}</span>
+                    <h3>{{ roadmap.title }}</h3>
+                </div>
+                {% if roadmap.proposed_revision_count %}
+                    <strong class="intel-route-status is-proposed">Review waiting</strong>
+                {% elif roadmap.active_revision_count %}
+                    <strong class="intel-route-status is-active">Adaptive route active</strong>
+                {% else %}
+                    <strong class="intel-route-status">Legacy route only</strong>
+                {% endif %}
+            </div>
+            <p>{{ roadmap.description|default:"No roadmap description." }}</p>
+            <dl class="intel-route-stats">
+                <div><dt>Legacy days</dt><dd>{{ roadmap.total_days }}</dd></div>
+                <div><dt>Completed</dt><dd>{{ roadmap.completed_days }}</dd></div>
+                <div><dt>Daily study</dt><dd>{{ roadmap.daily_hours }}h</dd></div>
+            </dl>
+            <a class="intel-primary" href="{% url 'intelligence:adaptive_route_detail' roadmap.id %}">Open adaptive route</a>
+        </article>
+        {% empty %}
+        <div class="intel-card intel-empty">
+            No {{ expected_topic }} roadmap exists yet. Create one first; Sprint 4
+            never repurposes a roadmap from a different domain.
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if missions %}
+    <section class="intel-card intel-route-missions" aria-labelledby="mission-status-title">
+        <h2 id="mission-status-title">Mission decision status</h2>
+        {% for mission in missions %}
+        <div>
+            <span>
+                <strong>{{ mission.title }}</strong>
+                <small>{{ mission.primary_skill.name }}</small>
+            </span>
+            <span class="intel-route-status {% if mission.status == 'proposed' %}is-proposed{% endif %}">
+                {{ mission.get_status_display }}
+                {% if mission.postponed_until %} until {{ mission.postponed_until|date:"M j" }}{% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+</section>
+{% endblock %}

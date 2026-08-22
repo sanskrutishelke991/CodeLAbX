@@ -412,7 +412,7 @@ class FrontendExtractionBudgetTests(TestCase):
         self.assertEqual(style_blocks, 0)
         self.assertEqual(inline_scripts, 0)
         self.assertEqual(event_handlers, 0)
-        self.assertLessEqual(style_attributes, 201)
+        self.assertLessEqual(style_attributes, 199)
         self.assertEqual(affected_templates, 0)
 
         page_css = list((repository / "static" / "css" / "pages").glob("*.css"))

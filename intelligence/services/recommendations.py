@@ -515,10 +515,25 @@ def propose_next_mission(user, profile, *, as_of=None):
             status="proposed",
         )
     )
-    mission = Mission.objects.filter(
-        user=user,
-        recommendation_key=analysis.recommendation_key,
-    ).first()
+    mission = (
+        Mission.objects.select_for_update()
+        .filter(
+            user=user,
+            recommendation_key=analysis.recommendation_key,
+        )
+        .first()
+    )
+    if mission and mission.status in {"accepted", "active", "completed"}:
+        return mission, False, analysis
+    if mission and mission.status == "skipped":
+        raise ValidationError(
+            "You already declined this recommendation for the current evidence snapshot."
+        )
+    if mission and mission.status == "postponed":
+        raise ValidationError(
+            "This recommendation is postponed. Review it from Adaptive Routes."
+        )
+
     created = mission is None
     if mission is None:
         mission = Mission(
@@ -536,6 +551,7 @@ def propose_next_mission(user, profile, *, as_of=None):
     mission.expected_minutes = recommendation.expected_minutes
     mission.evidence_policy_version = EVIDENCE_POLICY_VERSION
     mission.decided_at = None
+    mission.postponed_until = None
     mission.save()
 
     Mission.objects.filter(

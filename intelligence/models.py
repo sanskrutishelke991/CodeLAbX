@@ -457,6 +457,7 @@ class Mission(models.Model):
         ("accepted", "Accepted"),
         ("active", "Active"),
         ("completed", "Completed"),
+        ("postponed", "Postponed"),
         ("skipped", "Skipped"),
         ("expired", "Expired"),
     ]
@@ -497,6 +498,7 @@ class Mission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     decided_at = models.DateTimeField(null=True, blank=True)
+    postponed_until = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at", "-id"]
@@ -523,6 +525,14 @@ class Mission(models.Model):
             raise ValidationError(
                 {"description": "Description exceeds 1,200 characters."}
             )
+        if self.status == "postponed" and self.postponed_until is None:
+            raise ValidationError(
+                {"postponed_until": "A postponed mission needs a review date."}
+            )
+        if self.status != "postponed" and self.postponed_until is not None:
+            raise ValidationError(
+                {"postponed_until": "Only postponed missions have a review date."}
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -530,3 +540,186 @@ class Mission(models.Model):
 
     def __str__(self):
         return f"{self.user_id}:{self.primary_skill.code}:{self.status}"
+
+
+class RoadmapRevision(models.Model):
+    STATUS_CHOICES = [
+        ("proposed", "Proposed"),
+        ("active", "Active"),
+        ("postponed", "Postponed"),
+        ("rejected", "Rejected"),
+        ("superseded", "Superseded"),
+    ]
+    REASON_CHOICES = [
+        ("initial_skill_route", "Initial skill route"),
+        ("mission_proposal", "Mission proposal"),
+        ("restored_revision", "Restored revision"),
+    ]
+
+    roadmap = models.ForeignKey(
+        "learning.Roadmap",
+        on_delete=models.CASCADE,
+        related_name="intelligence_revisions",
+    )
+    revision_number = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    reason_code = models.CharField(max_length=40, choices=REASON_CHOICES)
+    summary = models.CharField(max_length=800)
+    input_state_version = models.CharField(max_length=64)
+    input_state_at = models.DateTimeField()
+    algorithm_version = models.CharField(max_length=60)
+    based_on = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="derived_revisions",
+    )
+    trigger_mission = models.ForeignKey(
+        Mission,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="roadmap_revisions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    postponed_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["roadmap", "-revision_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["roadmap", "revision_number"],
+                name="unique_roadmap_revision_number",
+            ),
+            models.UniqueConstraint(
+                fields=["roadmap"],
+                condition=Q(status="active"),
+                name="one_active_revision_per_roadmap",
+            ),
+            models.UniqueConstraint(
+                fields=["roadmap"],
+                condition=Q(status="proposed"),
+                name="one_proposed_revision_per_roadmap",
+            ),
+            models.CheckConstraint(
+                condition=Q(revision_number__gte=1),
+                name="roadmap_revision_number_positive",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["roadmap", "status", "revision_number"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.trigger_mission_id and (
+            self.trigger_mission.user_id != self.roadmap.user_id
+        ):
+            raise ValidationError(
+                {"trigger_mission": "Mission and roadmap owners must match."}
+            )
+        if self.based_on_id and self.based_on.roadmap_id != self.roadmap_id:
+            raise ValidationError(
+                {"based_on": "A revision can only derive from the same roadmap."}
+            )
+        if self.status == "postponed" and self.postponed_until is None:
+            raise ValidationError(
+                {"postponed_until": "A postponed revision needs a review date."}
+            )
+        if self.status != "postponed" and self.postponed_until is not None:
+            raise ValidationError(
+                {"postponed_until": "Only postponed revisions have a review date."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.roadmap_id}: revision {self.revision_number} ({self.status})"
+
+
+class RoadmapNode(models.Model):
+    STATUS_CHOICES = [
+        ("locked", "Prerequisite locked"),
+        ("ready", "Ready"),
+        ("active", "Active"),
+        ("complete", "Complete"),
+        ("skipped", "Skipped"),
+    ]
+
+    revision = models.ForeignKey(
+        RoadmapRevision,
+        on_delete=models.CASCADE,
+        related_name="nodes",
+    )
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.PROTECT,
+        related_name="roadmap_nodes",
+    )
+    mission = models.ForeignKey(
+        Mission,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="roadmap_nodes",
+    )
+    order = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    rationale = models.CharField(max_length=1000)
+    expected_minutes = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(5), MaxValueValidator(240)]
+    )
+    is_user_locked = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["revision", "order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["revision", "order"],
+                name="unique_node_order_per_revision",
+            ),
+            models.UniqueConstraint(
+                fields=["revision", "skill"],
+                name="unique_skill_per_revision",
+            ),
+            models.CheckConstraint(
+                condition=Q(order__gte=1),
+                name="roadmap_node_order_positive",
+            ),
+            models.CheckConstraint(
+                condition=Q(expected_minutes__gte=5)
+                & Q(expected_minutes__lte=240),
+                name="roadmap_node_expected_minutes_range",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["revision", "status", "order"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.mission_id and (
+            self.mission.user_id != self.revision.roadmap.user_id
+        ):
+            raise ValidationError(
+                {"mission": "Mission and roadmap owners must match."}
+            )
+        if self.mission_id and self.mission.primary_skill_id != self.skill_id:
+            raise ValidationError(
+                {"mission": "A node mission must target the node's skill."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.revision_id}:{self.order}:{self.skill.code}"

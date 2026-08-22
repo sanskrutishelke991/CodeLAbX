@@ -22,6 +22,8 @@ from progress.models import DailyActivity, UserBadge, UserLevel, UserStreak
 from intelligence.models import (
     DiagnosticResponse,
     LearnerIntelligenceProfile,
+    RoadmapNode,
+    RoadmapRevision,
 )
 from codelabx.throttling import is_rate_limited
 
@@ -368,9 +370,41 @@ def _export_learning_intelligence(user):
                 "created_at": mission.created_at,
                 "updated_at": mission.updated_at,
                 "decided_at": mission.decided_at,
+                "postponed_until": mission.postponed_until,
             }
             for mission in missions
         ],
+        "roadmap_revisions": list(
+            RoadmapRevision.objects.filter(roadmap__user=user).values(
+                "roadmap__title",
+                "revision_number",
+                "status",
+                "reason_code",
+                "summary",
+                "input_state_at",
+                "algorithm_version",
+                "based_on__revision_number",
+                "trigger_mission__title",
+                "created_at",
+                "decided_at",
+                "postponed_until",
+            )
+        ),
+        "roadmap_nodes": list(
+            RoadmapNode.objects.filter(revision__roadmap__user=user).values(
+                "revision__roadmap__title",
+                "revision__revision_number",
+                "skill__code",
+                "mission__title",
+                "order",
+                "status",
+                "rationale",
+                "expected_minutes",
+                "is_user_locked",
+                "created_at",
+                "updated_at",
+            )
+        ),
     }
 
 

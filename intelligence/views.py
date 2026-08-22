@@ -6,19 +6,41 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.db import transaction
+from django.db.models import Count, Prefetch, Q
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import EvidenceFilterForm, IntelligenceOnboardingForm
+from learning.models import Roadmap
+
+from .forms import (
+    AdaptiveRouteProposalForm,
+    EvidenceFilterForm,
+    IntelligenceOnboardingForm,
+    PostponeRevisionForm,
+)
 from .models import (
     DiagnosticAttempt,
     LearnerIntelligenceProfile,
     LearningEvent,
     Mission,
+    RoadmapNode,
+    RoadmapRevision,
     Skill,
     SkillPack,
+)
+from .services.adaptive_roadmaps import (
+    accept_revision,
+    build_revision_diff,
+    compatible_topic_for_profile,
+    initialize_adaptive_route,
+    postpone_revision,
+    propose_route_revision,
+    reject_revision,
+    restore_revision,
+    resume_revision,
+    toggle_node_lock,
 )
 from .services.diagnostics import (
     get_or_create_current_attempt,
@@ -53,6 +75,11 @@ def _completed_profile_or_redirect(user):
 def _try_initial_mission(user, profile):
     try:
         propose_next_mission(user, profile)
+    except ValidationError:
+        logger.info(
+            "Initial mission was not reproposed for the current evidence snapshot",
+            extra={"user_id": user.id},
+        )
     except Exception:
         logger.exception("Initial Learning Intelligence mission proposal failed")
 
@@ -68,6 +95,7 @@ def home(request):
 
 
 @login_required
+@transaction.atomic
 def onboarding(request):
     profile = LearnerIntelligenceProfile.objects.filter(user=request.user).first()
     original_pack_id = profile.selected_pack_id if profile else None
@@ -91,10 +119,23 @@ def onboarding(request):
             profile.full_clean()
             profile.save()
             if pack_changed:
+                decision_time = timezone.now()
+                RoadmapRevision.objects.filter(
+                    roadmap__user=request.user,
+                    status__in={"proposed", "postponed"},
+                ).update(
+                    status="rejected",
+                    decided_at=decision_time,
+                    postponed_until=None,
+                )
                 Mission.objects.filter(
                     user=request.user,
-                    status="proposed",
-                ).update(status="expired", decided_at=timezone.now())
+                    status__in={"proposed", "postponed"},
+                ).update(
+                    status="expired",
+                    decided_at=decision_time,
+                    postponed_until=None,
+                )
             messages.success(
                 request,
                 "Learning Intelligence preferences saved. Start the diagnostic when ready.",
@@ -192,16 +233,20 @@ def dna(request):
         ).order_by("started_at")
     )
     ledger_event_count = LearningEvent.objects.filter(user=request.user).count()
-    current_mission = (
-        Mission.objects.filter(user=request.user, status="proposed")
+    matching_mission = (
+        Mission.objects.filter(
+            user=request.user,
+            recommendation_key=analysis.recommendation_key or "",
+        )
         .select_related("primary_skill")
-        .order_by("-created_at")
         .first()
     )
-    mission_is_current = bool(
-        current_mission
-        and current_mission.recommendation_key == analysis.recommendation_key
+    current_mission = (
+        matching_mission
+        if matching_mission and matching_mission.status == "proposed"
+        else None
     )
+    mission_is_current = current_mission is not None
     return render(
         request,
         "intelligence/baseline.html",
@@ -212,6 +257,7 @@ def dna(request):
             "attempts": attempts,
             "ledger_event_count": ledger_event_count,
             "current_mission": current_mission,
+            "matching_mission": matching_mission,
             "mission_is_current": mission_is_current,
         },
     )
@@ -292,15 +338,346 @@ def recalculate_recommendation(request):
             request.user,
             profile,
         )
-    except ValidationError:
-        messages.error(
-            request,
-            "No eligible mission could be proposed from the current Skill Pack.",
-        )
+    except ValidationError as exc:
+        messages.info(request, exc.messages[0])
         return redirect("intelligence:dna")
-    action = "created" if created else "confirmed"
+    if mission.status == "proposed":
+        action = "created" if created else "confirmed"
+        messages.success(
+            request,
+            f"Mission proposal {action}: {mission.title}.",
+        )
+    else:
+        messages.info(
+            request,
+            f'This evidence snapshot already has a {mission.get_status_display().lower()} mission.',
+        )
+    return redirect("intelligence:dna")
+
+
+@login_required
+def adaptive_routes(request):
+    profile, response = _completed_profile_or_redirect(request.user)
+    if response:
+        return response
+    expected_topic = compatible_topic_for_profile(profile)
+    roadmaps = list(
+        Roadmap.objects.filter(
+            user=request.user,
+            topic=expected_topic or "",
+        )
+        .annotate(
+            completed_days_count=Count(
+                "days",
+                filter=Q(days__is_completed=True),
+                distinct=True,
+            ),
+            active_revision_count=Count(
+                "intelligence_revisions",
+                filter=Q(intelligence_revisions__status="active"),
+                distinct=True,
+            ),
+            proposed_revision_count=Count(
+                "intelligence_revisions",
+                filter=Q(intelligence_revisions__status="proposed"),
+                distinct=True,
+            ),
+        )
+        .order_by("-updated_at")
+    )
+    missions = list(
+        Mission.objects.filter(
+            user=request.user,
+            status__in={"proposed", "postponed"},
+        )
+        .select_related("primary_skill")
+        .order_by("-created_at")
+    )
+    form = AdaptiveRouteProposalForm(
+        user=request.user,
+        profile=profile,
+    )
+    return render(
+        request,
+        "intelligence/adaptive_routes.html",
+        {
+            "profile": profile,
+            "roadmaps": roadmaps,
+            "missions": missions,
+            "form": form,
+            "can_propose": (
+                form.fields["mission"].queryset.exists()
+                and form.fields["roadmap"].queryset.exists()
+            ),
+            "expected_topic": dict(Roadmap.TOPIC_CHOICES).get(expected_topic, ""),
+        },
+    )
+
+
+@login_required
+def adaptive_route_detail(request, roadmap_id):
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+    profile, response = _completed_profile_or_redirect(request.user)
+    if response:
+        return response
+    node_queryset = RoadmapNode.objects.select_related(
+        "skill",
+        "mission",
+    ).order_by("order")
+    revisions = list(
+        RoadmapRevision.objects.filter(roadmap=roadmap)
+        .select_related(
+            "based_on",
+            "trigger_mission",
+            "trigger_mission__primary_skill",
+        )
+        .prefetch_related(Prefetch("nodes", queryset=node_queryset))
+        .order_by("-revision_number")
+    )
+    active_revision = next(
+        (revision for revision in revisions if revision.status == "active"),
+        None,
+    )
+    proposed_revision = next(
+        (revision for revision in revisions if revision.status == "proposed"),
+        None,
+    )
+    postponed_revisions = tuple(
+        revision for revision in revisions if revision.status == "postponed"
+    )
+    revision_diff = None
+    if active_revision and proposed_revision:
+        revision_diff = build_revision_diff(active_revision, proposed_revision)
+    display_revision = proposed_revision or active_revision
+    display_nodes = tuple(display_revision.nodes.all()) if display_revision else ()
+    available_mission = (
+        Mission.objects.filter(
+            user=request.user,
+            status="proposed",
+            primary_skill__pack_memberships__pack=profile.selected_pack,
+        )
+        .exclude(
+            roadmap_revisions__status__in={
+                "proposed",
+                "active",
+                "postponed",
+            }
+        )
+        .select_related("primary_skill")
+        .distinct()
+        .order_by("-created_at")
+        .first()
+    )
+    proposal_form = AdaptiveRouteProposalForm(
+        user=request.user,
+        profile=profile,
+        initial={
+            "roadmap": roadmap,
+            "mission": available_mission,
+        },
+    )
+    return render(
+        request,
+        "intelligence/adaptive_route_detail.html",
+        {
+            "profile": profile,
+            "roadmap": roadmap,
+            "revisions": revisions,
+            "active_revision": active_revision,
+            "proposed_revision": proposed_revision,
+            "postponed_revisions": postponed_revisions,
+            "revision_diff": revision_diff,
+            "display_revision": display_revision,
+            "display_nodes": display_nodes,
+            "available_mission": available_mission,
+            "proposal_form": proposal_form,
+            "postpone_form": PostponeRevisionForm(),
+            "profile_matches_roadmap": (
+                roadmap.topic == compatible_topic_for_profile(profile)
+            ),
+            "legacy_day_count": roadmap.days.count(),
+            "legacy_completed_count": roadmap.days.filter(
+                is_completed=True
+            ).count(),
+        },
+    )
+
+
+@login_required
+@require_POST
+def initialize_route(request, roadmap_id):
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+    profile, response = _completed_profile_or_redirect(request.user)
+    if response:
+        return response
+    try:
+        _revision, created = initialize_adaptive_route(
+            request.user,
+            roadmap,
+            profile,
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(
+            request,
+            "Adaptive skill route initialized. Legacy roadmap days were not changed."
+            if created
+            else "The adaptive skill route is already initialized.",
+        )
+    return redirect(
+        "intelligence:adaptive_route_detail",
+        roadmap_id=roadmap.id,
+    )
+
+
+@login_required
+@require_POST
+def create_route_proposal(request):
+    profile, response = _completed_profile_or_redirect(request.user)
+    if response:
+        return response
+    form = AdaptiveRouteProposalForm(
+        request.POST,
+        user=request.user,
+        profile=profile,
+    )
+    if not form.is_valid():
+        messages.error(request, "Choose a current mission and matching roadmap.")
+        return redirect("intelligence:adaptive_routes")
+    roadmap = form.cleaned_data["roadmap"]
+    mission = form.cleaned_data["mission"]
+    try:
+        revision, created = propose_route_revision(
+            request.user,
+            roadmap,
+            mission,
+            profile,
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+        return redirect("intelligence:adaptive_routes")
     messages.success(
         request,
-        f"Mission proposal {action}: {mission.title}.",
+        "A route change is ready for your review. Nothing was applied automatically."
+        if created
+        else "That route proposal is already waiting for review.",
     )
-    return redirect("intelligence:dna")
+    return redirect(
+        "intelligence:adaptive_route_detail",
+        roadmap_id=revision.roadmap_id,
+    )
+
+
+@login_required
+@require_POST
+def revision_action(request, roadmap_id, revision_id, action):
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+    revision = get_object_or_404(
+        RoadmapRevision,
+        id=revision_id,
+        roadmap=roadmap,
+    )
+    try:
+        if action == "accept":
+            accept_revision(request.user, roadmap, revision)
+            messages.success(
+                request,
+                "Route revision accepted. Legacy roadmap days remain unchanged.",
+            )
+        elif action == "reject":
+            reject_revision(request.user, roadmap, revision)
+            messages.info(request, "Route revision rejected and recorded.")
+        elif action == "postpone":
+            form = PostponeRevisionForm(request.POST)
+            if not form.is_valid():
+                raise ValidationError("Choose a supported postponement period.")
+            postpone_revision(
+                request.user,
+                roadmap,
+                revision,
+                days=form.cleaned_data["days"],
+            )
+            messages.info(request, "Route revision postponed.")
+        elif action == "resume":
+            resume_revision(request.user, roadmap, revision)
+            messages.success(request, "The postponed revision is ready for review.")
+        else:
+            raise ValidationError("That revision action is not supported.")
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    return redirect(
+        "intelligence:adaptive_route_detail",
+        roadmap_id=roadmap.id,
+    )
+
+
+@login_required
+@require_POST
+def restore_route_revision(request, roadmap_id, revision_id):
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+    revision = get_object_or_404(
+        RoadmapRevision,
+        id=revision_id,
+        roadmap=roadmap,
+    )
+    try:
+        restored = restore_revision(request.user, roadmap, revision)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(
+            request,
+            f"Revision {revision.revision_number} was restored as revision "
+            f"{restored.revision_number}.",
+        )
+    return redirect(
+        "intelligence:adaptive_route_detail",
+        roadmap_id=roadmap.id,
+    )
+
+
+@login_required
+@require_POST
+def toggle_route_node_lock(request, roadmap_id, node_id):
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+    node = get_object_or_404(
+        RoadmapNode,
+        id=node_id,
+        revision__roadmap=roadmap,
+    )
+    try:
+        updated = toggle_node_lock(request.user, roadmap, node)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(
+            request,
+            "Node position pinned."
+            if updated.is_user_locked
+            else "Node position unpinned.",
+        )
+    return redirect(
+        "intelligence:adaptive_route_detail",
+        roadmap_id=roadmap.id,
+    )

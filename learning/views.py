@@ -205,12 +205,30 @@ def roadmap_create(request):
 @login_required
 def roadmap_detail(request, roadmap_id):
     """Display detail view of a specific roadmap with timeline."""
+    from intelligence.models import RoadmapRevision
+
     roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
     days = roadmap.days.all().order_by('order')
-    
+    adaptive_revisions = list(
+        RoadmapRevision.objects.filter(
+            roadmap=roadmap,
+            status__in={"active", "proposed"},
+        ).order_by("-revision_number")
+    )
+    adaptive_active = next(
+        (item for item in adaptive_revisions if item.status == "active"),
+        None,
+    )
+    adaptive_proposed = next(
+        (item for item in adaptive_revisions if item.status == "proposed"),
+        None,
+    )
+
     return render(request, 'learning/roadmap_detail.html', {
         'roadmap': roadmap,
-        'days': days
+        'days': days,
+        'adaptive_active': adaptive_active,
+        'adaptive_proposed': adaptive_proposed,
     })
 
 

@@ -57,6 +57,30 @@ class RoadmapGenerator:
                 "DSA Projects",
             ],
         },
+        "FULLSTACK": {
+            "name": "Django & Full-Stack",
+            "modules": [
+                "Web and HTTP Foundations",
+                "HTML and CSS Foundations",
+                "JavaScript Foundations",
+                "Django Project Structure",
+                "URL Routing and Views",
+                "Templates",
+                "Forms and Validation",
+                "Models and ORM",
+                "Migrations",
+                "Authentication",
+                "Authorization and Ownership",
+                "Sessions and CSRF",
+                "File Uploads",
+                "JSON APIs",
+                "Query Optimization",
+                "Automated Testing",
+                "Web Security",
+                "Deployment Foundations",
+                "Full-Stack Project",
+            ],
+        },
     }
     LEVELS = {"beginner", "intermediate", "advanced"}
 

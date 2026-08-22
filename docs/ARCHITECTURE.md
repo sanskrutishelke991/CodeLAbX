@@ -29,7 +29,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 | --- | --- |
 | `accounts` | Registration, authentication throttling, profiles, settings, password reset, export, deletion |
 | `dashboard` | Public landing/legal pages and the signed-in verified activity overview |
-| `learning` | ML/DSA roadmap generation, daily lessons, lifecycle actions, day completion |
+| `learning` | ML, DSA, and Django/full-stack roadmap generation, daily lessons, lifecycle actions, day completion |
 | `content` | Curated video categories, library, favorites, and watched state |
 | `practice` | Practice-problem generation and non-executing AI code review |
 | `assessments` | Generated MCQs, server-timed attempts, authoritative scoring |
@@ -76,11 +76,13 @@ idempotent `LearningEvent` evidence; and derives rebuildable `SkillState`
 mastery, confidence, and freshness values without AI-generated numeric scores.
 Existing Roadmap/Day rows remain unchanged. Transaction-on-commit emitters and
 curated routing/goal diagnostics feed the private Learning DNA and evidence
-explorer. Sprint 3 adds prerequisite-aware bottleneck analysis and persisted,
-idempotent Mission proposals with deterministic reason codes. Freshness is
-calculated for the current view without rewriting historical evidence. Mission
-proposals do not alter a roadmap until the learner approval flow is added. See
-`docs/LEARNING_INTELLIGENCE_V1.md` for the adaptive roadmap and tutor plan.
+explorer. Prerequisite-aware bottleneck analysis creates persisted, idempotent
+Mission proposals with deterministic reason codes. Freshness is calculated for
+the current view without rewriting historical evidence. Sprint 4 adds
+RoadmapRevision/RoadmapNode sidecars: route changes show an exact diff and require
+an explicit accept, reject, or postpone decision. Legacy Day rows remain unchanged,
+user-pinned nodes keep their position, and superseded revisions can be restored as
+new revisions. See `docs/LEARNING_INTELLIGENCE_V1.md` for the tutor plan.
 
 ## Cache and throttling
 
