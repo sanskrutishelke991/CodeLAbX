@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tutor Preferences — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell" aria-labelledby="tutor-preferences-title">
+    <nav class="intel-tabs" aria-label="Learning Intelligence">
+        <a href="{% url 'intelligence:dna' %}">Learning DNA</a>
+        <a href="{% url 'intelligence:adaptive_routes' %}">Adaptive routes</a>
+        <a class="is-active" href="{% url 'intelligence:tutor_home' %}" aria-current="page">Tutor</a>
+    </nav>
+
+    <header class="intel-hero">
+        <div class="intel-kicker">🤖 Optional AI tutor</div>
+        <h1 id="tutor-preferences-title">Choose how the tutor teaches</h1>
+        <p>
+            These are explicit settings—not a hidden personality label. They shape
+            AI Study Buddy prompts only when AI features are configured and enabled.
+        </p>
+    </header>
+
+    <form method="post" class="intel-card intel-form tutor-preference-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="intel-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="tutor-form-grid">
+            <div class="intel-field">
+                <label for="{{ form.explanation_depth.id_for_label }}">Explanation depth</label>
+                {{ form.explanation_depth }}
+                {{ form.explanation_depth.errors }}
+            </div>
+            <div class="intel-field">
+                <label for="{{ form.teaching_mode.id_for_label }}">Teaching mode</label>
+                {{ form.teaching_mode }}
+                {{ form.teaching_mode.errors }}
+            </div>
+            <div class="intel-field">
+                <label for="{{ form.code_density.id_for_label }}">Code density</label>
+                {{ form.code_density }}
+                {{ form.code_density.errors }}
+            </div>
+            <div class="intel-field">
+                <label for="{{ form.preferred_language.id_for_label }}">Answer language</label>
+                {{ form.preferred_language }}
+                <small>The CodeLabX interface remains English in this sprint.</small>
+                {{ form.preferred_language.errors }}
+            </div>
+            <div class="intel-field">
+                <label for="{{ form.pace.id_for_label }}">Pace</label>
+                {{ form.pace }}
+                {{ form.pace.errors }}
+            </div>
+            <div class="intel-field">
+                <label for="{{ form.session_minutes.id_for_label }}">Preferred study block</label>
+                {{ form.session_minutes }}
+                {{ form.session_minutes.errors }}
+            </div>
+        </div>
+
+        <fieldset class="tutor-choice-group">
+            <legend>Response accessibility</legend>
+            <label>{{ form.reduce_cognitive_load }} Introduce one idea at a time</label>
+            <label>{{ form.prefer_checklists }} Prefer checklists for multi-step tasks</label>
+            <label>{{ form.avoid_emoji }} Avoid emoji in tutor answers</label>
+        </fieldset>
+
+        <fieldset class="tutor-choice-group tutor-adaptation-choice">
+            <legend>Learning context</legend>
+            <label>{{ form.learning_context_enabled }} Allow accepted missions and evidence-backed skill states in tutor context</label>
+            <p>
+                Turn this off to keep Study Buddy generic. Active memory that you
+                explicitly save remains separately controlled on the Memory page.
+            </p>
+        </fieldset>
+
+        <fieldset class="tutor-choice-group tutor-adaptation-choice">
+            <legend>Feedback-based adaptation</legend>
+            <label>{{ form.observed_adaptation_enabled }} Allow repeated feedback to create visible memory suggestions</label>
+            <p>
+                A suggestion appears only after three matching feedback signals. It
+                never silently rewrites your explicit settings, and you can edit,
+                pause, or delete it.
+            </p>
+        </fieldset>
+
+        <div class="intel-notice">
+            Do not enter medical information, secrets, private repository content,
+            passwords, API keys, or access tokens. Tutor memory is bounded and can
+            be erased with “Forget all.”
+        </div>
+
+        <div class="intel-mission-actions">
+            <button class="intel-primary" type="submit">Save tutor preferences</button>
+            {% if preference %}
+            <a class="intel-secondary" href="{% url 'intelligence:tutor_memory' %}">Manage memory</a>
+            {% endif %}
+        </div>
+    </form>
+</section>
+{% endblock %}

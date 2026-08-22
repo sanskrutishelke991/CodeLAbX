@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Tutor Memory — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell" aria-labelledby="edit-memory-title">
+    <nav class="intel-tabs" aria-label="Tutor memory">
+        <a href="{% url 'intelligence:tutor_memory' %}">Back to tutor memory</a>
+        <a href="{% url 'intelligence:tutor_preferences' %}">Tutor preferences</a>
+    </nav>
+
+    <header class="intel-hero">
+        <div class="intel-kicker">Learner-controlled memory</div>
+        <h1 id="edit-memory-title">Edit, confirm, or pause this memory</h1>
+        <p>
+            Saving an observed suggestion confirms that you reviewed it. Paused
+            memory remains visible here but is excluded from future tutor context.
+        </p>
+    </header>
+
+    <form method="post" class="intel-card intel-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="intel-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="intel-field">
+            <label for="{{ form.category.id_for_label }}">Category</label>
+            {{ form.category }}
+            {{ form.category.errors }}
+        </div>
+        <div class="intel-field">
+            <label for="{{ form.content.id_for_label }}">Memory</label>
+            {{ form.content }}
+            <small>{{ form.content.help_text }}</small>
+            {{ form.content.errors }}
+        </div>
+        <div class="intel-field">
+            <label for="{{ form.reason.id_for_label }}">Why store it?</label>
+            {{ form.reason }}
+            {{ form.reason.errors }}
+        </div>
+        <div class="intel-field">
+            <label for="{{ form.chat_session.id_for_label }}">Conversation</label>
+            {{ form.chat_session }}
+            {{ form.chat_session.errors }}
+        </div>
+        <label class="tutor-check-row">{{ form.is_active }} Use this memory in tutor context</label>
+        {{ form.is_active.errors }}
+        <div class="intel-mission-actions">
+            <button class="intel-primary" type="submit">Save and confirm</button>
+            <a class="intel-secondary" href="{% url 'intelligence:tutor_memory' %}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

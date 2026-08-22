@@ -95,7 +95,10 @@
 
     {% if user.is_authenticated %}
     <!-- AI Study Buddy Chat Widget -->
-    <div id="chatWidget" data-chat-url="{% url 'ai_tools:chat_send' %}" data-user-initial="{{ user.username|first|upper }}">
+    <div id="chatWidget"
+         data-chat-url="{% url 'ai_tools:chat_send' %}"
+         data-feedback-url="{% url 'intelligence:tutor_feedback' %}"
+         data-user-initial="{{ user.username|first|upper }}">
         <button id="chatToggleBtn" class="chat-toggle-btn" title="AI Study Buddy" aria-label="Open AI Study Buddy" aria-expanded="false" aria-controls="chatWindow">
             <i class="bi bi-chat-dots-fill" id="chatToggleIcon"></i>
         </button>
@@ -112,6 +115,12 @@
                     </div>
                 </div>
                 <div>
+                    <a class="chat-header-btn"
+                       href="{% url 'intelligence:tutor_home' %}"
+                       title="Tutor preferences and memory"
+                       aria-label="Open tutor preferences and memory">
+                        <i class="bi bi-sliders"></i>
+                    </a>
                     <button class="chat-header-btn" data-chat-new title="New chat" aria-label="Start a new chat">
                         <i class="bi bi-plus-lg"></i>
                     </button>
@@ -127,7 +136,7 @@
                         <i class="bi bi-stars"></i>
                     </div>
                     <h5>Hi! I am your Study Buddy</h5>
-                    <p>Ask me anything about programming, ML, AI, or DSA.</p>
+                    <p>Ask a learning question. Preferences and active memories are always under your control.</p>
                     <div class="suggested-prompts">
                         <button class="prompt-btn" data-chat-suggestion>Explain recursion simply</button>
                         <button class="prompt-btn" data-chat-suggestion>What is machine learning?</button>

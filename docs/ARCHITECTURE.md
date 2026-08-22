@@ -37,7 +37,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 | `progress` | XP ledger, levels, streaks, badges, activity, analytics, leaderboard |
 | `notes` | Owner-scoped notes and validated bookmarks |
 | `challenges` | Global scheduled challenges, owner-scoped attempts, AI feedback |
-| `intelligence` | Skill Packs, immutable evidence, deterministic Learning DNA, and explainable mission proposals |
+| `intelligence` | Learning DNA, adaptive routes, explicit tutor preferences, and user-controlled memory |
 
 Django's built-in authentication, admin, sessions, messages, staticfiles, and
 content-types apps remain shared platform services.
@@ -82,7 +82,11 @@ the current view without rewriting historical evidence. Sprint 4 adds
 RoadmapRevision/RoadmapNode sidecars: route changes show an exact diff and require
 an explicit accept, reject, or postpone decision. Legacy Day rows remain unchanged,
 user-pinned nodes keep their position, and superseded revisions can be restored as
-new revisions. See `docs/LEARNING_INTELLIGENCE_V1.md` for the tutor plan.
+new revisions. Sprint 5 adds explicit tutor modes, bounded learner-visible memory,
+manual session summaries, and feedback suggestions only after repeated signals and
+an explicit adaptation opt-in. The AI chat context includes accepted missions and
+evidence-backed states, frames all learner-written memory as untrusted data, and
+never fine-tunes a per-user model.
 
 ## Cache and throttling
 
@@ -99,10 +103,12 @@ The normal flow is:
 
 1. Validate content type, body size, fields, and feature flags.
 2. Apply cache-backed burst and daily limits.
-3. Send the minimum relevant prompt or normalized image to Gemini.
-4. Treat provider output as untrusted.
-5. Validate structured JSON or sanitize Markdown/HTML.
-6. Store only owner-scoped records and return generic public failures.
+3. Build only bounded, owner-scoped tutor context; frame learner memory as data,
+   never higher-priority instructions.
+4. Send the minimum relevant prompt or normalized image to Gemini.
+5. Treat provider output as untrusted.
+6. Validate structured JSON or sanitize Markdown/HTML.
+7. Store only owner-scoped records and return generic public failures.
 
 AI code review is feedback, not code execution or a correctness verdict. Coding
 challenges never award "correct" status based on model prose.

@@ -1,2 +1,67 @@
 {% extends 'base.html' %}
-{% load static %}{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/legal.css' %}">{% endblock %}{% block title %}Privacy — CodeLabX{% endblock %}{% block content %}<article class="legal"><h1>Privacy summary</h1><p>Last updated: August 2026. This page describes the current development version of CodeLabX.</p><h2>Stored data</h2><p>CodeLabX stores account details, profile information, learning progress, assessments, notes, bookmarks, chat history, uploaded image metadata, badges, and XP events.</p><h2>AI processing</h2><p>When you use an AI feature, the relevant prompt, code, question, or normalized image is sent to Google Gemini for processing. Do not submit secrets or highly sensitive personal information.</p><h2>Visibility</h2><p>Private user-owned records are scoped to their owner. Public profile and leaderboard visibility follows the profile visibility setting.</p><h2>Essential browser storage</h2><p>CodeLabX uses Django session and CSRF cookies for sign-in and request protection, plus local browser storage for display preferences such as theme. No advertising or analytics cookie integration is present in this development version.</p><h2>Your controls</h2><p>Settings provides profile visibility, password reset, JSON data export, and permanent account deletion.</p><h2>Local development</h2><p>This repository currently uses SQLite and local media for development. Production storage and retention controls must be configured before public deployment.</p></article>{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/legal.css' %}">
+{% endblock %}
+{% block title %}Privacy — CodeLabX{% endblock %}
+
+{% block content %}
+<article class="legal">
+    <h1>Privacy summary</h1>
+    <p>Last updated: August 2026. This page describes the current development version of CodeLabX.</p>
+
+    <h2>Stored data</h2>
+    <p>
+        CodeLabX stores account details, profile information, learning progress,
+        assessments, notes, bookmarks, chat history, uploaded image metadata,
+        badges, XP events, Learning DNA evidence, adaptive route revisions,
+        explicit tutor preferences, tutor memory, and tutor feedback.
+    </p>
+
+    <h2>AI processing</h2>
+    <p>
+        When you use an AI feature, the relevant prompt, code, question, normalized
+        image, or bounded tutor context is sent to Google Gemini for processing.
+        Tutor context can include your explicit preferences, accepted mission,
+        evidence-backed skill states, and active memory visible on the Tutor page.
+        Learning-record context can be disabled in Tutor preferences. Do not submit
+        secrets or highly sensitive personal information.
+    </p>
+
+    <h2>Tutor-memory controls</h2>
+    <p>
+        Tutor memory is private by default and is not per-user model training. You
+        can inspect, edit, pause, delete, or forget all tutor memory and feedback.
+        Feedback-based suggestions require opt-in and repeated matching signals.
+    </p>
+
+    <h2>Visibility</h2>
+    <p>
+        Private user-owned records are scoped to their owner. Public profile and
+        leaderboard visibility follows the profile visibility setting.
+    </p>
+
+    <h2>Essential browser storage</h2>
+    <p>
+        CodeLabX uses Django session and CSRF cookies for sign-in and request
+        protection, plus local browser storage for display preferences such as
+        theme. No advertising or analytics cookie integration is present in this
+        development version.
+    </p>
+
+    <h2>Your controls</h2>
+    <p>
+        Settings provides profile visibility, password reset, JSON data export, and
+        permanent account deletion. The Tutor page provides separate memory and
+        feedback deletion controls.
+    </p>
+
+    <h2>Local development</h2>
+    <p>
+        This repository currently uses SQLite and local media for development.
+        Production storage and retention controls must be configured before public
+        deployment.
+    </p>
+</article>
+{% endblock %}

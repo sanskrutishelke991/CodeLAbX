@@ -67,4 +67,32 @@ urlpatterns = [
         views.toggle_route_node_lock,
         name="toggle_route_node_lock",
     ),
+    path("tutor/", views.tutor_home, name="tutor_home"),
+    path(
+        "tutor/preferences/",
+        views.tutor_preferences,
+        name="tutor_preferences",
+    ),
+    path("tutor/memory/", views.tutor_memory, name="tutor_memory"),
+    path(
+        "tutor/memory/add/",
+        views.tutor_memory_add,
+        name="tutor_memory_add",
+    ),
+    path(
+        "tutor/memory/<int:memory_id>/update/",
+        views.tutor_memory_update,
+        name="tutor_memory_update",
+    ),
+    path(
+        "tutor/memory/<int:memory_id>/delete/",
+        views.tutor_memory_delete,
+        name="tutor_memory_delete",
+    ),
+    path(
+        "tutor/memory/forget-all/",
+        views.tutor_memory_forget_all,
+        name="tutor_memory_forget_all",
+    ),
+    path("tutor/feedback/", views.tutor_feedback, name="tutor_feedback"),
 ]

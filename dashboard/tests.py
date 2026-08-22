@@ -63,6 +63,7 @@ class RouteSmokeTests(TestCase):
             'notes:create',
             'notes:bookmarks',
             'intelligence:onboarding',
+            'intelligence:tutor_preferences',
         ]
 
         for name in routes:
@@ -431,6 +432,7 @@ class FrontendExtractionBudgetTests(TestCase):
             "templates/learning/roadmap_detail.html",
             "templates/notes/bookmarks_list.html",
             "templates/notes/notes_list.html",
+            "templates/intelligence/tutor_memory.html",
         ]
         for relative_path in paths:
             source = (repository / relative_path).read_text(encoding="utf-8")

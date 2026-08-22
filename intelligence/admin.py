@@ -13,6 +13,9 @@ from .models import (
     SkillPackMembership,
     SkillPrerequisite,
     SkillState,
+    TutorFeedback,
+    TutorMemory,
+    TutorPreference,
 )
 
 
@@ -267,6 +270,61 @@ class DiagnosticResponseAdmin(admin.ModelAdmin):
         "skill__code",
     )
     readonly_fields = [field.name for field in DiagnosticResponse._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(TutorPreference)
+class TutorPreferenceAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "teaching_mode",
+        "explanation_depth",
+        "preferred_language",
+        "observed_adaptation_enabled",
+        "updated_at",
+    )
+    list_filter = (
+        "teaching_mode",
+        "explanation_depth",
+        "preferred_language",
+        "observed_adaptation_enabled",
+    )
+    search_fields = ("user__username", "user__email")
+    autocomplete_fields = ["user"]
+    readonly_fields = ("created_at", "updated_at", "onboarding_completed_at")
+
+
+@admin.register(TutorMemory)
+class TutorMemoryAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "category",
+        "source_type",
+        "is_active",
+        "user_confirmed",
+        "updated_at",
+    )
+    list_filter = ("category", "source_type", "is_active", "user_confirmed")
+    search_fields = ("user__username", "content", "reason")
+    autocomplete_fields = ["user"]
+    raw_id_fields = ["chat_session"]
+    readonly_fields = ("source_key", "created_at", "updated_at")
+
+
+@admin.register(TutorFeedback)
+class TutorFeedbackAdmin(admin.ModelAdmin):
+    list_display = ("user", "message", "feedback_type", "updated_at")
+    list_filter = ("feedback_type",)
+    search_fields = ("user__username", "message__session__title")
+    readonly_fields = [field.name for field in TutorFeedback._meta.fields]
 
     def has_add_permission(self, request):
         return False

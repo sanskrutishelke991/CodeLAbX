@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -19,6 +20,9 @@ from .forms import (
     EvidenceFilterForm,
     IntelligenceOnboardingForm,
     PostponeRevisionForm,
+    TutorFeedbackForm,
+    TutorMemoryForm,
+    TutorPreferenceForm,
 )
 from .models import (
     DiagnosticAttempt,
@@ -29,6 +33,9 @@ from .models import (
     RoadmapRevision,
     Skill,
     SkillPack,
+    TutorFeedback,
+    TutorMemory,
+    TutorPreference,
 )
 from .services.adaptive_roadmaps import (
     accept_revision,
@@ -50,6 +57,10 @@ from .services.diagnostics import (
 from .services.recommendations import (
     analyze_learning_dna,
     propose_next_mission,
+)
+from .services.tutor_context import (
+    build_tutor_context,
+    record_tutor_feedback,
 )
 
 logger = logging.getLogger(__name__)
@@ -680,4 +691,205 @@ def toggle_route_node_lock(request, roadmap_id, node_id):
     return redirect(
         "intelligence:adaptive_route_detail",
         roadmap_id=roadmap.id,
+    )
+
+
+@login_required
+def tutor_home(request):
+    if TutorPreference.objects.filter(user=request.user).exists():
+        return redirect("intelligence:tutor_memory")
+    return redirect("intelligence:tutor_preferences")
+
+
+@login_required
+def tutor_preferences(request):
+    preference = TutorPreference.objects.filter(user=request.user).first()
+    if request.method == "POST":
+        form = TutorPreferenceForm(request.POST, instance=preference)
+        if form.is_valid():
+            preference = form.save(commit=False)
+            preference.user = request.user
+            if preference.onboarding_completed_at is None:
+                preference.onboarding_completed_at = timezone.now()
+            preference.save()
+            messages.success(
+                request,
+                "Tutor preferences saved. You remain in control of every memory.",
+            )
+            return redirect("intelligence:tutor_memory")
+    else:
+        form = TutorPreferenceForm(instance=preference)
+    return render(
+        request,
+        "intelligence/tutor_preferences.html",
+        {"form": form, "preference": preference},
+    )
+
+
+def _render_tutor_memory(request, *, memory_form=None, status=200):
+    preference = TutorPreference.objects.filter(user=request.user).first()
+    if preference is None:
+        return redirect("intelligence:tutor_preferences")
+    if memory_form is None:
+        initial = None
+        requested_session = request.GET.get("session", "").strip()
+        if len(requested_session) <= 20 and requested_session.isdigit():
+            session = request.user.chat_sessions.filter(
+                id=int(requested_session)
+            ).first()
+            if session:
+                initial = {
+                    "category": "session_summary",
+                    "chat_session": session,
+                    "reason": "Learner-approved compact session summary.",
+                }
+        memory_form = TutorMemoryForm(user=request.user, initial=initial)
+    memories = (
+        TutorMemory.objects.filter(user=request.user)
+        .select_related("chat_session")
+        .order_by("-is_active", "-updated_at")
+    )
+    page_obj = Paginator(memories, 20).get_page(request.GET.get("page"))
+    feedback_counts = list(
+        TutorFeedback.objects.filter(user=request.user)
+        .values("feedback_type")
+        .annotate(total=Count("id"))
+        .order_by("feedback_type")
+    )
+    feedback_labels = dict(TutorFeedback.FEEDBACK_CHOICES)
+    for item in feedback_counts:
+        item["label"] = feedback_labels[item["feedback_type"]]
+    context = build_tutor_context(request.user)
+    return render(
+        request,
+        "intelligence/tutor_memory.html",
+        {
+            "preference": preference,
+            "memory_form": memory_form,
+            "memories": page_obj,
+            "page_obj": page_obj,
+            "feedback_counts": feedback_counts,
+            "context": context,
+            "active_memory_count": TutorMemory.objects.filter(
+                user=request.user,
+                is_active=True,
+            ).count(),
+        },
+        status=status,
+    )
+
+
+@login_required
+def tutor_memory(request):
+    return _render_tutor_memory(request)
+
+
+@login_required
+@require_POST
+def tutor_memory_add(request):
+    if not TutorPreference.objects.filter(user=request.user).exists():
+        return redirect("intelligence:tutor_preferences")
+    form = TutorMemoryForm(request.POST, user=request.user)
+    if form.is_valid():
+        memory = form.save()
+        messages.success(
+            request,
+            f"Tutor memory saved: {memory.get_category_display()}.",
+        )
+        return redirect("intelligence:tutor_memory")
+    return _render_tutor_memory(request, memory_form=form, status=400)
+
+
+@login_required
+def tutor_memory_update(request, memory_id):
+    memory = get_object_or_404(
+        TutorMemory,
+        id=memory_id,
+        user=request.user,
+    )
+    if request.method == "POST":
+        form = TutorMemoryForm(
+            request.POST,
+            instance=memory,
+            user=request.user,
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Tutor memory updated and confirmed.")
+            return redirect("intelligence:tutor_memory")
+    else:
+        form = TutorMemoryForm(instance=memory, user=request.user)
+    return render(
+        request,
+        "intelligence/tutor_memory_form.html",
+        {"form": form, "memory": memory},
+    )
+
+
+@login_required
+@require_POST
+def tutor_memory_delete(request, memory_id):
+    memory = get_object_or_404(
+        TutorMemory,
+        id=memory_id,
+        user=request.user,
+    )
+    if (
+        memory.source_type == "observed_feedback"
+        and memory.source_key.startswith("feedback-pattern:")
+    ):
+        feedback_type = memory.source_key.removeprefix("feedback-pattern:")
+        TutorFeedback.objects.filter(
+            user=request.user,
+            feedback_type=feedback_type,
+        ).delete()
+    memory.delete()
+    messages.success(request, "Tutor memory permanently deleted.")
+    return redirect("intelligence:tutor_memory")
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def tutor_memory_forget_all(request):
+    if request.POST.get("confirmation") != "forget":
+        messages.error(request, "Forget-all was not confirmed.")
+        return redirect("intelligence:tutor_memory")
+    memory_count, _ = TutorMemory.objects.filter(user=request.user).delete()
+    TutorFeedback.objects.filter(user=request.user).delete()
+    messages.success(
+        request,
+        f"Forgot {memory_count} tutor memory item(s) and all tutor feedback signals.",
+    )
+    return redirect("intelligence:tutor_memory")
+
+
+@login_required
+@require_POST
+def tutor_feedback(request):
+    form = TutorFeedbackForm(request.POST, user=request.user)
+    if not form.is_valid():
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Choose feedback for one of your assistant responses.",
+            },
+            status=400,
+        )
+    result = record_tutor_feedback(
+        request.user,
+        form.cleaned_data["message"],
+        form.cleaned_data["feedback_type"],
+    )
+    return JsonResponse(
+        {
+            "success": True,
+            "feedback": result.feedback.feedback_type,
+            "adaptation_created": result.adaptation_created,
+            "message": (
+                "Feedback saved. A visible memory suggestion was added."
+                if result.adaptation_created
+                else "Feedback saved."
+            ),
+        }
     )

@@ -192,6 +192,27 @@ a learner-controlled position pin. Accept/reject/postpone decisions are recorded
 restoration copies a superseded snapshot into a new revision instead of rewriting
 history. These tables never replace or mutate legacy `learning.Day` rows.
 
+### `intelligence.TutorPreference`
+
+One-to-one explicit teaching choices for explanation depth, tutor mode, code
+density, answer language, pace, study-block length, bounded accessibility flags,
+explicit learning-record context permission, and opt-in feedback adaptation.
+Opening AI chat never creates this profile silently.
+
+### `intelligence.TutorMemory`
+
+Owner-scoped, bounded, visible context with category, content, storage reason,
+source, active/paused state, and learner-confirmation state. Session summaries
+reference an owned chat session and are deleted with that session. Likely
+credentials and secret assignments are rejected. Learners can edit, pause, delete,
+or permanently forget every item.
+
+### `intelligence.TutorFeedback`
+
+One owner-scoped feedback choice per assistant message. Repeated signals can create
+one visible, editable memory suggestion only when observed adaptation is explicitly
+enabled. Feedback and suggestions are not skill evidence or model fine-tuning.
+
 ## Deletion and privacy behavior
 
 Most user-owned records cascade from `User`. Account deletion additionally

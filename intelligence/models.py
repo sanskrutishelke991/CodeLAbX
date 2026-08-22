@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from decimal import Decimal
 
 from django.conf import settings
@@ -16,6 +17,21 @@ ZERO_TO_ONE = [
     MaxValueValidator(Decimal("1")),
 ]
 MISSION_JSON_MAX_BYTES = 8192
+TUTOR_JSON_MAX_BYTES = 2048
+TUTOR_MEMORY_MAX_CHARS = 600
+TUTOR_ACCESSIBILITY_KEYS = {
+    "avoid_emoji",
+    "prefer_checklists",
+    "reduce_cognitive_load",
+}
+LIKELY_SECRET_PATTERNS = (
+    re.compile(
+        r"\b(?:api[_ -]?key|password|secret|access[_ -]?token)\s*[:=]\s*\S+",
+        re.IGNORECASE,
+    ),
+    re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{20,}\b"),
+    re.compile(r"\bAIza[0-9A-Za-z_-]{30,}\b"),
+)
 
 
 def _validate_mission_json(value, field_name):
@@ -35,6 +51,42 @@ def _validate_mission_json(value, field_name):
     if len(encoded) > MISSION_JSON_MAX_BYTES:
         raise ValidationError(
             {field_name: "This value exceeds the 8 KB limit."}
+        )
+
+
+def _validate_tutor_accessibility(value):
+    if not isinstance(value, dict):
+        raise ValidationError(
+            {"accessibility_preferences": "This value must be an object."}
+        )
+    if set(value) - TUTOR_ACCESSIBILITY_KEYS:
+        raise ValidationError(
+            {"accessibility_preferences": "An unsupported accessibility key was used."}
+        )
+    if any(not isinstance(item, bool) for item in value.values()):
+        raise ValidationError(
+            {"accessibility_preferences": "Accessibility values must be true or false."}
+        )
+    encoded = json.dumps(
+        value,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    if len(encoded) > TUTOR_JSON_MAX_BYTES:
+        raise ValidationError(
+            {"accessibility_preferences": "This value exceeds the 2 KB limit."}
+        )
+
+
+def _validate_memory_text(value, field_name):
+    if any(pattern.search(value) for pattern in LIKELY_SECRET_PATTERNS):
+        raise ValidationError(
+            {
+                field_name: (
+                    "Tutor memory cannot store likely credentials, API keys, "
+                    "passwords, secrets, or access tokens."
+                )
+            }
         )
 
 
@@ -723,3 +775,239 @@ class RoadmapNode(models.Model):
 
     def __str__(self):
         return f"{self.revision_id}:{self.order}:{self.skill.code}"
+
+
+class TutorPreference(models.Model):
+    EXPLANATION_DEPTH_CHOICES = [
+        ("concise", "Concise"),
+        ("balanced", "Balanced"),
+        ("detailed", "Detailed"),
+    ]
+    TEACHING_MODE_CHOICES = [
+        ("direct", "Direct explanation"),
+        ("example_first", "Example first"),
+        ("socratic", "Socratic questions"),
+        ("mixed", "Mixed"),
+    ]
+    CODE_DENSITY_CHOICES = [
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+    ]
+    LANGUAGE_CHOICES = [
+        ("english", "English"),
+        ("hindi", "Hindi"),
+        ("hinglish", "Hinglish"),
+        ("marathi", "Marathi"),
+    ]
+    PACE_CHOICES = [
+        ("gentle", "Gentle"),
+        ("steady", "Steady"),
+        ("fast", "Fast"),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tutor_preference",
+    )
+    explanation_depth = models.CharField(
+        max_length=20,
+        choices=EXPLANATION_DEPTH_CHOICES,
+        default="balanced",
+    )
+    teaching_mode = models.CharField(
+        max_length=20,
+        choices=TEACHING_MODE_CHOICES,
+        default="mixed",
+    )
+    code_density = models.CharField(
+        max_length=20,
+        choices=CODE_DENSITY_CHOICES,
+        default="medium",
+    )
+    preferred_language = models.CharField(
+        max_length=20,
+        choices=LANGUAGE_CHOICES,
+        default="english",
+    )
+    pace = models.CharField(
+        max_length=20,
+        choices=PACE_CHOICES,
+        default="steady",
+    )
+    session_minutes = models.PositiveSmallIntegerField(
+        default=25,
+        validators=[MinValueValidator(10), MaxValueValidator(120)],
+    )
+    accessibility_preferences = models.JSONField(default=dict, blank=True)
+    learning_context_enabled = models.BooleanField(default=True)
+    observed_adaptation_enabled = models.BooleanField(default=False)
+    onboarding_completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(session_minutes__gte=10)
+                & Q(session_minutes__lte=120),
+                name="tutor_session_minutes_range",
+            )
+        ]
+
+    def clean(self):
+        super().clean()
+        _validate_tutor_accessibility(self.accessibility_preferences)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}: {self.teaching_mode}/{self.explanation_depth}"
+
+
+class TutorMemory(models.Model):
+    CATEGORY_CHOICES = [
+        ("goal", "Goal"),
+        ("misconception", "Misconception to revisit"),
+        ("preference", "Teaching preference"),
+        ("project", "Current project"),
+        ("revisit", "Topic to revisit"),
+        ("session_summary", "Session summary"),
+    ]
+    SOURCE_CHOICES = [
+        ("explicit_user", "Added by learner"),
+        ("observed_feedback", "Suggested from repeated feedback"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tutor_memories",
+    )
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+    content = models.TextField(max_length=TUTOR_MEMORY_MAX_CHARS)
+    reason = models.CharField(max_length=300)
+    source_type = models.CharField(
+        max_length=30,
+        choices=SOURCE_CHOICES,
+        default="explicit_user",
+    )
+    source_key = models.CharField(max_length=120, blank=True)
+    chat_session = models.ForeignKey(
+        "ai_tools.ChatSession",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="tutor_memories",
+    )
+    is_active = models.BooleanField(default=True)
+    user_confirmed = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_active", "-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "source_key"],
+                condition=~Q(source_key=""),
+                name="unique_user_tutor_memory_source",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "chat_session"],
+                condition=Q(category="session_summary"),
+                name="unique_tutor_session_summary",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["user", "is_active", "category"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        self.content = self.content.strip()
+        self.reason = self.reason.strip()
+        if not self.content:
+            raise ValidationError({"content": "Tutor memory cannot be empty."})
+        if not self.reason:
+            raise ValidationError({"reason": "Explain why this memory is stored."})
+        _validate_memory_text(self.content, "content")
+        _validate_memory_text(self.reason, "reason")
+        if self.category == "session_summary" and self.chat_session_id is None:
+            raise ValidationError(
+                {"chat_session": "A session summary must reference your chat session."}
+            )
+        if self.category != "session_summary" and self.chat_session_id is not None:
+            raise ValidationError(
+                {"chat_session": "Only session summaries reference a chat session."}
+            )
+        if self.chat_session_id and self.chat_session.user_id != self.user_id:
+            raise ValidationError(
+                {"chat_session": "Tutor memory and chat session owners must match."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.category}:{self.content[:40]}"
+
+
+class TutorFeedback(models.Model):
+    FEEDBACK_CHOICES = [
+        ("helped", "Helpful"),
+        ("too_fast", "Too fast"),
+        ("too_detailed", "Too detailed"),
+        ("more_examples", "More examples"),
+        ("more_code", "More code"),
+        ("ask_me_questions", "Ask me questions"),
+        ("already_known", "I already knew this"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tutor_feedback",
+    )
+    message = models.ForeignKey(
+        "ai_tools.ChatMessage",
+        on_delete=models.CASCADE,
+        related_name="tutor_feedback",
+    )
+    feedback_type = models.CharField(max_length=30, choices=FEEDBACK_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "message"],
+                name="unique_tutor_feedback_per_message",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "feedback_type", "updated_at"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.message_id and self.message.session.user_id != self.user_id:
+            raise ValidationError(
+                {"message": "Tutor feedback and chat message owners must match."}
+            )
+        if self.message_id and self.message.role != "assistant":
+            raise ValidationError(
+                {"message": "Feedback can only target an assistant response."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.message_id}:{self.feedback_type}"

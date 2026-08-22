@@ -50,7 +50,7 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Add onboarding and initial evidence-baseline pages
 - [x] Build full Learning DNA profile, evidence explorer, and recommendation UI
 - [x] Build approval-based roadmap revisions
-- [ ] Build tutor preferences and user-controlled memory
+- [x] Build tutor preferences and user-controlled memory
 
 ## Next frontend-security phase
 

@@ -24,6 +24,9 @@ from intelligence.models import (
     LearnerIntelligenceProfile,
     RoadmapNode,
     RoadmapRevision,
+    TutorFeedback,
+    TutorMemory,
+    TutorPreference,
 )
 from codelabx.throttling import is_rate_limited
 
@@ -401,6 +404,46 @@ def _export_learning_intelligence(user):
                 "rationale",
                 "expected_minutes",
                 "is_user_locked",
+                "created_at",
+                "updated_at",
+            )
+        ),
+        "tutor_preference": (
+            TutorPreference.objects.filter(user=user)
+            .values(
+                "explanation_depth",
+                "teaching_mode",
+                "code_density",
+                "preferred_language",
+                "pace",
+                "session_minutes",
+                "accessibility_preferences",
+                "learning_context_enabled",
+                "observed_adaptation_enabled",
+                "onboarding_completed_at",
+                "created_at",
+                "updated_at",
+            )
+            .first()
+        ),
+        "tutor_memories": list(
+            TutorMemory.objects.filter(user=user).values(
+                "category",
+                "content",
+                "reason",
+                "source_type",
+                "chat_session__title",
+                "is_active",
+                "user_confirmed",
+                "created_at",
+                "updated_at",
+            )
+        ),
+        "tutor_feedback": list(
+            TutorFeedback.objects.filter(user=user).values(
+                "message_id",
+                "message__session__title",
+                "feedback_type",
                 "created_at",
                 "updated_at",
             )

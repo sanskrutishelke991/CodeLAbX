@@ -26,6 +26,9 @@ from .models import (
     SkillPackMembership,
     SkillPrerequisite,
     SkillState,
+    TutorFeedback,
+    TutorMemory,
+    TutorPreference,
 )
 from .services.evidence import record_learning_event
 from .services.mastery import (
@@ -372,6 +375,9 @@ class IntelligenceOperationsTests(TestCase):
             Mission,
             RoadmapRevision,
             RoadmapNode,
+            TutorPreference,
+            TutorMemory,
+            TutorFeedback,
         ):
             with self.subTest(model=model.__name__):
                 self.assertIn(model, admin.site._registry)
