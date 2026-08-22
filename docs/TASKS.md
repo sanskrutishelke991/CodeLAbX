@@ -45,9 +45,10 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Add cycle-validating idempotent Skill Pack seeder
 - [x] Add deterministic mastery/confidence/freshness calculator
 - [x] Add evidence write and state rebuild services/commands/tasks
-- [ ] Emit evidence from existing assessments, challenges, days, and reviews
-- [ ] Build routing and goal-specific diagnostics
-- [ ] Build Learning DNA profile and recommendation UI
+- [x] Emit evidence from existing assessments, challenges, days, and reviews
+- [x] Build routing and goal-specific diagnostics
+- [x] Add onboarding and initial evidence-baseline pages
+- [ ] Build full Learning DNA profile, evidence explorer, and recommendation UI
 - [ ] Build approval-based roadmap revisions
 - [ ] Build tutor preferences and user-controlled memory
 

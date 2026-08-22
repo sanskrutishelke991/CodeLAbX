@@ -1,5 +1,6 @@
 import json
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -17,7 +18,8 @@ class ChallengeRewardIntegrityTests(TestCase):
         self.user = User.objects.create_user(username="challenge-xp-user", password="StrongPass123!")
         self.client.force_login(self.user)
 
-    def test_theory_challenge_reward_is_awarded_once(self):
+    @patch("challenges.views.emit_challenge_attempt")
+    def test_theory_challenge_reward_is_awarded_once(self, emit_event):
         challenge = Challenge.objects.create(
             date=timezone.localdate(),
             challenge_type="theory",
@@ -38,7 +40,8 @@ class ChallengeRewardIntegrityTests(TestCase):
         self.assertTrue(second.json()["already_completed"])
         self.assertEqual(UserLevel.objects.get(user=self.user).total_xp_earned, 20)
         self.assertEqual(XPTransaction.objects.filter(user=self.user).count(), 1)
-        self.assertEqual(UserChallenge.objects.filter(user=self.user).count(), 1)
+        attempt = UserChallenge.objects.get(user=self.user)
+        emit_event.assert_called_once_with(self.user, attempt)
 
     def test_coding_ai_failure_does_not_grant_correctness(self):
         challenge = Challenge.objects.create(
@@ -57,9 +60,6 @@ class ChallengeRewardIntegrityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.json()["is_correct"])
         self.assertEqual(response.json()["xp_earned"], 9)
-
-
-from unittest.mock import patch
 
 
 class ChallengeGenerationBehaviorTests(TestCase):

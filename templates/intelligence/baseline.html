@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Learning Baseline — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell" aria-labelledby="baseline-title">
+    <header class="intel-hero">
+        <div class="intel-kicker">🧬 Initial Learning DNA</div>
+        <h1 id="baseline-title">Your evidence baseline</h1>
+        <p>
+            Starting pack: <strong>{{ profile.selected_pack.name }}</strong>.
+            These estimates come from the two diagnostics and will change as new
+            evidence is recorded.
+        </p>
+    </header>
+
+    <div class="intel-grid">
+        {% for state in states %}
+        <article class="intel-card intel-skill">
+            <div class="intel-skill-head">
+                <div>
+                    <small>{{ state.skill.domain|upper }}</small>
+                    <h2>{{ state.skill.name }}</h2>
+                </div>
+                <strong>{% widthratio state.mastery 1 100 %}%</strong>
+            </div>
+            <progress class="intel-meter"
+                      max="1"
+                      value="{{ state.mastery }}"
+                      aria-label="Mastery {% widthratio state.mastery 1 100 %} percent">
+                {% widthratio state.mastery 1 100 %}%
+            </progress>
+            <dl>
+                <div><dt>Confidence</dt><dd>{% widthratio state.confidence 1 100 %}%</dd></div>
+                <div><dt>Freshness</dt><dd>{% widthratio state.freshness 1 100 %}%</dd></div>
+                <div><dt>Evidence</dt><dd>{{ state.evidence_count }}</dd></div>
+            </dl>
+        </article>
+        {% empty %}
+        <div class="intel-card intel-empty">
+            No skill state was generated. Confirm Skill Packs are seeded and retry the diagnostics.
+        </div>
+        {% endfor %}
+    </div>
+
+    <section class="intel-card intel-summary" aria-labelledby="attempt-summary">
+        <h2 id="attempt-summary">Diagnostic summary</h2>
+        {% for attempt in attempts %}
+        <div>
+            <span>{{ attempt.get_stage_display }}</span>
+            <strong>{{ attempt.score }}/{{ attempt.question_count }} ({{ attempt.percentage }}%)</strong>
+        </div>
+        {% endfor %}
+    </section>
+
+    <div class="intel-notice">
+        Mastery is not an intelligence label. Confidence shows how much evidence
+        exists; freshness shows how recent it is. Sprint 3 will add evidence
+        details and recommended missions.
+    </div>
+</section>
+{% endblock %}

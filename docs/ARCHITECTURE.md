@@ -74,7 +74,9 @@ The `intelligence` app is a sidecar to existing roadmaps. It loads reviewed,
 versioned Programming/DSA, ML, and Django Skill Packs; records immutable,
 idempotent `LearningEvent` evidence; and derives rebuildable `SkillState`
 mastery, confidence, and freshness values without AI-generated numeric scores.
-Existing Roadmap/Day rows remain unchanged in Sprint 1. See
+Existing Roadmap/Day rows remain unchanged. Sprint 2 adds transaction-on-commit
+evidence emitters plus curated routing and goal diagnostics. User-facing setup,
+diagnostic, and baseline routes live under `/intelligence/`. See
 `docs/LEARNING_INTELLIGENCE_V1.md` for the adaptive roadmap and tutor plan.
 
 ## Cache and throttling

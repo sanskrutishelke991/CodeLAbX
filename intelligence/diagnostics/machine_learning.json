@@ -1,0 +1,15 @@
+{
+  "code": "machine_learning",
+  "version": 1,
+  "title": "Machine Learning diagnostic",
+  "questions": [
+    {"id": "ml-missing", "skill": "ml.data_cleaning", "prompt": "Before filling missing values, what should you inspect?", "options": ["Only the model name", "Why values are missing and how the feature is distributed", "The final test labels", "A random replacement value"], "correct": 1, "difficulty": 0.4},
+    {"id": "ml-mean", "skill": "math.descriptive_statistics", "prompt": "Which statistic is usually most affected by a very large outlier?", "options": ["Mean", "Median", "Mode", "Sample size"], "correct": 0, "difficulty": 0.4},
+    {"id": "ml-prob", "skill": "math.probability", "prompt": "If two independent fair coin flips are made, what is the probability of two heads?", "options": ["1/2", "1/3", "1/4", "1"], "correct": 2, "difficulty": 0.4},
+    {"id": "ml-leak", "skill": "ml.data_splitting", "prompt": "Fitting a scaler on the full dataset before splitting creates what risk?", "options": ["Data leakage", "Class balance", "Underflow", "Feature naming"], "correct": 0, "difficulty": 0.6},
+    {"id": "ml-reg", "skill": "ml.regression", "prompt": "Which task is naturally a regression problem?", "options": ["Predict a house price", "Choose spam/not-spam", "Group customers without labels", "Sort a list"], "correct": 0, "difficulty": 0.4},
+    {"id": "ml-recall", "skill": "ml.model_evaluation", "prompt": "When missing a positive case is very costly, which metric deserves special attention?", "options": ["Recall", "Training accuracy only", "Number of columns", "Epoch count only"], "correct": 0, "difficulty": 0.6},
+    {"id": "ml-cv", "skill": "ml.cross_validation", "prompt": "What does cross-validation primarily estimate?", "options": ["Performance stability across different validation splits", "The database schema", "GPU memory only", "The number of labels"], "correct": 0, "difficulty": 0.6},
+    {"id": "ml-responsible", "skill": "ml.responsible_ml", "prompt": "Before deploying a student-risk model, what must be evaluated?", "options": ["Only raw accuracy", "Bias, privacy, consequences, and appeal/oversight", "Only training speed", "Only the UI color"], "correct": 1, "difficulty": 0.7}
+  ]
+}

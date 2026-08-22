@@ -233,7 +233,8 @@ class DayContentAPIErrorTests(TestCase):
 
 
 class DayRewardIntegrityTests(TestCase):
-    def test_day_reward_and_activity_are_applied_once(self):
+    @patch("learning.views.emit_day_completion")
+    def test_day_reward_and_activity_are_applied_once(self, emit_event):
         from progress.models import DailyActivity, UserLevel, XPTransaction
 
         user = User.objects.create_user(username="day-xp-user", password="StrongPass123!")
@@ -266,6 +267,7 @@ class DayRewardIntegrityTests(TestCase):
         self.assertEqual(activity.minutes_studied, 60)
         roadmap.refresh_from_db()
         self.assertEqual(roadmap.status, "completed")
+        emit_event.assert_called_once_with(user, day)
 
 
 class RoadmapLifecycleTests(TestCase):

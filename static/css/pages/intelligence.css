@@ -1,0 +1,242 @@
+.intel-shell {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.intel-hero,
+.intel-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: 14px;
+}
+
+.intel-hero {
+    padding: 30px;
+    margin-bottom: 18px;
+}
+
+.intel-hero h1 {
+    margin: 8px 0;
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+}
+
+.intel-hero p,
+.intel-field small,
+.intel-notice {
+    color: var(--text-secondary);
+}
+
+.intel-kicker {
+    color: var(--accent);
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.intel-form,
+.intel-summary {
+    padding: 24px;
+}
+
+.intel-field {
+    display: grid;
+    gap: 7px;
+    margin-bottom: 18px;
+}
+
+.intel-field label {
+    font-weight: 700;
+}
+
+.intel-field .form-control,
+.intel-field .form-select {
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border-color: var(--border-default);
+}
+
+.intel-errors,
+.intel-field .errorlist {
+    color: var(--error);
+}
+
+.intel-primary {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 44px;
+    padding: 11px 18px;
+    border: 0;
+    border-radius: 9px;
+    color: #fff;
+    background: var(--accent);
+    font-weight: 750;
+}
+
+.intel-primary:hover {
+    background: var(--accent-hover);
+}
+
+.intel-notice {
+    padding: 14px;
+    margin: 18px 0;
+    border: 1px solid rgba(245, 158, 11, .3);
+    border-radius: 9px;
+    background: rgba(245, 158, 11, .07);
+    line-height: 1.6;
+}
+
+.intel-diagnostic {
+    display: grid;
+    gap: 14px;
+}
+
+.intel-question {
+    padding: 20px;
+}
+
+.intel-question legend {
+    display: flex;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 750;
+}
+
+.intel-question legend > span {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: .75rem;
+}
+
+.intel-options {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.intel-options label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 11px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.intel-options label:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.intel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.intel-skill {
+    padding: 18px;
+}
+
+.intel-skill-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.intel-skill-head h2 {
+    margin: 3px 0 12px;
+    font-size: 1rem;
+}
+
+.intel-skill-head small {
+    color: var(--text-tertiary);
+}
+
+.intel-skill-head > strong {
+    color: var(--accent);
+}
+
+.intel-meter {
+    display: block;
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 99px;
+    appearance: none;
+    background: var(--bg-primary);
+}
+
+.intel-meter::-webkit-progress-bar {
+    border-radius: inherit;
+    background: var(--bg-primary);
+}
+
+.intel-meter::-webkit-progress-value,
+.intel-meter::-moz-progress-bar {
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), var(--info));
+}
+
+.intel-skill dl {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 14px 0 0;
+}
+
+.intel-skill dl div {
+    padding: 8px;
+    border-radius: 7px;
+    background: var(--bg-primary);
+}
+
+.intel-skill dt {
+    color: var(--text-tertiary);
+    font-size: .68rem;
+}
+
+.intel-skill dd {
+    margin: 2px 0 0;
+    font-weight: 750;
+}
+
+.intel-summary h2 {
+    font-size: 1.1rem;
+}
+
+.intel-summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.intel-empty {
+    padding: 24px;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+    .intel-hero,
+    .intel-form,
+    .intel-question,
+    .intel-summary {
+        padding: 18px;
+    }
+
+    .intel-summary > div {
+        display: grid;
+    }
+}

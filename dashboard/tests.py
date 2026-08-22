@@ -62,6 +62,7 @@ class RouteSmokeTests(TestCase):
             'notes:list',
             'notes:create',
             'notes:bookmarks',
+            'intelligence:onboarding',
         ]
 
         for name in routes:
@@ -416,7 +417,7 @@ class FrontendExtractionBudgetTests(TestCase):
 
         page_css = list((repository / "static" / "css" / "pages").glob("*.css"))
         page_js = list((repository / "static" / "js" / "pages").glob("*.js"))
-        self.assertEqual(len(page_css), 37)
+        self.assertEqual(len(page_css), 38)
         self.assertEqual(len(page_js), 20)
         for asset in page_css + page_js:
             source = asset.read_text(encoding="utf-8")

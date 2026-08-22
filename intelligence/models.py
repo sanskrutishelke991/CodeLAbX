@@ -292,3 +292,128 @@ class SkillState(models.Model):
 
     def __str__(self):
         return f"{self.user_id}:{self.skill.code} ({self.mastery})"
+
+
+class LearnerIntelligenceProfile(models.Model):
+    GOAL_CHOICES = [
+        ("semester", "Semester learning"),
+        ("placement", "Placement and interview preparation"),
+        ("project", "Project building"),
+        ("machine_learning", "Machine learning"),
+        ("fullstack", "Full-stack development"),
+        ("custom", "Custom goal"),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="intelligence_profile",
+    )
+    primary_goal = models.CharField(max_length=40, choices=GOAL_CHOICES)
+    custom_goal = models.CharField(max_length=300, blank=True)
+    selected_pack = models.ForeignKey(
+        SkillPack,
+        on_delete=models.PROTECT,
+        related_name="learner_profiles",
+    )
+    routing_diagnostic_completed_at = models.DateTimeField(null=True, blank=True)
+    goal_diagnostic_completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        super().clean()
+        if self.primary_goal == "custom" and not self.custom_goal.strip():
+            raise ValidationError({"custom_goal": "Describe the custom goal."})
+        if len(self.custom_goal) > 300:
+            raise ValidationError({"custom_goal": "Custom goal is too long."})
+
+    @property
+    def diagnostics_complete(self):
+        return bool(
+            self.routing_diagnostic_completed_at
+            and self.goal_diagnostic_completed_at
+        )
+
+    def __str__(self):
+        return f"{self.user}: {self.get_primary_goal_display()}"
+
+
+class DiagnosticAttempt(models.Model):
+    STAGE_CHOICES = [
+        ("routing", "Routing diagnostic"),
+        ("goal", "Goal-specific diagnostic"),
+    ]
+    STATUS_CHOICES = [
+        ("started", "Started"),
+        ("completed", "Completed"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="diagnostic_attempts",
+    )
+    pack = models.ForeignKey(
+        SkillPack,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="diagnostic_attempts",
+    )
+    stage = models.CharField(max_length=20, choices=STAGE_CHOICES)
+    diagnostic_code = models.CharField(max_length=100)
+    question_set_version = models.PositiveIntegerField(default=1)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="started",
+    )
+    score = models.PositiveIntegerField(default=0)
+    question_count = models.PositiveIntegerField(default=0)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+        indexes = [
+            models.Index(fields=["user", "stage", "status"]),
+        ]
+
+    @property
+    def percentage(self):
+        if not self.question_count:
+            return 0
+        return round(self.score / self.question_count * 100, 1)
+
+    def __str__(self):
+        return f"{self.user}: {self.diagnostic_code} ({self.status})"
+
+
+class DiagnosticResponse(models.Model):
+    attempt = models.ForeignKey(
+        DiagnosticAttempt,
+        on_delete=models.CASCADE,
+        related_name="responses",
+    )
+    question_id = models.CharField(max_length=100)
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.PROTECT,
+        related_name="diagnostic_responses",
+    )
+    selected_option = models.PositiveIntegerField()
+    is_correct = models.BooleanField()
+    answered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["question_id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["attempt", "question_id"],
+                name="unique_diagnostic_response",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.attempt_id}:{self.question_id}"

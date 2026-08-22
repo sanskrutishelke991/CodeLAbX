@@ -25,6 +25,7 @@ from ai_tools.api import (
 )
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
+from intelligence.services.emitters import emit_assessment_attempt
 
 logger = logging.getLogger(__name__)
 
@@ -516,6 +517,7 @@ def submit_test(request, test_id):
         test.score = 0
         test.completed_at = now
         test.save(update_fields=["status", "score", "completed_at"])
+        emit_assessment_attempt(request.user, test, attempt)
         return json_error(
             "TEST_EXPIRED",
             "The assessment deadline has passed.",
@@ -602,6 +604,7 @@ def submit_test(request, test_id):
         metadata={"score": score, "percentage": percentage},
     )
     new_badges = BadgeManager.check_and_award_badges(request.user)
+    emit_assessment_attempt(request.user, test, attempt)
 
     return JsonResponse(
         {

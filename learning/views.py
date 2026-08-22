@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 from ai_tools.api import provider_error_response, safe_api_errors
 from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
+from intelligence.services.emitters import emit_day_completion
 from progress.models import UserStreak
 from progress.services import BadgeManager
 
@@ -333,6 +334,8 @@ def mark_day_complete(request, roadmap_id, day_number):
         roadmap.status = "completed"
         roadmap.end_date = timezone.localdate()
         roadmap.save(update_fields=["status", "end_date", "updated_at"])
+
+    emit_day_completion(request.user, day)
 
     return JsonResponse(
         {

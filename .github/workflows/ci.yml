@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - stabilization/production-readiness
+      - "feature/**"
   pull_request:
 
 permissions:

@@ -34,6 +34,7 @@ urlpatterns = [
     path('progress/', include('progress.urls')),
     path('notes/', include('notes.urls')),
     path('challenges/', include('challenges.urls')),
+    path('intelligence/', include('intelligence.urls')),
 ]
 from django.conf import settings
 from django.conf.urls.static import static

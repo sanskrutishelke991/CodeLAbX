@@ -184,7 +184,8 @@ from .models import CodeReview
 class CodeReviewRewardIntegrityTests(TestCase):
     @override_settings(AI_FEATURES_ENABLED=True, RATE_LIMIT_ENABLED=False)
     @patch("practice.views.GeminiService")
-    def test_same_code_review_is_rewarded_once(self, service_class):
+    @patch("practice.views.emit_code_review")
+    def test_same_code_review_is_rewarded_once(self, emit_event, service_class):
         user = User.objects.create_user(username="review-xp-user", password="StrongPass123!")
         self.client.force_login(user)
         service_class.return_value.review_code.return_value = {
@@ -201,3 +202,6 @@ class CodeReviewRewardIntegrityTests(TestCase):
         self.assertEqual(CodeReview.objects.filter(user=user).count(), 1)
         self.assertEqual(UserLevel.objects.get(user=user).total_xp_earned, 15)
         self.assertEqual(XPTransaction.objects.filter(user=user).count(), 1)
+        emit_event.assert_called_once()
+        self.assertEqual(emit_event.call_args.args[0], user)
+        self.assertEqual(emit_event.call_args.kwargs["language"], "python")

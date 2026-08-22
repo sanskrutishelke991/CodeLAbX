@@ -1,6 +1,9 @@
 from django.contrib import admin
 
 from .models import (
+    DiagnosticAttempt,
+    DiagnosticResponse,
+    LearnerIntelligenceProfile,
     LearningEvent,
     Skill,
     SkillPack,
@@ -103,3 +106,77 @@ class SkillStateAdmin(admin.ModelAdmin):
     list_filter = ("skill__domain", "algorithm_version")
     search_fields = ("user__username", "skill__code", "skill__name")
     readonly_fields = ("calculated_at",)
+
+
+@admin.register(LearnerIntelligenceProfile)
+class LearnerIntelligenceProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "primary_goal",
+        "selected_pack",
+        "routing_diagnostic_completed_at",
+        "goal_diagnostic_completed_at",
+    )
+    list_filter = ("primary_goal", "selected_pack")
+    search_fields = ("user__username", "user__email", "custom_goal")
+    autocomplete_fields = ["user", "selected_pack"]
+
+
+class DiagnosticResponseInline(admin.TabularInline):
+    model = DiagnosticResponse
+    extra = 0
+    readonly_fields = (
+        "question_id",
+        "skill",
+        "selected_option",
+        "is_correct",
+        "answered_at",
+    )
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(DiagnosticAttempt)
+class DiagnosticAttemptAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "stage",
+        "diagnostic_code",
+        "status",
+        "score",
+        "question_count",
+        "completed_at",
+    )
+    list_filter = ("stage", "status", "diagnostic_code")
+    search_fields = ("user__username", "diagnostic_code")
+    readonly_fields = ("started_at", "completed_at")
+    inlines = [DiagnosticResponseInline]
+
+
+@admin.register(DiagnosticResponse)
+class DiagnosticResponseAdmin(admin.ModelAdmin):
+    list_display = (
+        "attempt",
+        "question_id",
+        "skill",
+        "selected_option",
+        "is_correct",
+    )
+    list_filter = ("is_correct", "skill__domain")
+    search_fields = (
+        "attempt__user__username",
+        "question_id",
+        "skill__code",
+    )
+    readonly_fields = [field.name for field in DiagnosticResponse._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

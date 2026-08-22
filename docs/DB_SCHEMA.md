@@ -164,6 +164,17 @@ confidence, freshness, evidence count/weight, latest evidence, misconception
 codes, and algorithm version. It is derived from LearningEvent and is not an AI
 opinion or XP score.
 
+### `intelligence.LearnerIntelligenceProfile`
+
+Owner one-to-one goal and selected Skill Pack plus routing/goal diagnostic
+completion timestamps. Intelligence data remains private by default.
+
+### `intelligence.DiagnosticAttempt` and `DiagnosticResponse`
+
+Owner-scoped authoritative attempt records for versioned curated question sets.
+Responses reference canonical skills; answer keys remain only in reviewed server
+JSON definitions and are never included in browser question objects.
+
 ## Deletion and privacy behavior
 
 Most user-owned records cascade from `User`. Account deletion additionally
