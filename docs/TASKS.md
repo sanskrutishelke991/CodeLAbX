@@ -36,6 +36,21 @@ schedule. Completed work remains in Git history and regression tests.
 - [ ] Continue reviewing broad exception handlers at intentional API/provider boundaries
 - [ ] Raise remaining low service coverage without testing implementation trivia
 
+## Learning Intelligence feature branch
+
+- [x] Define domain-agnostic V1 technical specification
+- [x] Add Skill Pack, Skill, membership, and prerequisite schema
+- [x] Add immutable LearningEvent and rebuildable SkillState schema
+- [x] Add three starter domain packs plus shared foundations
+- [x] Add cycle-validating idempotent Skill Pack seeder
+- [x] Add deterministic mastery/confidence/freshness calculator
+- [x] Add evidence write and state rebuild services/commands/tasks
+- [ ] Emit evidence from existing assessments, challenges, days, and reviews
+- [ ] Build routing and goal-specific diagnostics
+- [ ] Build Learning DNA profile and recommendation UI
+- [ ] Build approval-based roadmap revisions
+- [ ] Build tutor preferences and user-controlled memory
+
 ## Next frontend-security phase
 
 - [x] Extract all page-specific inline CSS into versioned static stylesheets

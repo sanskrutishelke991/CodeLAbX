@@ -24,6 +24,7 @@ cp .env.example .env
 python manage.py migrate
 python manage.py seed_badges
 python manage.py seed_videos
+python manage.py seed_skill_packs
 python manage.py createsuperuser
 python manage.py runserver
 ```
@@ -43,6 +44,8 @@ The gate runs compilation, critical Ruff checks, migration-drift detection, Djan
 ```bash
 python manage.py generate_daily_challenges
 python manage.py enqueue_daily_challenges
+python manage.py seed_skill_packs --check
+python manage.py rebuild_skill_states --all
 python manage.py production_preflight
 python manage.py check --deploy
 python manage.py makemigrations --check --dry-run
@@ -55,6 +58,7 @@ python scripts/load_smoke.py --help
 - `learning` — roadmaps and daily lessons
 - `assessments` — generated tests and authoritative attempts
 - `challenges` — scheduled theory challenges and AI code feedback
+- `intelligence` — versioned Skill Packs, immutable evidence, and deterministic skill state
 - `ai_tools` — safe Gemini rendering, chat, and image analysis
 - `progress` — activity, streaks, badges, levels, XP ledger, analytics
 - `content` — video library and watched/favorite state

@@ -25,6 +25,7 @@ source = [
     "content",
     "dashboard",
     "learning",
+    "intelligence",
     "notes",
     "practice",
     "progress",

@@ -1,0 +1,36 @@
+{
+  "code": "shared_core",
+  "name": "Shared Computing Foundations",
+  "description": "Reusable problem-solving, quality, tooling, and data foundations shared by CodeLabX learning paths.",
+  "version": 1,
+  "skills": [
+    {"code": "computing.computational_thinking", "name": "Computational Thinking", "description": "Represent problems using decomposition, patterns, abstraction, and algorithms.", "domain": "computing", "difficulty_band": 1, "half_life_days": 120},
+    {"code": "programming.problem_decomposition", "name": "Problem Decomposition", "description": "Break a requirement into small, testable programming steps.", "domain": "programming", "difficulty_band": 1, "half_life_days": 60},
+    {"code": "programming.debugging", "name": "Debugging", "description": "Reproduce, isolate, explain, and correct software defects.", "domain": "programming", "difficulty_band": 2, "half_life_days": 60},
+    {"code": "quality.testing", "name": "Testing Fundamentals", "description": "Design useful examples, assertions, edge cases, and regression tests.", "domain": "quality", "difficulty_band": 2, "half_life_days": 75},
+    {"code": "tools.command_line", "name": "Command Line Fundamentals", "description": "Navigate, inspect, and run development workflows safely from a shell.", "domain": "tools", "difficulty_band": 1, "half_life_days": 120},
+    {"code": "tools.git", "name": "Git Fundamentals", "description": "Use commits, branches, diffs, and remotes to manage source history.", "domain": "tools", "difficulty_band": 2, "half_life_days": 120},
+    {"code": "data.data_modeling", "name": "Data Modeling Fundamentals", "description": "Represent entities, attributes, relationships, and integrity constraints.", "domain": "data", "difficulty_band": 2, "half_life_days": 120},
+    {"code": "data.sql", "name": "SQL Fundamentals", "description": "Query and modify relational data with clear filtering, joins, and aggregation.", "domain": "data", "difficulty_band": 2, "half_life_days": 90},
+    {"code": "projects.project_planning", "name": "Project Planning", "description": "Turn a goal into bounded deliverables, risks, tests, and milestones.", "domain": "projects", "difficulty_band": 2, "half_life_days": 120}
+  ],
+  "memberships": [
+    {"skill": "computing.computational_thinking", "order": 10, "core": true},
+    {"skill": "programming.problem_decomposition", "order": 20, "core": true},
+    {"skill": "programming.debugging", "order": 30, "core": true},
+    {"skill": "quality.testing", "order": 40, "core": true},
+    {"skill": "tools.command_line", "order": 50, "core": true},
+    {"skill": "tools.git", "order": 60, "core": true},
+    {"skill": "data.data_modeling", "order": 70, "core": true},
+    {"skill": "data.sql", "order": 80, "core": true},
+    {"skill": "projects.project_planning", "order": 90, "core": true}
+  ],
+  "prerequisites": [
+    {"skill": "programming.problem_decomposition", "requires": "computing.computational_thinking"},
+    {"skill": "programming.debugging", "requires": "programming.problem_decomposition"},
+    {"skill": "quality.testing", "requires": "programming.debugging"},
+    {"skill": "tools.git", "requires": "tools.command_line", "minimum_mastery": 0.4},
+    {"skill": "data.sql", "requires": "data.data_modeling"},
+    {"skill": "projects.project_planning", "requires": "programming.problem_decomposition", "minimum_mastery": 0.5}
+  ]
+}

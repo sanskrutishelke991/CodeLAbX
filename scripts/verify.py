@@ -20,6 +20,7 @@ SOURCE_DIRECTORIES = [
     "content",
     "dashboard",
     "learning",
+    "intelligence",
     "notes",
     "practice",
     "progress",

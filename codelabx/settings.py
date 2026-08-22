@@ -240,6 +240,7 @@ INSTALLED_APPS = [
     'progress',
     'notes',
     'challenges',
+    'intelligence',
 ]
 
 MIDDLEWARE = [

@@ -137,6 +137,33 @@ One-to-one general learning streak summary.
 
 Badge definition plus unique earned user/badge relation.
 
+## Learning Intelligence
+
+### `intelligence.SkillPack`, `Skill`, and `SkillPackMembership`
+
+Versioned reviewed curriculum packs reference globally canonical skills, allowing
+shared foundations to appear in Programming/DSA, ML, and Django paths without
+duplicating skill identity.
+
+### `intelligence.SkillPrerequisite`
+
+Directed prerequisite edge with bounded mastery/confidence thresholds. The Skill
+Pack validator rejects unknown skills, self-dependencies, duplicates, and cycles
+before database writes.
+
+### `intelligence.LearningEvent`
+
+Immutable, owner-scoped evidence event with a per-user idempotency key, bounded
+numeric outcome/difficulty/weight, hints/retries/duration, source identity,
+algorithm schema version, and small JSON metadata object.
+
+### `intelligence.SkillState`
+
+Rebuildable `(user, skill)` snapshot containing deterministic mastery,
+confidence, freshness, evidence count/weight, latest evidence, misconception
+codes, and algorithm version. It is derived from LearningEvent and is not an AI
+opinion or XP score.
+
 ## Deletion and privacy behavior
 
 Most user-owned records cascade from `User`. Account deletion additionally

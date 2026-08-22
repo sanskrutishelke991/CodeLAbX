@@ -37,6 +37,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 | `progress` | XP ledger, levels, streaks, badges, activity, analytics, leaderboard |
 | `notes` | Owner-scoped notes and validated bookmarks |
 | `challenges` | Global scheduled challenges, owner-scoped attempts, AI feedback |
+| `intelligence` | Versioned Skill Packs, immutable evidence ledger, deterministic SkillState snapshots |
 
 Django's built-in authentication, admin, sessions, messages, staticfiles, and
 content-types apps remain shared platform services.
@@ -66,6 +67,15 @@ and TLS mode are bounded through environment settings.
 XP is append-only at the event level through `XPTransaction` idempotency keys.
 Summary models such as `UserLevel`, `UserStreak`, and `DailyActivity` are updated
 by service functions in database transactions.
+
+### Learning Intelligence foundation
+
+The `intelligence` app is a sidecar to existing roadmaps. It loads reviewed,
+versioned Programming/DSA, ML, and Django Skill Packs; records immutable,
+idempotent `LearningEvent` evidence; and derives rebuildable `SkillState`
+mastery, confidence, and freshness values without AI-generated numeric scores.
+Existing Roadmap/Day rows remain unchanged in Sprint 1. See
+`docs/LEARNING_INTELLIGENCE_V1.md` for the adaptive roadmap and tutor plan.
 
 ## Cache and throttling
 
