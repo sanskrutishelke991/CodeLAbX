@@ -19,6 +19,10 @@ from content.models import UserVideoProgress
 from learning.models import Day, Roadmap
 from notes.models import Note
 from progress.models import DailyActivity, UserBadge, UserLevel, UserStreak
+from intelligence.models import (
+    DiagnosticResponse,
+    LearnerIntelligenceProfile,
+)
 from codelabx.throttling import is_rate_limited
 
 from .forms import ProfileUpdateForm, RegistrationForm
@@ -273,6 +277,103 @@ def settings(request):
     return render(request, 'accounts/settings.html')
 
 
+def _export_learning_intelligence(user):
+    intelligence_profile = (
+        LearnerIntelligenceProfile.objects.filter(user=user)
+        .values(
+            "primary_goal",
+            "custom_goal",
+            "selected_pack__code",
+            "selected_pack__version",
+            "routing_diagnostic_completed_at",
+            "goal_diagnostic_completed_at",
+            "created_at",
+            "updated_at",
+        )
+        .first()
+    )
+    missions = list(
+        user.intelligence_missions.select_related("primary_skill")
+        .prefetch_related("additional_skills")
+        .order_by("created_at")
+    )
+    return {
+        "profile": intelligence_profile,
+        "learning_events": list(
+            user.learning_events.values(
+                "skill__code",
+                "event_type",
+                "source_type",
+                "outcome",
+                "difficulty",
+                "evidence_weight",
+                "hints_used",
+                "retry_count",
+                "duration_seconds",
+                "metadata",
+                "occurred_at",
+                "schema_version",
+            )
+        ),
+        "skill_states": list(
+            user.skill_states.values(
+                "skill__code",
+                "mastery",
+                "confidence",
+                "freshness",
+                "evidence_count",
+                "total_evidence_weight",
+                "last_evidence_at",
+                "misconception_codes",
+                "algorithm_version",
+                "calculated_at",
+            )
+        ),
+        "diagnostic_attempts": list(
+            user.diagnostic_attempts.values(
+                "stage",
+                "diagnostic_code",
+                "question_set_version",
+                "status",
+                "score",
+                "question_count",
+                "started_at",
+                "completed_at",
+            )
+        ),
+        "diagnostic_responses": list(
+            DiagnosticResponse.objects.filter(attempt__user=user).values(
+                "attempt__diagnostic_code",
+                "question_id",
+                "skill__code",
+                "selected_option",
+                "is_correct",
+                "answered_at",
+            )
+        ),
+        "missions": [
+            {
+                "primary_skill": mission.primary_skill.code,
+                "additional_skills": [
+                    skill.code for skill in mission.additional_skills.all()
+                ],
+                "mission_type": mission.mission_type,
+                "status": mission.status,
+                "title": mission.title,
+                "description": mission.description,
+                "rationale": mission.rationale,
+                "success_criteria": mission.success_criteria,
+                "expected_minutes": mission.expected_minutes,
+                "evidence_policy_version": mission.evidence_policy_version,
+                "created_at": mission.created_at,
+                "updated_at": mission.updated_at,
+                "decided_at": mission.decided_at,
+            }
+            for mission in missions
+        ],
+    }
+
+
 @login_required
 @require_POST
 def export_account_data(request):
@@ -321,6 +422,7 @@ def export_account_data(request):
                 "created_at",
             )
         ),
+        "learning_intelligence": _export_learning_intelligence(user),
     }
 
     response = HttpResponse(

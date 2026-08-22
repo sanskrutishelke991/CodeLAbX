@@ -37,7 +37,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 | `progress` | XP ledger, levels, streaks, badges, activity, analytics, leaderboard |
 | `notes` | Owner-scoped notes and validated bookmarks |
 | `challenges` | Global scheduled challenges, owner-scoped attempts, AI feedback |
-| `intelligence` | Versioned Skill Packs, immutable evidence ledger, deterministic SkillState snapshots |
+| `intelligence` | Skill Packs, immutable evidence, deterministic Learning DNA, and explainable mission proposals |
 
 Django's built-in authentication, admin, sessions, messages, staticfiles, and
 content-types apps remain shared platform services.
@@ -74,9 +74,12 @@ The `intelligence` app is a sidecar to existing roadmaps. It loads reviewed,
 versioned Programming/DSA, ML, and Django Skill Packs; records immutable,
 idempotent `LearningEvent` evidence; and derives rebuildable `SkillState`
 mastery, confidence, and freshness values without AI-generated numeric scores.
-Existing Roadmap/Day rows remain unchanged. Sprint 2 adds transaction-on-commit
-evidence emitters plus curated routing and goal diagnostics. User-facing setup,
-diagnostic, and baseline routes live under `/intelligence/`. See
+Existing Roadmap/Day rows remain unchanged. Transaction-on-commit emitters and
+curated routing/goal diagnostics feed the private Learning DNA and evidence
+explorer. Sprint 3 adds prerequisite-aware bottleneck analysis and persisted,
+idempotent Mission proposals with deterministic reason codes. Freshness is
+calculated for the current view without rewriting historical evidence. Mission
+proposals do not alter a roadmap until the learner approval flow is added. See
 `docs/LEARNING_INTELLIGENCE_V1.md` for the adaptive roadmap and tutor plan.
 
 ## Cache and throttling

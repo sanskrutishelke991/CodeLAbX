@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import LearnerIntelligenceProfile, SkillPack
+from .models import LearnerIntelligenceProfile, LearningEvent, SkillPack
 
 
 class IntelligenceOnboardingForm(forms.ModelForm):
@@ -38,3 +38,23 @@ class IntelligenceOnboardingForm(forms.ModelForm):
         ):
             self.add_error("custom_goal", "Describe your custom goal.")
         return cleaned
+
+
+class EvidenceFilterForm(forms.Form):
+    skill = forms.ChoiceField(
+        required=False,
+        choices=[("", "All skills")],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    event_type = forms.ChoiceField(
+        required=False,
+        choices=[("", "All evidence types"), *LearningEvent.EVENT_TYPES],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def __init__(self, *args, skill_choices=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["skill"].choices = [
+            ("", "All skills"),
+            *skill_choices,
+        ]

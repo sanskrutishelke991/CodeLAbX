@@ -141,6 +141,7 @@ class AccountLifecycleTests(TestCase):
         self.assertEqual(response.status_code, 200)
         payload = json.loads(response.content)
         self.assertEqual(payload["account"]["username"], self.user.username)
+        self.assertIn("learning_intelligence", payload)
         self.assertNotIn("password", response.content.decode().lower())
 
     def test_delete_requires_correct_confirmation(self):

@@ -48,7 +48,7 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Emit evidence from existing assessments, challenges, days, and reviews
 - [x] Build routing and goal-specific diagnostics
 - [x] Add onboarding and initial evidence-baseline pages
-- [ ] Build full Learning DNA profile, evidence explorer, and recommendation UI
+- [x] Build full Learning DNA profile, evidence explorer, and recommendation UI
 - [ ] Build approval-based roadmap revisions
 - [ ] Build tutor preferences and user-controlled memory
 

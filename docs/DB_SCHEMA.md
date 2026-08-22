@@ -175,6 +175,14 @@ Owner-scoped authoritative attempt records for versioned curated question sets.
 Responses reference canonical skills; answer keys remain only in reviewed server
 JSON definitions and are never included in browser question objects.
 
+### `intelligence.Mission`
+
+Owner-scoped, explainable next-step proposal tied to a primary skill and optional
+supporting skills. It stores a deterministic recommendation key, bounded rationale
+and success-criteria objects, expected time, evidence-policy version, and lifecycle
+status. Recalculating an unchanged evidence snapshot is idempotent; a changed
+snapshot expires the superseded proposal. A proposal does not mutate a roadmap.
+
 ## Deletion and privacy behavior
 
 Most user-owned records cascade from `User`. Account deletion additionally

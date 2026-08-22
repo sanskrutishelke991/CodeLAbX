@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Evidence Explorer — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell intel-shell-wide" aria-labelledby="evidence-title">
+    <nav class="intel-tabs" aria-label="Learning Intelligence">
+        <a href="{% url 'intelligence:dna' %}">Learning DNA</a>
+        <a class="is-active" href="{% url 'intelligence:evidence' %}" aria-current="page">Evidence explorer</a>
+        <a href="{% url 'intelligence:onboarding' %}">Goal and Skill Pack</a>
+    </nav>
+
+    <header class="intel-hero">
+        <div class="intel-kicker">🔎 Evidence ledger</div>
+        <h1 id="evidence-title">See what supports each estimate</h1>
+        <p>
+            This private view explains the immutable records used by your Learning
+            DNA. Participation and AI review can be visible without being treated
+            as verified correctness.
+        </p>
+    </header>
+
+    <form class="intel-card intel-filter" method="get">
+        <div class="intel-field">
+            <label for="{{ form.skill.id_for_label }}">Skill</label>
+            {{ form.skill }}
+            {{ form.skill.errors }}
+        </div>
+        <div class="intel-field">
+            <label for="{{ form.event_type.id_for_label }}">Evidence type</label>
+            {{ form.event_type }}
+            {{ form.event_type.errors }}
+        </div>
+        <button class="intel-primary" type="submit">Apply filters</button>
+        <a class="intel-secondary" href="{% url 'intelligence:evidence' %}">Clear</a>
+    </form>
+
+    {% if form.errors %}
+    <div class="intel-notice" role="alert">
+        A filter was not recognized. Choose a value from the available options.
+    </div>
+    {% endif %}
+
+    <div class="intel-evidence-list">
+        {% for event in page_obj %}
+        <article class="intel-card intel-event">
+            <div class="intel-event-head">
+                <div>
+                    <div class="intel-card-kicker">{{ event.get_event_type_display }}</div>
+                    <h2>{{ event.skill.name }}</h2>
+                    <span>{{ event.occurred_at|date:"M j, Y · H:i" }}</span>
+                </div>
+                <span class="intel-outcome {% if event.outcome == None %}is-observed{% endif %}">
+                    {{ event.display_outcome }}
+                </span>
+            </div>
+
+            <dl class="intel-event-metrics">
+                <div><dt>Difficulty input</dt><dd>{{ event.difficulty_percent }}%</dd></div>
+                <div><dt>Base evidence weight</dt><dd>{{ event.evidence_weight }}</dd></div>
+                <div><dt>Hints</dt><dd>{{ event.hints_used }}</dd></div>
+                <div><dt>Retries</dt><dd>{{ event.retry_count }}</dd></div>
+                <div><dt>Duration</dt><dd>{{ event.duration_seconds }} sec</dd></div>
+                <div><dt>Source workflow</dt><dd>{{ event.source_type }}</dd></div>
+            </dl>
+
+            {% if event.display_misconceptions %}
+            <div class="intel-misconceptions">
+                <strong>Observed misconception codes</strong>
+                {% for code in event.display_misconceptions %}<span>{{ code }}</span>{% endfor %}
+            </div>
+            {% endif %}
+
+            <details class="intel-event-explain">
+                <summary>How this record is used</summary>
+                {% if event.outcome == None %}
+                <p>
+                    This record documents participation or feedback context. Because
+                    it has no deterministic outcome, it does not increase the
+                    scoreable evidence count or claim that the skill was correct.
+                </p>
+                {% else %}
+                <p>
+                    The deterministic outcome is combined with the reviewed base
+                    weight, difficulty, hints, and retries. The resulting weighted
+                    evidence updates mastery and confidence; it is not an XP reward.
+                </p>
+                {% endif %}
+            </details>
+        </article>
+        {% empty %}
+        <div class="intel-card intel-empty">
+            No evidence records match these filters. Learning activities will appear
+            here after their source workflow completes successfully.
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="intel-pagination" aria-label="Evidence pages">
+        {% if page_obj.has_previous %}
+        <a href="?skill={{ selected_skill|urlencode }}&event_type={{ selected_event_type|urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?skill={{ selected_skill|urlencode }}&event_type={{ selected_event_type|urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    <section class="intel-card intel-method" aria-labelledby="method-title">
+        <h2 id="method-title">Evidence policy</h2>
+        <div class="intel-method-grid">
+            <div>
+                <strong>Mastery</strong>
+                <p>Weighted scoreable outcomes with a neutral prior.</p>
+            </div>
+            <div>
+                <strong>Confidence</strong>
+                <p>Amount and quality of scoreable weighted evidence.</p>
+            </div>
+            <div>
+                <strong>Freshness</strong>
+                <p>Time since the latest scoreable evidence, using a skill-specific half-life.</p>
+            </div>
+            <div>
+                <strong>Not proof</strong>
+                <p>AI reviews and completion records stay low-weight or non-scoreable unless correctness is deterministic.</p>
+            </div>
+        </div>
+    </section>
+</section>
+{% endblock %}

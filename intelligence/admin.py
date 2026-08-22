@@ -5,6 +5,7 @@ from .models import (
     DiagnosticResponse,
     LearnerIntelligenceProfile,
     LearningEvent,
+    Mission,
     Skill,
     SkillPack,
     SkillPackMembership,
@@ -153,6 +154,31 @@ class DiagnosticAttemptAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "diagnostic_code")
     readonly_fields = ("started_at", "completed_at")
     inlines = [DiagnosticResponseInline]
+
+
+@admin.register(Mission)
+class MissionAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "primary_skill",
+        "mission_type",
+        "status",
+        "expected_minutes",
+        "created_at",
+    )
+    list_filter = ("mission_type", "status", "primary_skill__domain")
+    search_fields = (
+        "user__username",
+        "primary_skill__code",
+        "primary_skill__name",
+        "title",
+    )
+    autocomplete_fields = ["user", "primary_skill", "additional_skills"]
+    readonly_fields = (
+        "recommendation_key",
+        "created_at",
+        "updated_at",
+    )
 
 
 @admin.register(DiagnosticResponse)

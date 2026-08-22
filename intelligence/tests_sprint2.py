@@ -18,6 +18,7 @@ from .models import (
     DiagnosticResponse,
     LearnerIntelligenceProfile,
     LearningEvent,
+    Mission,
     SkillPack,
     SkillState,
 )
@@ -91,7 +92,7 @@ class DiagnosticFlowTests(TestCase):
         goal_response = self.submit_current_with_correct_answers()
         self.assertRedirects(
             goal_response,
-            reverse("intelligence:baseline"),
+            reverse("intelligence:dna"),
         )
 
         profile = LearnerIntelligenceProfile.objects.get(user=self.user)
@@ -105,6 +106,10 @@ class DiagnosticFlowTests(TestCase):
         self.assertContains(baseline, "Your evidence baseline")
         self.assertContains(baseline, "Confidence")
         self.assertContains(baseline, "Freshness")
+        self.assertEqual(
+            Mission.objects.filter(user=self.user, status="proposed").count(),
+            1,
+        )
 
     def test_incomplete_submission_is_rejected_without_partial_rows(self):
         self.onboard()

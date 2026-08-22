@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Q
@@ -13,6 +15,27 @@ ZERO_TO_ONE = [
     MinValueValidator(Decimal("0")),
     MaxValueValidator(Decimal("1")),
 ]
+MISSION_JSON_MAX_BYTES = 8192
+
+
+def _validate_mission_json(value, field_name):
+    if not isinstance(value, dict):
+        raise ValidationError({field_name: "This value must be an object."})
+    try:
+        encoded = json.dumps(
+            value,
+            cls=DjangoJSONEncoder,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise ValidationError(
+            {field_name: "This value must be JSON serializable."}
+        ) from exc
+    if len(encoded) > MISSION_JSON_MAX_BYTES:
+        raise ValidationError(
+            {field_name: "This value exceeds the 8 KB limit."}
+        )
 
 
 class SkillPack(models.Model):
@@ -417,3 +440,93 @@ class DiagnosticResponse(models.Model):
 
     def __str__(self):
         return f"{self.attempt_id}:{self.question_id}"
+
+
+class Mission(models.Model):
+    TYPE_CHOICES = [
+        ("diagnostic", "Diagnostic"),
+        ("learn", "Learn"),
+        ("practice", "Practice"),
+        ("remediation", "Remediation"),
+        ("retention", "Retention"),
+        ("project", "Project"),
+        ("stretch", "Stretch"),
+    ]
+    STATUS_CHOICES = [
+        ("proposed", "Proposed"),
+        ("accepted", "Accepted"),
+        ("active", "Active"),
+        ("completed", "Completed"),
+        ("skipped", "Skipped"),
+        ("expired", "Expired"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="intelligence_missions",
+    )
+    primary_skill = models.ForeignKey(
+        Skill,
+        on_delete=models.PROTECT,
+        related_name="primary_missions",
+    )
+    additional_skills = models.ManyToManyField(
+        Skill,
+        blank=True,
+        related_name="supporting_missions",
+    )
+    mission_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="proposed",
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField(max_length=1200)
+    rationale = models.JSONField(default=dict)
+    success_criteria = models.JSONField(default=dict)
+    expected_minutes = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(5), MaxValueValidator(240)]
+    )
+    evidence_policy_version = models.CharField(
+        max_length=60,
+        default="weighted-evidence-v1",
+    )
+    recommendation_key = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "recommendation_key"],
+                name="unique_user_recommendation_key",
+            ),
+            models.CheckConstraint(
+                condition=Q(expected_minutes__gte=5)
+                & Q(expected_minutes__lte=240),
+                name="mission_expected_minutes_range",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["user", "status", "created_at"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        _validate_mission_json(self.rationale, "rationale")
+        _validate_mission_json(self.success_criteria, "success_criteria")
+        if len(self.description) > 1200:
+            raise ValidationError(
+                {"description": "Description exceeds 1,200 characters."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.primary_skill.code}:{self.status}"

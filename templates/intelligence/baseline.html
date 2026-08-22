@@ -1,51 +1,206 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Learning Baseline — CodeLabX{% endblock %}
+{% block title %}Learning DNA — CodeLabX{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
 {% endblock %}
 
 {% block content %}
-<section class="intel-shell" aria-labelledby="baseline-title">
-    <header class="intel-hero">
-        <div class="intel-kicker">🧬 Initial Learning DNA</div>
-        <h1 id="baseline-title">Your evidence baseline</h1>
-        <p>
-            Starting pack: <strong>{{ profile.selected_pack.name }}</strong>.
-            These estimates come from the two diagnostics and will change as new
-            evidence is recorded.
-        </p>
+<section class="intel-shell intel-shell-wide" aria-labelledby="dna-title">
+    <nav class="intel-tabs" aria-label="Learning Intelligence">
+        <a class="is-active" href="{% url 'intelligence:dna' %}" aria-current="page">Learning DNA</a>
+        <a href="{% url 'intelligence:evidence' %}">Evidence explorer</a>
+        <a href="{% url 'intelligence:onboarding' %}">Goal and Skill Pack</a>
+    </nav>
+
+    <header class="intel-hero intel-dna-hero">
+        <div>
+            <div class="intel-kicker">🧬 Private Learning Mirror</div>
+            <h1 id="dna-title">This is how you learn.</h1>
+            <p>
+                Your Learning DNA is a changing evidence profile—not an intelligence
+                label. It uses the reviewed {{ profile.selected_pack.name }} Skill Pack
+                and deterministic calculations only.
+            </p>
+        </div>
+        <div class="intel-privacy-chip"><i class="bi bi-lock-fill"></i> Private by default</div>
     </header>
 
-    <div class="intel-grid">
-        {% for state in states %}
-        <article class="intel-card intel-skill">
-            <div class="intel-skill-head">
-                <div>
-                    <small>{{ state.skill.domain|upper }}</small>
-                    <h2>{{ state.skill.name }}</h2>
-                </div>
-                <strong>{% widthratio state.mastery 1 100 %}%</strong>
-            </div>
-            <progress class="intel-meter"
-                      max="1"
-                      value="{{ state.mastery }}"
-                      aria-label="Mastery {% widthratio state.mastery 1 100 %} percent">
-                {% widthratio state.mastery 1 100 %}%
-            </progress>
-            <dl>
-                <div><dt>Confidence</dt><dd>{% widthratio state.confidence 1 100 %}%</dd></div>
-                <div><dt>Freshness</dt><dd>{% widthratio state.freshness 1 100 %}%</dd></div>
-                <div><dt>Evidence</dt><dd>{{ state.evidence_count }}</dd></div>
-            </dl>
+    <section class="intel-stat-grid" aria-label="Learning DNA summary">
+        <article class="intel-stat">
+            <strong>{{ analysis.observed_skill_count }}/{{ analysis.skills|length }}</strong>
+            <span>Skills with scoreable evidence</span>
         </article>
-        {% empty %}
-        <div class="intel-card intel-empty">
-            No skill state was generated. Confirm Skill Packs are seeded and retry the diagnostics.
-        </div>
-        {% endfor %}
+        <article class="intel-stat">
+            <strong>{{ analysis.scoreable_evidence_count }}</strong>
+            <span>Scoreable evidence records</span>
+        </article>
+        <article class="intel-stat">
+            <strong>{{ ledger_event_count }}</strong>
+            <span>All ledger records, including participation</span>
+        </article>
+        <article class="intel-stat">
+            <strong>{{ profile.selected_pack.name }}</strong>
+            <span>Selected Skill Pack, version {{ profile.selected_pack.version }}</span>
+        </article>
+    </section>
+
+    {% if analysis.recommendation %}
+    {% with mission=analysis.recommendation %}
+    <div class="intel-focus-grid">
+        <article class="intel-card intel-bottleneck" aria-labelledby="bottleneck-title">
+            <div class="intel-card-kicker">Current bottleneck</div>
+            <h2 id="bottleneck-title">{{ mission.dna.skill.name }}</h2>
+            <p>{{ mission.dna.skill.description }}</p>
+            <dl class="intel-metric-list">
+                <div>
+                    <dt>Mastery estimate</dt>
+                    <dd>
+                        {% if mission.dna.has_evidence %}
+                            {{ mission.dna.mastery_percent }}%
+                        {% else %}
+                            Not estimated
+                        {% endif %}
+                    </dd>
+                </div>
+                <div><dt>Confidence</dt><dd>{{ mission.dna.confidence_percent }}%</dd></div>
+                <div>
+                    <dt>Freshness</dt>
+                    <dd>
+                        {% if mission.dna.freshness_percent != None %}
+                            {{ mission.dna.freshness_percent }}%
+                        {% else %}
+                            No scoreable evidence
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+            {% if mission.unlock_names %}
+            <div class="intel-unlocks">
+                <strong>Helps unlock</strong>
+                <ul>
+                    {% for name in mission.unlock_names|slice:":3" %}<li>{{ name }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </article>
+
+        <article class="intel-card intel-mission" aria-labelledby="mission-title">
+            <div class="intel-mission-head">
+                <div>
+                    <div class="intel-card-kicker">Recommended {{ mission.mission_type }} mission</div>
+                    <h2 id="mission-title">{{ mission.title }}</h2>
+                </div>
+                <span>{{ mission.expected_minutes }} min</span>
+            </div>
+            <p>{{ mission.description }}</p>
+
+            <section class="intel-why" aria-labelledby="why-mission-title">
+                <h3 id="why-mission-title">Why this mission?</h3>
+                <ul>
+                    {% for reason in mission.reason_messages %}<li>{{ reason }}</li>{% endfor %}
+                </ul>
+            </section>
+
+            {% if analysis.alternatives %}
+            <div class="intel-alternatives">
+                <strong>Next-best eligible alternatives:</strong>
+                {% for alternative in analysis.alternatives %}
+                    <span>{{ alternative.dna.skill.name }}{% if not forloop.last %}, {% endif %}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="intel-mission-actions">
+                <form method="post" action="{% url 'intelligence:recalculate_recommendation' %}">
+                    {% csrf_token %}
+                    <button class="intel-primary" type="submit">
+                        {% if mission_is_current %}Recalculate with latest evidence{% else %}Record this proposal{% endif %}
+                    </button>
+                </form>
+                <a class="intel-secondary" href="{% url 'intelligence:evidence' %}?skill={{ mission.dna.skill.code|urlencode }}">
+                    Inspect its evidence
+                </a>
+            </div>
+            <p class="intel-proposal-note">
+                This is an explainable proposal, not an automatic roadmap change.
+                Accept, reject, and postpone controls arrive with adaptive roadmap revisions.
+            </p>
+        </article>
     </div>
+    {% endwith %}
+    {% else %}
+    <div class="intel-card intel-empty">
+        No eligible mission is available. Confirm that the selected Skill Pack is seeded correctly.
+    </div>
+    {% endif %}
+
+    <section class="intel-section-head" aria-labelledby="baseline-title">
+        <div>
+            <div class="intel-card-kicker">Your evidence baseline</div>
+            <h2 id="baseline-title">Skill-by-skill Learning DNA</h2>
+        </div>
+        <a class="intel-secondary" href="{% url 'intelligence:evidence' %}">Explore all evidence</a>
+    </section>
+
+    {% for domain, skills in domain_groups %}
+    <section class="intel-domain" aria-labelledby="domain-{{ forloop.counter }}">
+        <div class="intel-domain-head">
+            <h3 id="domain-{{ forloop.counter }}">{{ domain|title }}</h3>
+            <span>{{ skills|length }} skill{{ skills|length|pluralize }}</span>
+        </div>
+        <div class="intel-grid">
+            {% for dna in skills %}
+            <article class="intel-card intel-skill">
+                <div class="intel-skill-head">
+                    <div>
+                        <small>
+                            BAND {{ dna.skill.difficulty_band }}
+                            {% if dna.is_core %} · CORE{% endif %}
+                        </small>
+                        <h4>{{ dna.skill.name }}</h4>
+                    </div>
+                    <strong>
+                        {% if dna.has_evidence %}{{ dna.mastery_percent }}%{% else %}—{% endif %}
+                    </strong>
+                </div>
+
+                {% if dna.has_evidence %}
+                <label class="intel-meter-label" for="mastery-{{ dna.skill.id }}">
+                    <span>Mastery estimate</span><span>{{ dna.mastery_percent }}%</span>
+                </label>
+                <progress id="mastery-{{ dna.skill.id }}" class="intel-meter" max="1" value="{{ dna.mastery }}">
+                    {{ dna.mastery_percent }}%
+                </progress>
+                <label class="intel-meter-label" for="confidence-{{ dna.skill.id }}">
+                    <span>Confidence</span><span>{{ dna.confidence_percent }}%</span>
+                </label>
+                <progress id="confidence-{{ dna.skill.id }}" class="intel-meter intel-meter-confidence" max="1" value="{{ dna.confidence }}">
+                    {{ dna.confidence_percent }}%
+                </progress>
+                <label class="intel-meter-label" for="freshness-{{ dna.skill.id }}">
+                    <span>Freshness</span><span>{{ dna.freshness_percent }}%</span>
+                </label>
+                <progress id="freshness-{{ dna.skill.id }}" class="intel-meter intel-meter-freshness" max="1" value="{{ dna.freshness }}">
+                    {{ dna.freshness_percent }}%
+                </progress>
+                {% else %}
+                <div class="intel-no-estimate">
+                    No scoreable evidence yet. The engine keeps its neutral prior hidden
+                    instead of presenting 50% as an observed skill score.
+                </div>
+                {% endif %}
+
+                <div class="intel-skill-foot">
+                    <span>{{ dna.evidence_count }} scoreable record{{ dna.evidence_count|pluralize }}</span>
+                    <a href="{% url 'intelligence:evidence' %}?skill={{ dna.skill.code|urlencode }}">Details</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
 
     <section class="intel-card intel-summary" aria-labelledby="attempt-summary">
         <h2 id="attempt-summary">Diagnostic summary</h2>
@@ -58,9 +213,10 @@
     </section>
 
     <div class="intel-notice">
-        Mastery is not an intelligence label. Confidence shows how much evidence
-        exists; freshness shows how recent it is. Sprint 3 will add evidence
-        details and recommended missions.
+        <strong>How to read this:</strong> mastery estimates outcomes, confidence
+        shows how much weighted evidence supports that estimate, and freshness
+        is recalculated from the latest scoreable evidence and each skill's reviewed
+        half-life. XP never changes these numbers, and no AI model generates them.
     </div>
 </section>
 {% endblock %}

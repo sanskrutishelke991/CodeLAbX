@@ -18,6 +18,7 @@ from django.utils import timezone
 
 from .models import (
     LearningEvent,
+    Mission,
     Skill,
     SkillPack,
     SkillPackMembership,
@@ -366,6 +367,7 @@ class IntelligenceOperationsTests(TestCase):
             SkillPrerequisite,
             LearningEvent,
             SkillState,
+            Mission,
         ):
             with self.subTest(model=model.__name__):
                 self.assertIn(model, admin.site._registry)
