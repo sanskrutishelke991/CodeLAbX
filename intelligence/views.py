@@ -54,9 +54,15 @@ from .services.diagnostics import (
     next_diagnostic_stage,
     submit_diagnostic,
 )
+from .services.passport import build_skill_passport
 from .services.recommendations import (
     analyze_learning_dna,
     propose_next_mission,
+)
+from .services.retention import (
+    BLOCKING_MISSION_STATUSES,
+    analyze_retention,
+    create_retention_mission,
 )
 from .services.tutor_context import (
     build_tutor_context,
@@ -893,3 +899,110 @@ def tutor_feedback(request):
             ),
         }
     )
+
+
+@login_required
+def skill_passport(request):
+    profile, response = _completed_profile_or_redirect(request.user)
+    if response:
+        return response
+    passport = build_skill_passport(request.user, profile)
+    grouped = {}
+    unobserved = []
+    for item in passport.skills:
+        if item.dna.has_evidence:
+            grouped.setdefault(item.dna.skill.domain, []).append(item)
+        else:
+            unobserved.append(item)
+    return render(
+        request,
+        "intelligence/passport.html",
+        {
+            "profile": profile,
+            "passport": passport,
+            "domain_groups": [
+                (domain, tuple(items)) for domain, items in grouped.items()
+            ],
+            "unobserved": tuple(unobserved),
+        },
+    )
+
+
+@login_required
+def retention_center(request):
+    profile, response = _completed_profile_or_redirect(request.user)
+    if response:
+        return response
+    analysis = analyze_retention(request.user, profile)
+    skill_ids = [item.dna.skill.id for item in analysis.candidates]
+    mission_by_key = {}
+    for mission in (
+        Mission.objects.filter(
+            user=request.user,
+            mission_type="retention",
+            primary_skill_id__in=skill_ids,
+        )
+        .select_related("primary_skill")
+        .order_by("-created_at")
+    ):
+        mission_by_key.setdefault(mission.recommendation_key, mission)
+    rows = tuple(
+        {
+            "candidate": candidate,
+            "mission": mission_by_key.get(candidate.recommendation_key),
+        }
+        for candidate in analysis.candidates
+    )
+    blocking_mission = (
+        Mission.objects.filter(
+            user=request.user,
+            status__in=BLOCKING_MISSION_STATUSES,
+        )
+        .select_related("primary_skill")
+        .order_by("-created_at")
+        .first()
+    )
+    return render(
+        request,
+        "intelligence/retention.html",
+        {
+            "profile": profile,
+            "analysis": analysis,
+            "rows": rows,
+            "blocking_mission": blocking_mission,
+        },
+    )
+
+
+@login_required
+@require_POST
+def create_refresh_mission(request, skill_id):
+    profile, response = _completed_profile_or_redirect(request.user)
+    if response:
+        return response
+    skill = get_object_or_404(
+        Skill,
+        id=skill_id,
+        is_active=True,
+        pack_memberships__pack=profile.selected_pack,
+    )
+    try:
+        mission, created, _candidate = create_retention_mission(
+            request.user,
+            profile,
+            skill,
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        if created:
+            messages.success(
+                request,
+                f"Refresh mission proposed: {mission.title}.",
+            )
+        else:
+            messages.info(
+                request,
+                f"That refresh snapshot already has a {mission.get_status_display().lower()} mission.",
+            )
+    return redirect("intelligence:retention")

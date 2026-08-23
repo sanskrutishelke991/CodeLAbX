@@ -181,7 +181,9 @@ Owner-scoped, explainable next-step proposal tied to a primary skill and optiona
 supporting skills. It stores a deterministic recommendation key, bounded rationale
 and success-criteria objects, expected time, evidence-policy version, and lifecycle
 status. Recalculating an unchanged evidence snapshot is idempotent; a changed
-snapshot expires the superseded proposal. A proposal does not mutate a roadmap.
+snapshot expires the superseded proposal. Retention missions use a separate
+freshness-review key and cannot displace an undecided or active mission. A proposal
+does not mutate a roadmap.
 
 ### `intelligence.RoadmapRevision` and `RoadmapNode`
 

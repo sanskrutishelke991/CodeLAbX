@@ -51,6 +51,10 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Build full Learning DNA profile, evidence explorer, and recommendation UI
 - [x] Build approval-based roadmap revisions
 - [x] Build tutor preferences and user-controlled memory
+- [x] Build a private evidence-observed Skill Passport
+- [x] Add deterministic retention analysis and refresh missions
+- [ ] Add opt-in public passport/roadmap sharing with revocable links
+- [ ] Define certificate verification policy before issuing certificates
 
 ## Next frontend-security phase
 

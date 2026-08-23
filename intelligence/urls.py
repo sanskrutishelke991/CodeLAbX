@@ -12,6 +12,13 @@ urlpatterns = [
     path("dna/", views.dna, name="dna"),
     path("baseline/", views.dna, name="baseline"),
     path("evidence/", views.evidence_explorer, name="evidence"),
+    path("passport/", views.skill_passport, name="passport"),
+    path("retention/", views.retention_center, name="retention"),
+    path(
+        "retention/<int:skill_id>/mission/",
+        views.create_refresh_mission,
+        name="create_refresh_mission",
+    ),
     path(
         "recommendations/recalculate/",
         views.recalculate_recommendation,

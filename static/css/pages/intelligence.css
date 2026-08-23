@@ -1350,3 +1350,235 @@
         display: grid;
     }
 }
+
+.passport-trust-note {
+    border-color: rgba(59, 130, 246, .35);
+    background: rgba(59, 130, 246, .07);
+}
+
+.passport-domain {
+    margin: 24px 0;
+}
+
+.passport-domain .intel-domain-head h2 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.passport-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+    gap: 14px;
+}
+
+.passport-card {
+    display: grid;
+    gap: 13px;
+    padding: 20px;
+}
+
+.passport-card-head,
+.retention-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.passport-card-head h3,
+.retention-card-head h2 {
+    margin: 4px 0 0;
+    font-size: 1.05rem;
+}
+
+.passport-card-head > strong {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.passport-metrics,
+.retention-metrics {
+    display: grid;
+    gap: 7px;
+    margin: 0;
+}
+
+.passport-metrics {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.passport-metrics div,
+.retention-metrics div {
+    padding: 9px;
+    border-radius: 8px;
+    background: var(--bg-primary);
+}
+
+.passport-metrics dt,
+.retention-metrics dt {
+    color: var(--text-tertiary);
+    font-size: .65rem;
+}
+
+.passport-metrics dd,
+.retention-metrics dd {
+    margin: 3px 0 0;
+    font-size: .8rem;
+    font-weight: 800;
+}
+
+.passport-sources {
+    display: grid;
+    gap: 7px;
+    padding: 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+}
+
+.passport-sources > strong {
+    font-size: .78rem;
+}
+
+.passport-sources > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-size: .7rem;
+}
+
+.passport-sources > div span:last-child {
+    color: var(--text-tertiary);
+    text-align: right;
+}
+
+.passport-sources p {
+    margin: 0;
+    color: var(--text-tertiary);
+    font-size: .72rem;
+}
+
+.passport-evidence-split {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.passport-evidence-split span {
+    padding: 4px 7px;
+    border-radius: 99px;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    font-size: .66rem;
+}
+
+.passport-card > .intel-secondary {
+    justify-self: start;
+}
+
+.passport-unobserved {
+    padding: 17px;
+    margin-top: 22px;
+}
+
+.passport-unobserved summary {
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-weight: 750;
+}
+
+.passport-unobserved ul {
+    columns: 3;
+    margin: 14px 0 0;
+    color: var(--text-tertiary);
+    font-size: .76rem;
+}
+
+.retention-list {
+    display: grid;
+    gap: 14px;
+}
+
+.retention-card {
+    display: grid;
+    gap: 16px;
+    padding: 22px;
+    border-left-width: 4px;
+}
+
+.retention-card.urgency-urgent {
+    border-left-color: var(--error);
+}
+
+.retention-card.urgency-due {
+    border-left-color: var(--warning);
+}
+
+.retention-card.urgency-watch {
+    border-left-color: var(--info);
+}
+
+.retention-card-head p {
+    max-width: 760px;
+    margin: 7px 0 0;
+    color: var(--text-secondary);
+    font-size: .79rem;
+    line-height: 1.5;
+}
+
+.retention-freshness {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    border-radius: 99px;
+    color: var(--warning);
+    background: rgba(245, 158, 11, .09);
+    font-size: .74rem;
+    font-weight: 800;
+}
+
+.retention-metrics {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.retention-empty {
+    display: grid;
+    gap: 6px;
+}
+
+.retention-empty span {
+    line-height: 1.5;
+}
+
+@media (max-width: 850px) {
+    .retention-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .passport-unobserved ul {
+        columns: 2;
+    }
+}
+
+@media (max-width: 640px) {
+    .passport-grid,
+    .passport-metrics,
+    .retention-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .passport-card-head,
+    .retention-card-head,
+    .passport-sources > div {
+        display: grid;
+    }
+
+    .passport-sources > div span:last-child {
+        text-align: left;
+    }
+
+    .passport-unobserved ul {
+        columns: 1;
+    }
+}

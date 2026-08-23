@@ -37,7 +37,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 | `progress` | XP ledger, levels, streaks, badges, activity, analytics, leaderboard |
 | `notes` | Owner-scoped notes and validated bookmarks |
 | `challenges` | Global scheduled challenges, owner-scoped attempts, AI feedback |
-| `intelligence` | Learning DNA, adaptive routes, explicit tutor preferences, and user-controlled memory |
+| `intelligence` | Learning DNA, Skill Passport, retention, adaptive routes, and user-controlled tutor context |
 
 Django's built-in authentication, admin, sessions, messages, staticfiles, and
 content-types apps remain shared platform services.
@@ -86,7 +86,11 @@ new revisions. Sprint 5 adds explicit tutor modes, bounded learner-visible memor
 manual session summaries, and feedback suggestions only after repeated signals and
 an explicit adaptation opt-in. The AI chat context includes accepted missions and
 evidence-backed states, frames all learner-written memory as untrusted data, and
-never fine-tunes a per-user model.
+never fine-tunes a per-user model. The private Skill Passport projects the same
+ledger into source-separated, evidence-observed skill cards; it does not claim
+independent verification. The Retention Center recomputes time-current freshness
+and can propose one deterministic refresh Mission without rewriting mastery or
+displacing existing active work.
 
 ## Cache and throttling
 
