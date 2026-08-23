@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shared Link Revoked — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell public-share-revoked" aria-labelledby="revoked-title">
+    <div class="intel-card">
+        <div class="intel-card-kicker">HTTP 410 · Gone</div>
+        <h1 id="revoked-title">This public learning link was revoked</h1>
+        <p>
+            The privacy-minimized snapshot is no longer available at this URL.
+            CodeLabX does not reveal who created or revoked it.
+        </p>
+        <a class="intel-secondary" href="{% url 'landing' %}">Open CodeLabX</a>
+    </div>
+</section>
+{% endblock %}

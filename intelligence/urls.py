@@ -13,6 +13,32 @@ urlpatterns = [
     path("baseline/", views.dna, name="baseline"),
     path("evidence/", views.evidence_explorer, name="evidence"),
     path("passport/", views.skill_passport, name="passport"),
+    path("sharing/", views.sharing_dashboard, name="sharing"),
+    path(
+        "sharing/passport/create/",
+        views.create_passport_share,
+        name="create_passport_share",
+    ),
+    path(
+        "sharing/roadmap/<int:roadmap_id>/create/",
+        views.create_roadmap_share,
+        name="create_roadmap_share",
+    ),
+    path(
+        "sharing/<int:share_id>/refresh/",
+        views.refresh_share,
+        name="refresh_share",
+    ),
+    path(
+        "sharing/<int:share_id>/revoke/",
+        views.revoke_share,
+        name="revoke_share",
+    ),
+    path(
+        "shared/<uuid:public_id>/",
+        views.public_share,
+        name="public_share",
+    ),
     path("retention/", views.retention_center, name="retention"),
     path(
         "retention/<int:skill_id>/mission/",

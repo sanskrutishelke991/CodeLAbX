@@ -24,6 +24,7 @@ from progress.models import DailyActivity, UserBadge, UserLevel, UserStreak
 from intelligence.models import (
     DiagnosticResponse,
     LearnerIntelligenceProfile,
+    PublicShare,
     RoadmapNode,
     RoadmapRevision,
     TutorFeedback,
@@ -32,8 +33,24 @@ from intelligence.models import (
 )
 from codelabx.throttling import is_rate_limited
 
-from .forms import EmailPreferenceForm, ProfileUpdateForm, RegistrationForm
-from .models import EmailPreference, UserProfile, WeeklyReportDelivery
+from .forms import (
+    EmailPreferenceForm,
+    GitHubConnectionForm,
+    ProfileUpdateForm,
+    RegistrationForm,
+)
+from .models import (
+    EmailPreference,
+    GitHubConnection,
+    GitHubRepository,
+    UserProfile,
+    WeeklyReportDelivery,
+)
+from .services.github_public import (
+    GitHubPublicAPIError,
+    record_sync_failure,
+    sync_public_github,
+)
 from .services.weekly_reports import (
     render_weekly_report,
     send_weekly_report_preview,
@@ -288,10 +305,14 @@ def public_profile(request, username):
 @login_required
 def settings(request):
     email_preference = EmailPreference.objects.filter(user=request.user).first()
+    github_connection = GitHubConnection.objects.filter(user=request.user).first()
     return render(
         request,
         "accounts/settings.html",
-        {"email_preference": email_preference},
+        {
+            "email_preference": email_preference,
+            "github_connection": github_connection,
+        },
     )
 
 
@@ -404,6 +425,104 @@ def send_weekly_report_test(request):
                 "Weekly report preview sent to your account email.",
             )
     return redirect("accounts:weekly_report_preview")
+
+
+@login_required
+def github_portfolio(request):
+    connection = (
+        GitHubConnection.objects.filter(user=request.user)
+        .prefetch_related("repositories")
+        .first()
+    )
+    form = GitHubConnectionForm(
+        instance=connection,
+        user=request.user,
+    )
+    repositories = (
+        list(connection.repositories.all()[:30]) if connection else []
+    )
+    return render(
+        request,
+        "accounts/github_portfolio.html",
+        {
+            "connection": connection,
+            "repositories": repositories,
+            "form": form,
+            "integration_enabled": (
+                django_settings.GITHUB_PUBLIC_INTEGRATION_ENABLED
+            ),
+        },
+    )
+
+
+def _sync_github_for_request(request, username):
+    if is_rate_limited(
+        request,
+        f"github-refresh:{request.user.id}",
+        django_settings.GITHUB_REFRESH_ATTEMPTS,
+        django_settings.GITHUB_REFRESH_WINDOW_SECONDS,
+    ):
+        messages.error(request, "Too many GitHub refresh attempts. Try again later.")
+        return
+    try:
+        result = sync_public_github(request.user, username)
+    except GitHubPublicAPIError as exc:
+        record_sync_failure(request.user, username, exc.code)
+        messages.error(request, exc.public_message)
+    except ValidationError:
+        messages.error(request, "Enter a valid public GitHub username.")
+    except Exception:
+        logger.exception(
+            "Unexpected GitHub public portfolio refresh failure",
+            extra={"user_id": request.user.id},
+        )
+        record_sync_failure(request.user, username, "github_internal_error")
+        messages.error(
+            request,
+            "GitHub public data could not be refreshed right now.",
+        )
+    else:
+        messages.success(
+            request,
+            f"Public GitHub portfolio refreshed with {result.repository_count} repositories.",
+        )
+
+
+@login_required
+@require_POST
+def github_connect(request):
+    connection = GitHubConnection.objects.filter(user=request.user).first()
+    form = GitHubConnectionForm(
+        request.POST,
+        instance=connection,
+        user=request.user,
+    )
+    if not form.is_valid():
+        messages.error(request, "Enter a valid public GitHub username.")
+        return redirect("accounts:github_portfolio")
+    _sync_github_for_request(request, form.cleaned_data["username"])
+    return redirect("accounts:github_portfolio")
+
+
+@login_required
+@require_POST
+def github_refresh(request):
+    connection = GitHubConnection.objects.filter(user=request.user).first()
+    if connection is None:
+        messages.error(request, "Connect a public GitHub username first.")
+    else:
+        _sync_github_for_request(request, connection.username)
+    return redirect("accounts:github_portfolio")
+
+
+@login_required
+@require_POST
+def github_disconnect(request):
+    connection = GitHubConnection.objects.filter(user=request.user).first()
+    if connection:
+        connection.delete()
+        messages.success(request, "GitHub public portfolio disconnected and cached repositories deleted.")
+    return redirect("accounts:github_portfolio")
 
 
 def _export_learning_intelligence(user):
@@ -532,6 +651,23 @@ def _export_learning_intelligence(user):
                 "updated_at",
             )
         ),
+        "public_shares": list(
+            PublicShare.objects.filter(user=user).values(
+                "share_type",
+                "roadmap__title",
+                "public_id",
+                "display_name",
+                "include_evidence_counts",
+                "include_completed_items",
+                "snapshot",
+                "snapshot_hash",
+                "snapshot_version",
+                "is_active",
+                "created_at",
+                "refreshed_at",
+                "revoked_at",
+            )
+        ),
         "tutor_preference": (
             TutorPreference.objects.filter(user=user)
             .values(
@@ -647,6 +783,38 @@ def export_account_data(request):
                 "sent_at",
                 "created_at",
                 "updated_at",
+            )
+        ),
+        "github_public_connection": (
+            GitHubConnection.objects.filter(user=user)
+            .values(
+                "username",
+                "github_user_id",
+                "profile_url",
+                "display_name",
+                "bio",
+                "public_repos",
+                "followers",
+                "status",
+                "fetched_at",
+                "created_at",
+                "updated_at",
+            )
+            .first()
+        ),
+        "github_public_repositories": list(
+            GitHubRepository.objects.filter(connection__user=user).values(
+                "github_id",
+                "name",
+                "full_name",
+                "html_url",
+                "description",
+                "language",
+                "stargazers_count",
+                "forks_count",
+                "is_fork",
+                "pushed_at",
+                "fetched_at",
             )
         ),
         "learning_intelligence": _export_learning_intelligence(user),

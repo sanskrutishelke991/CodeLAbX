@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import EmailPreference, UserProfile
+from .models import EmailPreference, GitHubConnection, UserProfile
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -152,3 +152,31 @@ class EmailPreferenceForm(forms.ModelForm):
         if commit:
             preference.save()
         return preference
+
+
+class GitHubConnectionForm(forms.ModelForm):
+    class Meta:
+        model = GitHubConnection
+        fields = ["username"]
+        widgets = {
+            "username": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "maxlength": 39,
+                    "autocomplete": "off",
+                    "placeholder": "public-github-username",
+                }
+            )
+        }
+
+    def __init__(self, *args, user, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        self.instance.user = user
+
+    def save(self, commit=True):
+        connection = super().save(commit=False)
+        connection.user = self.user
+        if commit:
+            connection.save()
+        return connection

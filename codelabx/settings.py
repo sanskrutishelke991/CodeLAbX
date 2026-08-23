@@ -403,6 +403,24 @@ EMAIL_PREVIEW_WINDOW_SECONDS = env_int(
     3600,
 )
 
+GITHUB_PUBLIC_INTEGRATION_ENABLED = env_bool(
+    'GITHUB_PUBLIC_INTEGRATION_ENABLED',
+    True,
+)
+GITHUB_API_TIMEOUT_SECONDS = env_int('GITHUB_API_TIMEOUT_SECONDS', 8)
+GITHUB_MAX_REPOSITORIES = env_int('GITHUB_MAX_REPOSITORIES', 30)
+GITHUB_REFRESH_ATTEMPTS = env_int('GITHUB_REFRESH_ATTEMPTS', 5)
+GITHUB_REFRESH_WINDOW_SECONDS = env_int(
+    'GITHUB_REFRESH_WINDOW_SECONDS',
+    3600,
+)
+if not 1 <= GITHUB_API_TIMEOUT_SECONDS <= 30:
+    raise ImproperlyConfigured('GITHUB_API_TIMEOUT_SECONDS must be between 1 and 30.')
+if not 1 <= GITHUB_MAX_REPOSITORIES <= 50:
+    raise ImproperlyConfigured('GITHUB_MAX_REPOSITORIES must be between 1 and 50.')
+if GITHUB_REFRESH_ATTEMPTS < 1 or GITHUB_REFRESH_WINDOW_SECONDS < 1:
+    raise ImproperlyConfigured('GitHub refresh throttling values must be positive.')
+
 LOGIN_URL = 'accounts:login'
 
 DEFAULT_AUTO_FIELD = (

@@ -17,7 +17,8 @@
         assessments, notes, bookmarks, chat history, uploaded image metadata,
         badges, XP events, Learning DNA evidence, adaptive route revisions,
         explicit tutor preferences, tutor memory, tutor feedback, email-report
-        preferences, and weekly delivery metadata.
+        preferences, weekly delivery metadata, optional public-share snapshots,
+        and optional cached public GitHub metadata.
     </p>
 
     <h2>AI processing</h2>
@@ -30,11 +31,21 @@
         secrets or highly sensitive personal information.
     </p>
 
-    <h2>Skill Passport and retention</h2>
+    <h2>Skill Passport, retention, and public snapshots</h2>
     <p>
-        The Skill Passport and Retention Center are private derived views of your
-        existing evidence. They are not independently verified credentials and are
-        not publicly shared in this version.
+        The private Skill Passport and Retention Center are derived from your
+        existing evidence and are not independently verified credentials. Public
+        sharing is off until you explicitly create a privacy-minimized snapshot.
+        Shared links use unguessable identifiers, request no search indexing, do not
+        update silently, and return Gone after revocation.
+    </p>
+
+    <h2>GitHub public portfolio</h2>
+    <p>
+        The optional GitHub integration stores a bounded cache of public profile and
+        repository metadata retrieved from GitHub's public API. It stores no OAuth
+        token and cannot access private repositories. Entering a username does not
+        verify that you own the GitHub account; disconnecting deletes the cache.
     </p>
 
     <h2>Weekly email reports</h2>

@@ -311,3 +311,52 @@ class TutorFeedbackForm(forms.Form):
             session__user=user,
             role="assistant",
         )
+
+
+class PublicShareForm(forms.Form):
+    display_name = forms.CharField(
+        max_length=80,
+        initial="CodeLabX learner",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "maxlength": 80,
+                "autocomplete": "off",
+            }
+        ),
+        help_text=(
+            "Use a generic name if you do not want your real name exposed."
+        ),
+    )
+    include_evidence_counts = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Include evidence-category counts",
+    )
+    include_completed_items = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Include roadmap day titles and completion states",
+    )
+    confirmation = forms.BooleanField(
+        required=True,
+        label=(
+            "I understand this creates a public, unguessable link until I revoke it"
+        ),
+    )
+
+    def __init__(self, *args, share_type, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.share_type = share_type
+        if share_type == "passport":
+            self.fields.pop("include_completed_items")
+        elif share_type == "roadmap":
+            self.fields.pop("include_evidence_counts")
+        else:
+            raise ValueError("Unsupported public share type.")
+
+    def clean_display_name(self):
+        value = self.cleaned_data["display_name"].strip()
+        if not value:
+            raise forms.ValidationError("Choose a public display name.")
+        return value

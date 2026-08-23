@@ -24,6 +24,10 @@ urlpatterns = [
     path('export/', views.export_account_data, name='export_account_data'),
     path('delete/', views.delete_account, name='delete_account'),
     path('email/', views.email_preferences, name='email_preferences'),
+    path('github/', views.github_portfolio, name='github_portfolio'),
+    path('github/connect/', views.github_connect, name='github_connect'),
+    path('github/refresh/', views.github_refresh, name='github_refresh'),
+    path('github/disconnect/', views.github_disconnect, name='github_disconnect'),
     path(
         'email/weekly-preview/',
         views.weekly_report_preview,

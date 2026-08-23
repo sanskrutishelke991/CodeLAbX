@@ -137,6 +137,24 @@
             </div>
         </section>
 
+        <section class="settings-card">
+            <div class="settings-heading">
+                <span class="settings-icon"><i class="bi bi-github"></i></span>
+                <h2>GitHub public portfolio</h2>
+            </div>
+            <div class="settings-row">
+                <span class="settings-label">Public username</span>
+                <span class="settings-value">
+                    {% if github_connection %}@{{ github_connection.username }} · {{ github_connection.get_status_display }}{% else %}Not connected{% endif %}
+                </span>
+            </div>
+            <div class="settings-actions">
+                <a class="settings-btn" href="{% url 'accounts:github_portfolio' %}">
+                    <i class="bi bi-github"></i> Manage public portfolio
+                </a>
+            </div>
+        </section>
+
         <section class="settings-card full">
             <div class="settings-heading">
                 <span class="settings-icon">

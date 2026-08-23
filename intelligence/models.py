@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import uuid
 from decimal import Decimal
 
 from django.conf import settings
@@ -19,6 +20,7 @@ ZERO_TO_ONE = [
 MISSION_JSON_MAX_BYTES = 8192
 TUTOR_JSON_MAX_BYTES = 2048
 TUTOR_MEMORY_MAX_CHARS = 600
+PUBLIC_SHARE_JSON_MAX_BYTES = 64 * 1024
 TUTOR_ACCESSIBILITY_KEYS = {
     "avoid_emoji",
     "prefer_checklists",
@@ -1011,3 +1013,119 @@ class TutorFeedback(models.Model):
 
     def __str__(self):
         return f"{self.user_id}:{self.message_id}:{self.feedback_type}"
+
+
+class PublicShare(models.Model):
+    SHARE_TYPE_CHOICES = [
+        ("passport", "Skill Passport"),
+        ("roadmap", "Roadmap"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="public_learning_shares",
+    )
+    share_type = models.CharField(max_length=20, choices=SHARE_TYPE_CHOICES)
+    roadmap = models.ForeignKey(
+        "learning.Roadmap",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="public_shares",
+    )
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    display_name = models.CharField(
+        max_length=80,
+        default="CodeLabX learner",
+    )
+    include_evidence_counts = models.BooleanField(default=True)
+    include_completed_items = models.BooleanField(default=True)
+    snapshot = models.JSONField()
+    snapshot_hash = models.CharField(max_length=64)
+    snapshot_version = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    refreshed_at = models.DateTimeField(default=timezone.now)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(share_type="passport", roadmap__isnull=True)
+                    | Q(share_type="roadmap", roadmap__isnull=False)
+                ),
+                name="public_share_target_matches_type",
+            ),
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=Q(share_type="passport", is_active=True),
+                name="one_active_passport_share_per_user",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "roadmap"],
+                condition=Q(share_type="roadmap", is_active=True),
+                name="one_active_roadmap_share_per_user",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["user", "share_type", "is_active"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        self.display_name = self.display_name.strip()
+        if not self.display_name:
+            raise ValidationError(
+                {"display_name": "Choose a non-identifying public display name."}
+            )
+        if self.roadmap_id and self.roadmap.user_id != self.user_id:
+            raise ValidationError(
+                {"roadmap": "A public share must belong to the roadmap owner."}
+            )
+        if self.share_type == "passport" and self.roadmap_id is not None:
+            raise ValidationError({"roadmap": "Passport shares do not use a roadmap."})
+        if self.share_type == "roadmap" and self.roadmap_id is None:
+            raise ValidationError({"roadmap": "Roadmap shares require a roadmap."})
+        if not isinstance(self.snapshot, dict):
+            raise ValidationError({"snapshot": "Public snapshot must be an object."})
+        try:
+            encoded = json.dumps(
+                self.snapshot,
+                cls=DjangoJSONEncoder,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(
+                {"snapshot": "Public snapshot must be JSON serializable."}
+            ) from exc
+        if len(encoded) > PUBLIC_SHARE_JSON_MAX_BYTES:
+            raise ValidationError(
+                {"snapshot": "Public snapshot exceeds the 64 KB limit."}
+            )
+        if self.snapshot.get("kind") != self.share_type:
+            raise ValidationError(
+                {"snapshot": "Public snapshot kind does not match the share type."}
+            )
+        if not re.fullmatch(r"[0-9a-f]{64}", self.snapshot_hash):
+            raise ValidationError(
+                {"snapshot_hash": "Public snapshot hash must be SHA-256."}
+            )
+        if self.is_active and self.revoked_at is not None:
+            raise ValidationError(
+                {"revoked_at": "An active public share cannot be revoked."}
+            )
+        if not self.is_active and self.revoked_at is None:
+            raise ValidationError(
+                {"revoked_at": "A revoked public share needs a revocation time."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.share_type}:{self.public_id}"

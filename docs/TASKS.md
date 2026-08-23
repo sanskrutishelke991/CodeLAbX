@@ -53,7 +53,8 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Build tutor preferences and user-controlled memory
 - [x] Build a private evidence-observed Skill Passport
 - [x] Add deterministic retention analysis and refresh missions
-- [ ] Add opt-in public passport/roadmap sharing with revocable links
+- [x] Add opt-in public passport/roadmap snapshots with revocable no-index links
+- [x] Add token-free cached public GitHub portfolio integration
 - [ ] Define certificate verification policy before issuing certificates
 
 ## Product communication extensions

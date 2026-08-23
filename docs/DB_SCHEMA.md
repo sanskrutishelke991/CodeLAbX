@@ -37,6 +37,14 @@ status, attempts, timestamps, subject, and a content hash—not the report body 
 provider secrets. The unique user/period constraint prevents duplicate scheduled
 email for the same week; explicit previews do not create ledger rows.
 
+### `accounts.GitHubConnection` and `GitHubRepository`
+
+Owner-scoped cache of bounded public GitHub profile and repository metadata. The
+connection stores no OAuth/access token and cannot access private repositories.
+Refresh uses a fixed GitHub API origin, strict response validation, timeouts, and
+throttling. Disconnecting or deleting the account cascades through cached rows. A
+username is public metadata, not proof of account ownership.
+
 ## Learning
 
 ### `learning.Roadmap`
@@ -227,6 +235,14 @@ or permanently forget every item.
 One owner-scoped feedback choice per assistant message. Repeated signals can create
 one visible, editable memory suggestion only when observed adaptation is explicitly
 enabled. Feedback and suggestions are not skill evidence or model fine-tuning.
+
+### `intelligence.PublicShare`
+
+Explicit owner-created Passport or Roadmap snapshot with a random public UUID,
+generic display-name default, bounded JSON, SHA-256 content hash, version, refresh
+time, and revocation state. Conditional constraints permit at most one active
+Passport share and one active share per roadmap. Public snapshots are frozen until
+refreshed and omit raw evidence and private account data.
 
 ## Deletion and privacy behavior
 

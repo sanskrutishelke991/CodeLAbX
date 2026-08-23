@@ -29,7 +29,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 
 | App | Responsibility |
 | --- | --- |
-| `accounts` | Authentication, profiles, privacy controls, email preferences, deterministic weekly reports, export, deletion |
+| `accounts` | Authentication, profiles, privacy, email reports, token-free public GitHub portfolio cache, export, deletion |
 | `dashboard` | Public landing/legal pages and the signed-in verified activity overview |
 | `learning` | ML, DSA, and Django/full-stack roadmap generation, daily lessons, lifecycle actions, day completion |
 | `content` | Curated video categories, library, favorites, and watched state |
@@ -39,7 +39,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 | `progress` | XP ledger, levels, streaks, badges, activity, analytics, leaderboard |
 | `notes` | Owner-scoped notes and validated bookmarks |
 | `challenges` | Global scheduled challenges, owner-scoped attempts, AI feedback |
-| `intelligence` | Learning DNA, Skill Passport, retention, adaptive routes, and user-controlled tutor context |
+| `intelligence` | Learning DNA, Passport, retention, adaptive routes, tutor context, and revocable public snapshots |
 
 Django's built-in authentication, admin, sessions, messages, staticfiles, and
 content-types apps remain shared platform services.
@@ -104,6 +104,19 @@ emails are separate and do not consume a scheduled period. Development defaults 
 the console backend; real inbox delivery requires a transactional provider. An
 external scheduler must invoke `python manage.py send_weekly_reports` or enqueue its
 maintenance task.
+
+### Public portfolio and sharing boundaries
+
+GitHub integration is deliberately token-free: a learner supplies a public username,
+and CodeLabX requests a bounded public profile/repository snapshot only from fixed
+`api.github.com` endpoints. It cannot access private repositories and does not prove
+account ownership or skill.
+
+Passport and roadmap sharing are private by default. Explicit POST confirmation
+creates a frozen JSON snapshot behind a random UUID link. Snapshots omit account
+identity, email, profile links, chats, notes, code, lesson content, and raw evidence.
+They do not update until the owner refreshes them, request `noindex`, use `no-store`,
+and return HTTP 410 after revocation.
 
 ## Cache and throttling
 

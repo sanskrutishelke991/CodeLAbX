@@ -10,6 +10,7 @@ from django.db import transaction
 from django.db.models import Count, Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -20,6 +21,7 @@ from .forms import (
     EvidenceFilterForm,
     IntelligenceOnboardingForm,
     PostponeRevisionForm,
+    PublicShareForm,
     TutorFeedbackForm,
     TutorMemoryForm,
     TutorPreferenceForm,
@@ -29,6 +31,7 @@ from .models import (
     LearnerIntelligenceProfile,
     LearningEvent,
     Mission,
+    PublicShare,
     RoadmapNode,
     RoadmapRevision,
     Skill,
@@ -55,6 +58,11 @@ from .services.diagnostics import (
     submit_diagnostic,
 )
 from .services.passport import build_skill_passport
+from .services.public_sharing import (
+    create_or_refresh_public_share,
+    refresh_public_share,
+    revoke_public_share,
+)
 from .services.recommendations import (
     analyze_learning_dna,
     propose_next_mission,
@@ -1006,3 +1014,172 @@ def create_refresh_mission(request, skill_id):
                 f"That refresh snapshot already has a {mission.get_status_display().lower()} mission.",
             )
     return redirect("intelligence:retention")
+
+
+@login_required
+def sharing_dashboard(request):
+    profile = _profile_for(request.user)
+    shares = list(
+        PublicShare.objects.filter(user=request.user)
+        .select_related("roadmap")
+        .order_by("-is_active", "-created_at")[:30]
+    )
+    for share in shares:
+        share.public_url = request.build_absolute_uri(
+            reverse("intelligence:public_share", args=[share.public_id])
+        )
+    roadmaps = list(
+        Roadmap.objects.filter(user=request.user)
+        .annotate(
+            completed_days_count=Count(
+                "days",
+                filter=Q(days__is_completed=True),
+            )
+        )
+        .order_by("-updated_at")[:30]
+    )
+    roadmap_rows = [
+        {
+            "roadmap": roadmap,
+            "form": PublicShareForm(
+                share_type="roadmap",
+                auto_id=f"id_roadmap_{roadmap.id}_%s",
+            ),
+        }
+        for roadmap in roadmaps
+    ]
+    return render(
+        request,
+        "intelligence/sharing.html",
+        {
+            "profile": profile,
+            "passport_ready": bool(profile and profile.diagnostics_complete),
+            "shares": shares,
+            "roadmap_rows": roadmap_rows,
+            "passport_form": PublicShareForm(share_type="passport"),
+        },
+    )
+
+
+@login_required
+@require_POST
+def create_passport_share(request):
+    form = PublicShareForm(request.POST, share_type="passport")
+    if not form.is_valid():
+        messages.error(
+            request,
+            "Confirm the public link and choose a valid display name.",
+        )
+        return redirect("intelligence:sharing")
+    try:
+        result = create_or_refresh_public_share(
+            request.user,
+            share_type="passport",
+            display_name=form.cleaned_data["display_name"],
+            include_evidence_counts=form.cleaned_data.get(
+                "include_evidence_counts",
+                False,
+            ),
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(
+            request,
+            "Public Passport link created. It is no-index and remains active until you revoke it."
+            if result.created
+            else "Existing public Passport snapshot refreshed.",
+        )
+    return redirect("intelligence:sharing")
+
+
+@login_required
+@require_POST
+def create_roadmap_share(request, roadmap_id):
+    roadmap = get_object_or_404(
+        Roadmap,
+        id=roadmap_id,
+        user=request.user,
+    )
+    form = PublicShareForm(request.POST, share_type="roadmap")
+    if not form.is_valid():
+        messages.error(
+            request,
+            "Confirm the public link and choose a valid display name.",
+        )
+        return redirect("intelligence:sharing")
+    try:
+        result = create_or_refresh_public_share(
+            request.user,
+            share_type="roadmap",
+            roadmap=roadmap,
+            display_name=form.cleaned_data["display_name"],
+            include_completed_items=form.cleaned_data.get(
+                "include_completed_items",
+                False,
+            ),
+        )
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(
+            request,
+            "Public roadmap link created. It is no-index and remains active until you revoke it."
+            if result.created
+            else "Existing public roadmap snapshot refreshed.",
+        )
+    return redirect("intelligence:sharing")
+
+
+@login_required
+@require_POST
+def refresh_share(request, share_id):
+    share = get_object_or_404(
+        PublicShare,
+        id=share_id,
+        user=request.user,
+        is_active=True,
+    )
+    try:
+        refresh_public_share(request.user, share)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(request, "Public snapshot refreshed from current records.")
+    return redirect("intelligence:sharing")
+
+
+@login_required
+@require_POST
+def revoke_share(request, share_id):
+    share = get_object_or_404(
+        PublicShare,
+        id=share_id,
+        user=request.user,
+        is_active=True,
+    )
+    revoke_public_share(request.user, share)
+    messages.success(request, "Public share revoked. The old link now returns Gone.")
+    return redirect("intelligence:sharing")
+
+
+def public_share(request, public_id):
+    share = get_object_or_404(
+        PublicShare.objects.select_related("roadmap"),
+        public_id=public_id,
+    )
+    if not share.is_active:
+        response = render(
+            request,
+            "intelligence/public_share_revoked.html",
+            status=410,
+        )
+    else:
+        response = render(
+            request,
+            "intelligence/public_share.html",
+            {"share": share, "snapshot": share.snapshot},
+        )
+    response["Cache-Control"] = "no-store, max-age=0"
+    response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response

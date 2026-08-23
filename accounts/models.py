@@ -3,6 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator, validat
 from django.db import models
 from django.contrib.auth.models import User
 import os
+import re
 
 
 def user_avatar_path(instance, filename):
@@ -218,3 +219,104 @@ class WeeklyReportDelivery(models.Model):
 
     def __str__(self):
         return f"{self.user_id}:{self.period_start}:{self.status}"
+
+
+GITHUB_USERNAME_RE = re.compile(
+    r"^(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"
+)
+
+
+class GitHubConnection(models.Model):
+    STATUS_CHOICES = [
+        ("never", "Not synchronized"),
+        ("synced", "Synchronized"),
+        ("error", "Refresh failed"),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="github_connection",
+    )
+    username = models.CharField(max_length=39)
+    github_user_id = models.PositiveBigIntegerField(null=True, blank=True)
+    profile_url = models.URLField(blank=True)
+    display_name = models.CharField(max_length=100, blank=True)
+    bio = models.CharField(max_length=300, blank=True)
+    public_repos = models.PositiveIntegerField(default=0)
+    followers = models.PositiveIntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="never",
+    )
+    last_error_code = models.CharField(max_length=60, blank=True)
+    fetched_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        super().clean()
+        self.username = self.username.strip()
+        if not GITHUB_USERNAME_RE.fullmatch(self.username):
+            raise ValidationError(
+                {
+                    "username": (
+                        "Enter a valid public GitHub username using letters, "
+                        "numbers, or single hyphens."
+                    )
+                }
+            )
+        if self.status == "synced" and (
+            self.github_user_id is None
+            or not self.profile_url
+            or self.fetched_at is None
+        ):
+            raise ValidationError(
+                "A synchronized GitHub connection requires public profile metadata."
+            )
+        if self.status == "error" and not self.last_error_code:
+            raise ValidationError(
+                {"last_error_code": "A failed refresh needs a generic error code."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}: github/{self.username}"
+
+
+class GitHubRepository(models.Model):
+    connection = models.ForeignKey(
+        GitHubConnection,
+        on_delete=models.CASCADE,
+        related_name="repositories",
+    )
+    github_id = models.PositiveBigIntegerField()
+    name = models.CharField(max_length=100)
+    full_name = models.CharField(max_length=200)
+    html_url = models.URLField()
+    description = models.CharField(max_length=500, blank=True)
+    language = models.CharField(max_length=100, blank=True)
+    stargazers_count = models.PositiveIntegerField(default=0)
+    forks_count = models.PositiveIntegerField(default=0)
+    is_fork = models.BooleanField(default=False)
+    pushed_at = models.DateTimeField(null=True, blank=True)
+    fetched_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["-pushed_at", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["connection", "github_id"],
+                name="unique_github_repo_snapshot",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["connection", "-pushed_at"]),
+        ]
+
+    def __str__(self):
+        return self.full_name

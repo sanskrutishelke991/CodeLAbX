@@ -6,6 +6,7 @@ from .models import (
     LearnerIntelligenceProfile,
     LearningEvent,
     Mission,
+    PublicShare,
     RoadmapNode,
     RoadmapRevision,
     Skill,
@@ -325,6 +326,31 @@ class TutorFeedbackAdmin(admin.ModelAdmin):
     list_filter = ("feedback_type",)
     search_fields = ("user__username", "message__session__title")
     readonly_fields = [field.name for field in TutorFeedback._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(PublicShare)
+class PublicShareAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "share_type",
+        "public_id",
+        "is_active",
+        "created_at",
+        "refreshed_at",
+        "revoked_at",
+    )
+    list_filter = ("share_type", "is_active")
+    search_fields = ("user__username", "display_name", "public_id")
+    readonly_fields = [field.name for field in PublicShare._meta.fields]
 
     def has_add_permission(self, request):
         return False
