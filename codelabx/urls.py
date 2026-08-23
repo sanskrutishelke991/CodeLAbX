@@ -25,6 +25,7 @@ urlpatterns = [
     path('service-worker.js', service_worker, name='service_worker'),
     path('offline/', offline, name='offline'),
     path('admin/', admin.site.urls),
+    path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include('accounts.urls')),
     path('', dashboard_views.landing, name='landing'),
     path('dashboard/', include('dashboard.urls')),

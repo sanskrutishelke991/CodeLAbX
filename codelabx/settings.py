@@ -252,6 +252,7 @@ MIDDLEWARE = [
     ),
     'codelabx.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -333,7 +334,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('en', 'English'),
+    ('hi', 'हिन्दी'),
+    ('mr', 'मराठी'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 TIME_ZONE = os.getenv(
     'DJANGO_TIME_ZONE',
@@ -420,6 +427,9 @@ CSRF_COOKIE_SECURE = env_bool(
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
+LANGUAGE_COOKIE_HTTPONLY = True
+LANGUAGE_COOKIE_SECURE = SESSION_COOKIE_SECURE
+LANGUAGE_COOKIE_SAMESITE = 'Lax'
 
 SECURE_HSTS_SECONDS = env_int(
     'DJANGO_HSTS_SECONDS',

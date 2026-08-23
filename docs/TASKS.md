@@ -69,8 +69,9 @@ schedule. Completed work remains in Git history and regression tests.
 - [x] Add installable PWA manifest, icons, root service worker, and public offline shell
 - [x] Keep authenticated pages, APIs, media, chats, and learner records out of offline cache
 - [x] Add bounded browser-native text-to-speech with voice/rate controls
-- [ ] Add translated UI catalogs and language selection
-- [ ] Add voice-input coding assistance with explicit microphone permission
+- [x] Add English/Hindi/Marathi language selection and translated core controls
+- [ ] Expand translations across all legacy feature-page copy
+- [x] Add bounded voice coding input with explicit microphone permission
 
 ## Next frontend-security phase
 

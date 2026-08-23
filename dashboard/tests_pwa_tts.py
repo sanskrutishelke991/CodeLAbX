@@ -131,7 +131,7 @@ class PWARouteTests(TestCase):
         self.assertTrue(response["Content-Type"].startswith("application/javascript"))
         self.assertEqual(response["Service-Worker-Allowed"], "/")
         self.assertIn("no-store", response["Cache-Control"])
-        self.assertContains(response, "codelabx-public-shell-v1")
+        self.assertContains(response, "codelabx-public-shell-v2")
 
     def test_offline_page_is_public_generic_and_cache_safe(self):
         user = User.objects.create_user(

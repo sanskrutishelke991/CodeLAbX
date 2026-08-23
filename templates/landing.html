@@ -1,7 +1,8 @@
 
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="en" data-mode="developer">
+<html lang="{{ LANGUAGE_CODE }}" data-mode="developer">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +21,7 @@
 
 </head>
 <body>
-    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>
 
     <!-- ========== NAVBAR ========== -->
     <nav class="nav">
@@ -43,27 +44,37 @@
                     </button>
                 </div>
 
+                {% include 'partials/language_selector.html' %}
                 <button class="pwa-a11y-btn"
                         id="ttsToggleButton"
                         type="button"
-                        title="Read page aloud"
-                        aria-label="Open text-to-speech controls"
+                        title="{% translate 'Read page aloud' %}"
+                        aria-label="{% translate 'Open text-to-speech controls' %}"
                         aria-expanded="false"
                         aria-controls="ttsPanel">
                     <i class="bi bi-volume-up-fill"></i>
                 </button>
                 <button class="pwa-a11y-btn"
+                        id="voiceToggleButton"
+                        type="button"
+                        title="{% translate 'Voice coding input' %}"
+                        aria-label="{% translate 'Open voice coding input controls' %}"
+                        aria-expanded="false"
+                        aria-controls="voicePanel">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
+                <button class="pwa-a11y-btn"
                         id="pwaInstallButton"
                         type="button"
-                        title="Install CodeLabX"
-                        aria-label="Install CodeLabX on this device"
+                        title="{% translate 'Install CodeLabX' %}"
+                        aria-label="{% translate 'Install CodeLabX on this device' %}"
                         aria-hidden="true"
                         hidden>
                     <i class="bi bi-download"></i>
                 </button>
-                <a href="{% url 'accounts:login' %}" class="nav-signin">Sign in</a>
+                <a href="{% url 'accounts:login' %}" class="nav-signin">{% translate "Sign in" %}</a>
                 <a href="{% url 'accounts:register' %}" class="btn-specular">
-                    Get Started
+                    {% translate "Get Started" %}
                     <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
@@ -71,6 +82,7 @@
     </nav>
 
     {% include 'partials/tts_controls.html' %}
+    {% include 'partials/voice_controls.html' %}
 
     <!-- ========== HERO SECTION ========== -->
     <section class="hero" id="main-content" tabindex="-1">
@@ -1049,5 +1061,6 @@ df = pd.DataFrame({
     <script src="{% static 'js/landing.js' %}"></script>
     <script src="{% static 'js/pwa.js' %}"></script>
     <script src="{% static 'js/tts.js' %}"></script>
+    <script src="{% static 'js/voice-input.js' %}"></script>
 </body>
 </html>

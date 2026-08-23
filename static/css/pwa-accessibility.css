@@ -169,3 +169,127 @@
 .pwa-a11y-btn[hidden] {
     display: none;
 }
+
+.language-selector .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.language-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.language-selector select,
+.language-selector button {
+    min-height: 36px;
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+}
+
+.language-selector select {
+    max-width: 94px;
+    padding: 6px 5px;
+    border-radius: 8px;
+    font-size: .68rem;
+}
+
+.language-selector button {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    padding: 0;
+    border-radius: 8px;
+}
+
+.language-selector button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.voice-panel {
+    position: fixed;
+    top: 76px;
+    right: 18px;
+    z-index: 1100;
+    width: min(390px, calc(100vw - 28px));
+    padding: 16px;
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-xl, 0 18px 50px rgba(0, 0, 0, .35));
+}
+
+.voice-panel[hidden] {
+    display: none;
+}
+
+.voice-privacy,
+.voice-command-help p {
+    color: var(--text-tertiary);
+    font-size: .68rem;
+    line-height: 1.5;
+}
+
+.voice-target {
+    padding: 8px 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    font-size: .7rem;
+    overflow-wrap: anywhere;
+}
+
+.voice-transcript {
+    min-height: 2.3em;
+    margin: 9px 0;
+    color: var(--accent);
+    font-size: .72rem;
+    font-style: italic;
+}
+
+.voice-command-help {
+    padding: 8px 0;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.voice-command-help summary {
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: .7rem;
+    font-weight: 700;
+}
+
+.voice-command-help p {
+    margin: 7px 0 0;
+}
+
+.is-listening {
+    border-color: var(--error) !important;
+    color: var(--error) !important;
+}
+
+@media (max-width: 700px) {
+    .language-selector select {
+        width: 72px;
+    }
+
+    .language-selector button {
+        width: 30px;
+    }
+
+    .voice-panel {
+        top: 68px;
+        right: 14px;
+    }
+}

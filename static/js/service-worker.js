@@ -1,7 +1,7 @@
 "use strict";
 
-const SHELL_CACHE = "codelabx-public-shell-v1";
-const STATIC_CACHE = "codelabx-static-v1";
+const SHELL_CACHE = "codelabx-public-shell-v2";
+const STATIC_CACHE = "codelabx-static-v2";
 const PUBLIC_SHELL = [
     "/offline/",
     "/static/manifest.webmanifest",
@@ -17,6 +17,7 @@ const PUBLIC_SHELL = [
     "/static/js/base.js",
     "/static/js/pwa.js",
     "/static/js/tts.js",
+    "/static/js/voice-input.js",
     "/static/js/offline.js"
 ];
 

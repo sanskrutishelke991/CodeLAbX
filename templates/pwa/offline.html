@@ -1,12 +1,13 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="{{ LANGUAGE_CODE }}" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#6c5ce7">
     <meta name="robots" content="noindex">
-    <title>Offline — CodeLabX</title>
+    <title>{% translate "Offline" %} — CodeLabX</title>
     <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -16,13 +17,12 @@
 <body>
     <main class="offline-shell" id="main-content">
         <img src="{% static 'icons/pwa-192.png' %}" width="96" height="96" alt="CodeLabX">
-        <p class="offline-kicker">Offline</p>
-        <h1>CodeLabX cannot reach the server</h1>
+        <p class="offline-kicker">{% translate "Offline" %}</p>
+        <h1>{% translate "CodeLabX cannot reach the server" %}</h1>
         <p>
-            Reconnect to continue. Private dashboards, chats, assessments, and
-            learning records are intentionally not cached for offline access.
+            {% translate "Reconnect to continue. Private dashboards, chats, assessments, and learning records are intentionally not cached for offline access." %}
         </p>
-        <button type="button" class="btn btn-primary" data-offline-retry>Try again</button>
+        <button type="button" class="btn btn-primary" data-offline-retry>{% translate "Try again" %}</button>
     </main>
     <script src="{% static 'js/offline.js' %}"></script>
 </body>

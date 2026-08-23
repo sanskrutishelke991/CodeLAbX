@@ -1,0 +1,43 @@
+{% load i18n %}
+<section class="voice-panel"
+         id="voicePanel"
+         role="region"
+         aria-label="{% translate 'Voice coding input controls' %}"
+         data-tts-ignore
+         hidden>
+    <div class="tts-panel-head">
+        <div>
+            <strong>{% translate "Voice coding input" %}</strong>
+            <span>{% translate "Browser speech recognition · explicit permission" %}</span>
+        </div>
+        <button id="voiceCloseButton" type="button" aria-label="{% translate 'Close voice coding input controls' %}">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <p class="voice-privacy">
+        {% translate "CodeLabX does not record or store microphone audio. Your browser or operating-system speech provider may process it under its own policy." %}
+    </p>
+    <div class="tts-field">
+        <label for="voiceLanguageSelect">{% translate "Recognition language" %}</label>
+        <select id="voiceLanguageSelect" class="form-select">
+            <option value="en-IN">English (India)</option>
+            <option value="hi-IN">हिन्दी (भारत)</option>
+            <option value="mr-IN">मराठी (भारत)</option>
+        </select>
+    </div>
+    <div class="voice-target" id="voiceTarget" aria-live="polite">
+        {% translate "Focus a text or code field before starting." %}
+    </div>
+    <div class="tts-actions">
+        <button id="voiceStartButton" type="button"><i class="bi bi-mic-fill"></i> {% translate "Start listening" %}</button>
+        <button id="voiceStopButton" type="button">{% translate "Stop" %}</button>
+    </div>
+    <p class="voice-transcript" id="voiceTranscript" aria-live="polite"></p>
+    <details class="voice-command-help">
+        <summary>{% translate "Coding voice commands" %}</summary>
+        <p>{% translate "Say commands such as new line, indent, colon, comma, open parenthesis, close parenthesis, equals, or stop listening. Commands also support selected Hindi and Marathi equivalents." %}</p>
+    </details>
+    <p class="tts-status" id="voiceStatus" role="status" aria-live="polite">
+        {% translate "Microphone access starts only after you press Start listening." %}
+    </p>
+</section>

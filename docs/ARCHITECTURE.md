@@ -14,7 +14,8 @@ microservices.
 - Python 3.12 or 3.14
 - Django 6.0.8
 - Django templates, Bootstrap 5.3.8, Bootstrap Icons 1.13.1, and vanilla JS
-- Installable PWA shell plus browser-native Web Speech text-to-speech
+- Installable PWA shell plus browser-native Web Speech output/input controls
+- Django i18n with English, Hindi, and Marathi core-control catalogs
 - SQLite and process-local cache by default for development
 - Optional PostgreSQL, Redis, WhiteNoise, and Gunicorn configuration for staging
 - Google Gemini through `google-genai` for explicitly enabled AI features
@@ -141,7 +142,12 @@ versioned `/static/` assets. Navigation requests are network-only with the gener
 offline fallback; authenticated HTML, APIs, media, chats, and user records are never
 written to Cache Storage. PWA installation still requires HTTPS outside localhost.
 Text-to-speech runs through the browser Web Speech API, reads bounded `textContent`,
-and stores only voice/rate preferences locally.
+and stores only voice/rate preferences locally. Voice coding input uses explicit
+browser microphone permission, inserts at most 4,000 transcript characters into a
+focused writable field, and stores no audio in CodeLabX; browser/OS speech vendors
+may process audio under their own policies. LocaleMiddleware and compiled gettext
+catalogs translate core navigation and accessibility controls into Hindi and
+Marathi. Remaining legacy page copy is still English and tracked as explicit debt.
 
 User media still uses local filesystem storage. This is development-only. A
 private object-storage backend with authenticated delivery remains a production
@@ -168,7 +174,10 @@ blocker.
 - Local user media is not private production storage.
 - CSP blocks inline scripts and handlers; legacy style attributes remain temporarily allowed.
 - PWA offline mode intentionally does not make private learner data available offline.
-- Text-to-speech voice availability and quality depend on the user's browser/OS.
+- Text-to-speech and speech-recognition availability depend on the browser/OS;
+  some browsers route recognition through their own cloud service.
+- Hindi/Marathi coverage currently targets core navigation and accessibility
+  controls rather than every legacy page.
 - No staging provider, monitoring vendor, or production email service is chosen.
 - PostgreSQL/Redis support is configured and tested, but no real production data
   migration has been performed.

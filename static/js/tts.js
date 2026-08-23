@@ -157,16 +157,25 @@
             .sort(function (a, b) {
                 return `${a.lang} ${a.name}`.localeCompare(`${b.lang} ${b.name}`);
             });
+        const pageLanguage = (document.documentElement.lang || "en").toLowerCase();
+        let languageVoiceSelected = false;
         select.replaceChildren();
         const automatic = document.createElement("option");
         automatic.value = "";
-        automatic.textContent = "Browser default";
+        automatic.textContent = select.dataset.defaultLabel || "Browser default";
         select.appendChild(automatic);
         voices.forEach(function (voice) {
             const option = document.createElement("option");
             option.value = voice.voiceURI;
             option.textContent = `${voice.name} (${voice.lang})`;
-            option.selected = voice.voiceURI === saved;
+            const savedMatch = voice.voiceURI === saved;
+            const languageMatch = (
+                !saved
+                && !languageVoiceSelected
+                && voice.lang.toLowerCase().startsWith(pageLanguage)
+            );
+            option.selected = savedMatch || languageMatch;
+            if (languageMatch) languageVoiceSelected = true;
             select.appendChild(option);
         });
     }
@@ -178,6 +187,9 @@
         panel.hidden = !open;
         toggle.setAttribute("aria-expanded", String(open));
         if (open) {
+            document.dispatchEvent(
+                new CustomEvent("codelabx:accessibility-panel", {detail: "tts"})
+            );
             populateVoices();
             status(
                 "Select text to read only that selection, or read the main page content."
@@ -226,6 +238,12 @@
                 storageSet("codelabx-tts-rate", rate.value);
             });
         }
+        document.addEventListener("codelabx:accessibility-panel", function (event) {
+            if (event.detail !== "tts" && !panel.hidden) {
+                stopReading();
+                setPanelOpen(false);
+            }
+        });
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape" && !panel.hidden) setPanelOpen(false);
         });

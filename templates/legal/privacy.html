@@ -64,15 +64,18 @@
         static assets. Private authenticated pages, API responses, chat content,
         uploads, and learning records are intentionally not stored in the offline
         cache. Text-to-speech uses the browser Web Speech API and does not upload
-        text or audio to CodeLabX; available voices depend on the device.
+        text or audio to CodeLabX; available voices depend on the device. Voice
+        coding input starts only after explicit microphone permission. CodeLabX
+        does not store microphone audio, but the browser or operating-system speech
+        provider may process audio under its own policy.
     </p>
 
     <h2>Essential browser storage</h2>
     <p>
         CodeLabX uses Django session and CSRF cookies for sign-in and request
-        protection, plus local browser storage for display theme and text-to-speech
-        voice/rate preferences. The service worker uses browser Cache Storage for
-        public shell assets. No advertising or analytics cookie integration is
+        protection, a language-preference cookie, plus local browser storage for
+        display theme and text-to-speech voice/rate preferences. The service worker
+        uses browser Cache Storage for public shell assets. No advertising or analytics cookie integration is
         present in this development version.
     </p>
 

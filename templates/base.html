@@ -1,6 +1,7 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="{{ LANGUAGE_CODE }}" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if request.resolver_match.url_name == 'landing' %}landing-page{% endif %}">
-    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>
     <header class="top-header" role="banner">
         <div class="header-container">
             <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'landing' %}{% endif %}" class="brand">
@@ -32,26 +33,36 @@
             </a>
 
             <div class="header-actions">
+                {% include 'partials/language_selector.html' %}
                 <button class="header-btn"
                         id="ttsToggleButton"
                         type="button"
-                        title="Read page aloud"
-                        aria-label="Open text-to-speech controls"
+                        title="{% translate 'Read page aloud' %}"
+                        aria-label="{% translate 'Open text-to-speech controls' %}"
                         aria-expanded="false"
                         aria-controls="ttsPanel">
                     <i class="bi bi-volume-up-fill"></i>
                 </button>
                 <button class="header-btn"
+                        id="voiceToggleButton"
+                        type="button"
+                        title="{% translate 'Voice coding input' %}"
+                        aria-label="{% translate 'Open voice coding input controls' %}"
+                        aria-expanded="false"
+                        aria-controls="voicePanel">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
+                <button class="header-btn"
                         id="pwaInstallButton"
                         type="button"
-                        title="Install CodeLabX"
-                        aria-label="Install CodeLabX on this device"
+                        title="{% translate 'Install CodeLabX' %}"
+                        aria-label="{% translate 'Install CodeLabX on this device' %}"
                         aria-hidden="true"
                         hidden>
                     <i class="bi bi-download"></i>
                 </button>
                 {% if user.is_authenticated %}
-                    <button class="header-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle color theme">
+                    <button class="header-btn" id="themeToggle" title="{% translate 'Toggle theme' %}" aria-label="{% translate 'Toggle color theme' %}">
                         <i class="bi bi-moon-fill" id="themeIcon"></i>
                     </button>
                     <a class="user-avatar" href="{% url 'accounts:profile' %}" aria-label="Open your profile">
@@ -62,14 +73,15 @@
                         {% endif %}
                     </a>
                 {% else %}
-                    <a href="{% url 'accounts:login' %}" class="btn btn-ghost">Sign in</a>
-                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Get Started</a>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-ghost">{% translate "Sign in" %}</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">{% translate "Get Started" %}</a>
                 {% endif %}
             </div>
         </div>
     </header>
 
     {% include 'partials/tts_controls.html' %}
+    {% include 'partials/voice_controls.html' %}
 
     {% if messages %}
         <div class="main-container" style="padding-top: 0; padding-bottom: 0;">
@@ -273,5 +285,6 @@
     <script src="{% static 'js/base.js' %}"></script>
     <script src="{% static 'js/pwa.js' %}"></script>
     <script src="{% static 'js/tts.js' %}"></script>
+    <script src="{% static 'js/voice-input.js' %}"></script>
 </body>
 </html>
