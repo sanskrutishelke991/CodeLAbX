@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ roadmap.title }} — {{ group.name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/community.css' %}">{% endblock %}
+{% block content %}<section class="community-shell"><nav class="community-tabs"><a href="{% url 'community:group_detail' group.id %}">Back to group</a></nav><header class="community-hero"><div><span>Private group roadmap</span><h1>{{ roadmap.title }}</h1><p>Only day titles, completion states, and group comments are shown. Lesson content and roadmap description remain private.</p></div></header><div class="shared-day-list">{% for day in days %}<a class="community-card" href="{% url 'community:shared_day' group.id roadmap.id day.day_number %}"><span>Day {{ day.day_number }}</span><h2>{{ day.title }}</h2><strong>{% if day.is_completed %}Completed{% else %}Not completed{% endif %}</strong></a>{% endfor %}</div></section>{% endblock %}

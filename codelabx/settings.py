@@ -241,6 +241,7 @@ INSTALLED_APPS = [
     'notes',
     'challenges',
     'intelligence',
+    'community',
 ]
 
 MIDDLEWARE = [

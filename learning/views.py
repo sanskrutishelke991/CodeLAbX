@@ -234,13 +234,31 @@ def roadmap_detail(request, roadmap_id):
 
 @login_required
 def day_detail(request, roadmap_id, day_number):
-    """Display detail view for a specific day in a roadmap."""
+    """Display an owned day plus private owner comments and group links."""
+    from community.forms import DayCommentForm
+    from community.models import DayComment, GroupRoadmapShare
+
     roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
     day = get_object_or_404(Day, roadmap=roadmap, day_number=day_number)
-    
+    personal_comments = DayComment.objects.filter(
+        day=day,
+        group__isnull=True,
+        author=request.user,
+    ).order_by("created_at")
+    group_shares = (
+        GroupRoadmapShare.objects.filter(
+            roadmap=roadmap,
+            group__memberships__user=request.user,
+        )
+        .select_related("group")
+        .distinct()
+    )
     return render(request, 'learning/day_detail.html', {
         'roadmap': roadmap,
-        'day': day
+        'day': day,
+        'personal_comments': personal_comments,
+        'day_comment_form': DayCommentForm(),
+        'group_shares': group_shares,
     })
 
 

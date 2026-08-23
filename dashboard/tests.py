@@ -52,6 +52,8 @@ class RouteSmokeTests(TestCase):
             'learning:roadmap_create',
             'content:library',
             'content:my_videos',
+            'community:groups',
+            'community:group_create',
             'practice:task_list',
             'practice:examiner',
             'assessments:quiz_list',
@@ -421,7 +423,7 @@ class FrontendExtractionBudgetTests(TestCase):
 
         page_css = list((repository / "static" / "css" / "pages").glob("*.css"))
         page_js = list((repository / "static" / "js" / "pages").glob("*.js"))
-        self.assertEqual(len(page_css), 38)
+        self.assertEqual(len(page_css), 39)
         self.assertEqual(len(page_js), 20)
         for asset in page_css + page_js:
             source = asset.read_text(encoding="utf-8")

@@ -74,6 +74,14 @@ schedule. Completed work remains in Git history and regression tests.
 - [ ] Expand translations across all legacy feature-page copy
 - [x] Add bounded voice coding input with explicit microphone permission
 
+## Private community
+
+- [x] Add private invite-only study groups with bounded membership
+- [x] Add group-scoped discussion threads and replies
+- [x] Add personal and shared-group roadmap day comments
+- [x] Add owner/moderator roles, reports, hiding, and user blocking
+- [x] Keep public group discovery and direct messaging out of the minor-safe release
+
 ## Next frontend-security phase
 
 - [x] Extract all page-specific inline CSS into versioned static stylesheets

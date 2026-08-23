@@ -17,6 +17,16 @@ from django.views.decorators.http import require_POST
 
 from assessments.models import Test
 from challenges.models import UserChallenge
+from community.models import (
+    CommunityReport,
+    DayComment,
+    DiscussionPost,
+    DiscussionThread,
+    GroupMembership,
+    GroupRoadmapShare,
+    StudyGroup,
+    UserBlock,
+)
 from content.models import UserVideoProgress
 from learning.models import Day, Roadmap
 from notes.models import Note
@@ -817,6 +827,54 @@ def export_account_data(request):
                 "fetched_at",
             )
         ),
+        "community": {
+            "owned_groups": list(
+                StudyGroup.objects.filter(owner=user).values(
+                    "id", "name", "description", "max_members", "is_active",
+                    "created_at", "updated_at",
+                )
+            ),
+            "memberships": list(
+                GroupMembership.objects.filter(user=user).values(
+                    "group_id", "group__name", "role", "joined_at",
+                )
+            ),
+            "roadmap_shares": list(
+                GroupRoadmapShare.objects.filter(shared_by=user).values(
+                    "group_id", "group__name", "roadmap_id", "roadmap__title",
+                    "created_at",
+                )
+            ),
+            "threads": list(
+                DiscussionThread.objects.filter(author=user).values(
+                    "id", "group_id", "title", "body", "is_hidden",
+                    "created_at", "updated_at",
+                )
+            ),
+            "posts": list(
+                DiscussionPost.objects.filter(author=user).values(
+                    "id", "thread_id", "body", "is_deleted", "is_hidden",
+                    "created_at", "updated_at",
+                )
+            ),
+            "day_comments": list(
+                DayComment.objects.filter(author=user).values(
+                    "id", "day_id", "group_id", "body", "is_deleted",
+                    "is_hidden", "created_at", "updated_at",
+                )
+            ),
+            "reports": list(
+                CommunityReport.objects.filter(reporter=user).values(
+                    "id", "group_id", "target_type", "target_id", "reason",
+                    "details", "status", "created_at",
+                )
+            ),
+            "blocks": list(
+                UserBlock.objects.filter(blocker=user).values(
+                    "blocked_id", "blocked__username", "created_at",
+                )
+            ),
+        },
         "learning_intelligence": _export_learning_intelligence(user),
     }
 

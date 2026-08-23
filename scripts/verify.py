@@ -17,6 +17,7 @@ SOURCE_DIRECTORIES = [
     "assessments",
     "challenges",
     "codelabx",
+    "community",
     "content",
     "dashboard",
     "learning",

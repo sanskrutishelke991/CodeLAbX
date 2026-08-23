@@ -244,6 +244,31 @@ time, and revocation state. Conditional constraints permit at most one active
 Passport share and one active share per roadmap. Public snapshots are frozen until
 refreshed and omit raw evidence and private account data.
 
+## Private community
+
+### `community.StudyGroup`, `GroupMembership`, and `GroupInvite`
+
+Private invite-only groups with bounded membership, owner/moderator/member roles,
+and expiring usage-limited UUID invitation links. There is no public group listing
+or direct-message table.
+
+### `community.GroupRoadmapShare` and `DayComment`
+
+An owner-controlled roadmap-to-group relation plus separate personal and group day
+comments. Group access requires active membership; shared views omit roadmap/day
+descriptions and generated lesson content. Personal comments remain owner-only.
+
+### `community.DiscussionThread` and `DiscussionPost`
+
+Group-scoped bounded forum content. Threads can be locked/hidden; replies support
+author deletion and moderator hiding. Content is escaped in templates.
+
+### `community.CommunityReport` and `UserBlock`
+
+One report per reporter/target plus recorded moderation outcome. User blocks hide
+content in both directions and prevent direct replies/comments between blocked
+users.
+
 ## Deletion and privacy behavior
 
 Most user-owned records cascade from `User`. Account deletion additionally

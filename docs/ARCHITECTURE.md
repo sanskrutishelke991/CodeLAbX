@@ -40,6 +40,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 | `notes` | Owner-scoped notes and validated bookmarks |
 | `challenges` | Global scheduled challenges, owner-scoped attempts, AI feedback |
 | `intelligence` | Learning DNA, Passport, retention, adaptive routes, tutor context, and revocable public snapshots |
+| `community` | Invite-only study groups, group forums, shared-roadmap comments, reports, blocks, moderation |
 
 Django's built-in authentication, admin, sessions, messages, staticfiles, and
 content-types apps remain shared platform services.
@@ -117,6 +118,16 @@ creates a frozen JSON snapshot behind a random UUID link. Snapshots omit account
 identity, email, profile links, chats, notes, code, lesson content, and raw evidence.
 They do not update until the owner refreshes them, request `noindex`, use `no-store`,
 and return HTTP 410 after revocation.
+
+### Minor-safe private community
+
+Community features remain authenticated and group-scoped. Groups have no public
+discovery and accept members only through expiring, usage-bounded UUID invites.
+There are no direct messages. Group owners can appoint moderators; members can
+report threads/posts/comments and block users. Moderators can hide reported content
+and record a resolution. Roadmap owners explicitly share a roadmap into a group;
+group pages expose day titles/completion and group comments but not roadmap/day
+descriptions, generated lesson content, or the owner's private day comments.
 
 ## Cache and throttling
 

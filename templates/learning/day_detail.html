@@ -6,6 +6,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/learning-day_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/community.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -73,6 +74,22 @@
         </div>
     </div>
 </div>
+
+<section class="community-card day-comments-owner" aria-labelledby="personal-comments-title">
+    <div class="community-section-head"><h2 id="personal-comments-title">Private day comments</h2><span>Visible only to you</span></div>
+    <div class="comment-list">
+        {% for comment in personal_comments %}
+        <article class="post-card">
+            {% if comment.is_deleted %}<p class="removed-content">Comment deleted.</p>{% else %}<p>{{ comment.body|linebreaksbr }}</p>{% endif %}
+            <div class="post-actions"><span>{{ comment.created_at|date:"d M Y H:i" }}</span>{% if not comment.is_deleted %}<form method="post" action="{% url 'community:day_comment_delete' comment.id %}" data-confirm="Delete this private comment?">{% csrf_token %}<button type="submit">Delete</button></form>{% endif %}</div>
+        </article>
+        {% empty %}<p>No private comments for this day.</p>{% endfor %}
+    </div>
+    <form method="post" action="{% url 'community:personal_day_comment_create' day.id %}" class="community-form">
+        {% csrf_token %}<label for="{{ day_comment_form.body.id_for_label }}">Add private comment</label>{{ day_comment_form.body }}<button class="community-btn" type="submit">Save comment</button>
+    </form>
+    {% if group_shares %}<div class="group-comment-links"><strong>Group comment spaces</strong>{% for share in group_shares %}<a href="{% url 'community:shared_day' share.group.id roadmap.id day.day_number %}">{{ share.group.name }}</a>{% endfor %}</div>{% endif %}
+</section>
 
 <!-- Action Buttons -->
 <div class="text-center mt-4 mb-5">

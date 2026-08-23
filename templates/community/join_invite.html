@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Join Private Study Group — CodeLabX{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/community.css' %}">{% endblock %}
+{% block content %}<section class="community-shell narrow"><div class="community-card join-card"><span>Private invitation</span><h1>{{ invite.group.name }}</h1><p>{{ invite.group.description|default:"No description." }}</p>{% if usable %}<form method="post">{% csrf_token %}<button class="community-btn primary" type="submit">Join private group</button></form>{% else %}<strong>This invite is expired or unavailable.</strong>{% endif %}</div></section>{% endblock %}

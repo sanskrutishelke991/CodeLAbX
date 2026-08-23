@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Create Study Group — CodeLabX{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/community.css' %}">{% endblock %}
+{% block content %}
+<section class="community-shell narrow" aria-labelledby="create-group-title">
+    <header class="community-hero"><div><span>Private by default</span><h1 id="create-group-title">Create a study group</h1><p>Members can join only through a bounded invite link.</p></div></header>
+    <form method="post" class="community-card community-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}<div><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+        <button class="community-btn primary" type="submit">Create group</button>
+    </form>
+</section>
+{% endblock %}
