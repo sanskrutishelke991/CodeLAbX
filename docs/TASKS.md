@@ -64,6 +64,14 @@ schedule. Completed work remains in Git history and regression tests.
 - [ ] Configure a transactional production email provider
 - [ ] Schedule the weekly-report command through an external scheduler/worker
 
+## Product accessibility and installability
+
+- [x] Add installable PWA manifest, icons, root service worker, and public offline shell
+- [x] Keep authenticated pages, APIs, media, chats, and learner records out of offline cache
+- [x] Add bounded browser-native text-to-speech with voice/rate controls
+- [ ] Add translated UI catalogs and language selection
+- [ ] Add voice-input coding assistance with explicit microphone permission
+
 ## Next frontend-security phase
 
 - [x] Extract all page-specific inline CSS into versioned static stylesheets

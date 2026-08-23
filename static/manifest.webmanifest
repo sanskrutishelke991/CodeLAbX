@@ -1,0 +1,42 @@
+{
+  "id": "/",
+  "name": "CodeLabX Learning Platform",
+  "short_name": "CodeLabX",
+  "description": "Private evidence-backed learning roadmaps, practice, and optional AI study tools.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#0c101c",
+  "theme_color": "#6c5ce7",
+  "orientation": "any",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/static/icons/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Learning DNA",
+      "short_name": "Learning DNA",
+      "url": "/intelligence/dna/",
+      "icons": [{"src": "/static/icons/pwa-192.png", "sizes": "192x192", "type": "image/png"}]
+    },
+    {
+      "name": "Roadmaps",
+      "short_name": "Roadmaps",
+      "url": "/learning/roadmaps/",
+      "icons": [{"src": "/static/icons/pwa-192.png", "sizes": "192x192", "type": "image/png"}]
+    }
+  ]
+}

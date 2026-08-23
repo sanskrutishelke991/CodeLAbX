@@ -4,14 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CodeLabX learning dashboard for roadmaps, verified progress, assessments, challenges, and AI-assisted study.">
+    <meta name="description" content="CodeLabX learning dashboard for roadmaps, evidence-backed progress, assessments, challenges, and optional AI-assisted study.">
+    <meta name="theme-color" content="#6c5ce7">
+    <meta name="application-name" content="CodeLabX">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{% block title %}CodeLabX - AI-Powered Learning{% endblock %}</title>
 
-
+    <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/pwa-180.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/pwa-192.png' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pwa-accessibility.css' %}">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -25,6 +32,24 @@
             </a>
 
             <div class="header-actions">
+                <button class="header-btn"
+                        id="ttsToggleButton"
+                        type="button"
+                        title="Read page aloud"
+                        aria-label="Open text-to-speech controls"
+                        aria-expanded="false"
+                        aria-controls="ttsPanel">
+                    <i class="bi bi-volume-up-fill"></i>
+                </button>
+                <button class="header-btn"
+                        id="pwaInstallButton"
+                        type="button"
+                        title="Install CodeLabX"
+                        aria-label="Install CodeLabX on this device"
+                        aria-hidden="true"
+                        hidden>
+                    <i class="bi bi-download"></i>
+                </button>
                 {% if user.is_authenticated %}
                     <button class="header-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle color theme">
                         <i class="bi bi-moon-fill" id="themeIcon"></i>
@@ -43,6 +68,8 @@
             </div>
         </div>
     </header>
+
+    {% include 'partials/tts_controls.html' %}
 
     {% if messages %}
         <div class="main-container" style="padding-top: 0; padding-bottom: 0;">
@@ -244,5 +271,7 @@
     {% endif %}
 
     <script src="{% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/pwa.js' %}"></script>
+    <script src="{% static 'js/tts.js' %}"></script>
 </body>
 </html>

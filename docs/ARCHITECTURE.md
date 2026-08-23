@@ -14,6 +14,7 @@ microservices.
 - Python 3.12 or 3.14
 - Django 6.0.8
 - Django templates, Bootstrap 5.3.8, Bootstrap Icons 1.13.1, and vanilla JS
+- Installable PWA shell plus browser-native Web Speech text-to-speech
 - SQLite and process-local cache by default for development
 - Optional PostgreSQL, Redis, WhiteNoise, and Gunicorn configuration for staging
 - Google Gemini through `google-genai` for explicitly enabled AI features
@@ -135,6 +136,13 @@ manifest storage is optional and verified by Gate A's production collectstatic
 step. Optional upstream source-map comments are ignored because maps are not
 runtime dependencies.
 
+The root-scoped service worker precaches only the generic `/offline/` response and
+versioned `/static/` assets. Navigation requests are network-only with the generic
+offline fallback; authenticated HTML, APIs, media, chats, and user records are never
+written to Cache Storage. PWA installation still requires HTTPS outside localhost.
+Text-to-speech runs through the browser Web Speech API, reads bounded `textContent`,
+and stores only voice/rate preferences locally.
+
 User media still uses local filesystem storage. This is development-only. A
 private object-storage backend with authenticated delivery remains a production
 blocker.
@@ -159,6 +167,8 @@ blocker.
   must invoke the enqueue command.
 - Local user media is not private production storage.
 - CSP blocks inline scripts and handlers; legacy style attributes remain temporarily allowed.
+- PWA offline mode intentionally does not make private learner data available offline.
+- Text-to-speech voice availability and quality depend on the user's browser/OS.
 - No staging provider, monitoring vendor, or production email service is chosen.
 - PostgreSQL/Redis support is configured and tested, but no real production data
   migration has been performed.

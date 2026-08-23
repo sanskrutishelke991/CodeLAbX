@@ -17,11 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from dashboard import views as dashboard_views
-from codelabx.views import health, live
+from codelabx.views import health, live, offline, service_worker
 
 urlpatterns = [
     path('live/', live, name='live'),
     path('health/', health, name='health'),
+    path('service-worker.js', service_worker, name='service_worker'),
+    path('offline/', offline, name='offline'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('', dashboard_views.landing, name='landing'),

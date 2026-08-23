@@ -58,12 +58,22 @@
         leaderboard visibility follows the profile visibility setting.
     </p>
 
+    <h2>PWA and text-to-speech</h2>
+    <p>
+        The installable web app caches only the generic offline shell and versioned
+        static assets. Private authenticated pages, API responses, chat content,
+        uploads, and learning records are intentionally not stored in the offline
+        cache. Text-to-speech uses the browser Web Speech API and does not upload
+        text or audio to CodeLabX; available voices depend on the device.
+    </p>
+
     <h2>Essential browser storage</h2>
     <p>
         CodeLabX uses Django session and CSRF cookies for sign-in and request
-        protection, plus local browser storage for display preferences such as
-        theme. No advertising or analytics cookie integration is present in this
-        development version.
+        protection, plus local browser storage for display theme and text-to-speech
+        voice/rate preferences. The service worker uses browser Cache Storage for
+        public shell assets. No advertising or analytics cookie integration is
+        present in this development version.
     </p>
 
     <h2>Your controls</h2>

@@ -5,10 +5,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CodeLabX helps learners follow structured roadmaps, practice, complete assessments, and track verified progress.">
+    <meta name="description" content="CodeLabX helps learners follow structured roadmaps, practice, complete assessments, and track evidence-backed progress.">
+    <meta name="theme-color" content="#6c5ce7">
+    <meta name="application-name" content="CodeLabX">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>CodeLabX — Structured learning with optional AI assistance</title>
+    <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/pwa-180.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/pwa-192.png' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pwa-accessibility.css' %}">
 
 
 </head>
@@ -36,6 +43,24 @@
                     </button>
                 </div>
 
+                <button class="pwa-a11y-btn"
+                        id="ttsToggleButton"
+                        type="button"
+                        title="Read page aloud"
+                        aria-label="Open text-to-speech controls"
+                        aria-expanded="false"
+                        aria-controls="ttsPanel">
+                    <i class="bi bi-volume-up-fill"></i>
+                </button>
+                <button class="pwa-a11y-btn"
+                        id="pwaInstallButton"
+                        type="button"
+                        title="Install CodeLabX"
+                        aria-label="Install CodeLabX on this device"
+                        aria-hidden="true"
+                        hidden>
+                    <i class="bi bi-download"></i>
+                </button>
                 <a href="{% url 'accounts:login' %}" class="nav-signin">Sign in</a>
                 <a href="{% url 'accounts:register' %}" class="btn-specular">
                     Get Started
@@ -44,6 +69,8 @@
             </div>
         </div>
     </nav>
+
+    {% include 'partials/tts_controls.html' %}
 
     <!-- ========== HERO SECTION ========== -->
     <section class="hero" id="main-content" tabindex="-1">
@@ -849,7 +876,7 @@ df = pd.DataFrame({
                             <li>Tablets</li>
                             <li>Mobile phones</li>
                         </ul>
-                        When the site is deployed, signed-in progress is stored on that deployment and can be accessed through a supported browser. There is no native mobile app today.
+                        The web app can be installed from a supported browser. Offline mode keeps only the public shell and static assets; signed-in learning data still requires a server connection. There is no separate native app-store build today.
                     </div>
                 </div>
             </div>
@@ -1020,5 +1047,7 @@ df = pd.DataFrame({
     <!-- ========== SCRIPTS ========== -->
 
     <script src="{% static 'js/landing.js' %}"></script>
+    <script src="{% static 'js/pwa.js' %}"></script>
+    <script src="{% static 'js/tts.js' %}"></script>
 </body>
 </html>
