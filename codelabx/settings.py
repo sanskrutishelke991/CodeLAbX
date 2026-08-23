@@ -375,9 +375,25 @@ EMAIL_BACKEND = os.getenv(
     'DJANGO_EMAIL_BACKEND',
     'django.core.mail.backends.console.EmailBackend',
 )
+EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost').strip()
+EMAIL_PORT = env_int('DJANGO_EMAIL_PORT', 25)
+EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = env_bool('DJANGO_EMAIL_USE_TLS', False)
+EMAIL_USE_SSL = env_bool('DJANGO_EMAIL_USE_SSL', False)
+EMAIL_TIMEOUT = env_int('DJANGO_EMAIL_TIMEOUT_SECONDS', 20)
+if EMAIL_USE_TLS and EMAIL_USE_SSL:
+    raise ImproperlyConfigured(
+        'DJANGO_EMAIL_USE_TLS and DJANGO_EMAIL_USE_SSL cannot both be enabled.'
+    )
 DEFAULT_FROM_EMAIL = os.getenv(
     'DJANGO_DEFAULT_FROM_EMAIL',
     'CodeLabX <noreply@localhost>',
+)
+EMAIL_PREVIEW_ATTEMPTS = env_int('EMAIL_PREVIEW_ATTEMPTS', 3)
+EMAIL_PREVIEW_WINDOW_SECONDS = env_int(
+    'EMAIL_PREVIEW_WINDOW_SECONDS',
+    3600,
 )
 
 LOGIN_URL = 'accounts:login'

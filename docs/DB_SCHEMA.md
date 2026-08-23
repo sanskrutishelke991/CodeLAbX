@@ -24,6 +24,19 @@ One-to-one with `User`. Stores biography, avatar, location, learning preferences
 and public/private profile visibility. Avatar media is deleted during confirmed
 account deletion.
 
+### `accounts.EmailPreference`
+
+Optional one-to-one account preference for explicit weekly-report opt-in, send
+day, and included report sections. It does not exist merely because a settings page
+was opened. Enabling delivery requires a valid account email.
+
+### `accounts.WeeklyReportDelivery`
+
+Owner-scoped idempotency ledger for scheduled seven-day report periods. It stores
+status, attempts, timestamps, subject, and a content hash—not the report body or
+provider secrets. The unique user/period constraint prevents duplicate scheduled
+email for the same week; explicit previews do not create ledger rows.
+
 ## Learning
 
 ### `learning.Roadmap`

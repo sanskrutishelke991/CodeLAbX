@@ -56,6 +56,14 @@ schedule. Completed work remains in Git history and regression tests.
 - [ ] Add opt-in public passport/roadmap sharing with revocable links
 - [ ] Define certificate verification policy before issuing certificates
 
+## Product communication extensions
+
+- [x] Add explicit email-report preferences and local backend preview
+- [x] Add deterministic weekly reports with an idempotent delivery ledger
+- [x] Add maintenance task and scheduler-safe weekly-report command
+- [ ] Configure a transactional production email provider
+- [ ] Schedule the weekly-report command through an external scheduler/worker
+
 ## Next frontend-security phase
 
 - [x] Extract all page-specific inline CSS into versioned static stylesheets

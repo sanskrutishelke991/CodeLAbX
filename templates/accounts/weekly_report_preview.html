@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Weekly Report Preview — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/accounts-settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-page weekly-preview-page">
+    <section class="settings-hero">
+        <div>
+            <span class="settings-kicker"><i class="bi bi-file-earmark-bar-graph-fill"></i> Deterministic preview</span>
+            <h1 class="settings-title">Weekly learning report</h1>
+            <p class="settings-copy">{{ report.period_start|date:"d M Y" }} to {{ report.period_end|date:"d M Y" }}</p>
+        </div>
+        <a class="settings-btn" href="{% url 'accounts:email_preferences' %}">Email preferences</a>
+    </section>
+
+    <section class="settings-card full report-subject-card">
+        <span class="settings-label">Email subject</span>
+        <strong>{{ subject }}</strong>
+    </section>
+
+    {% if preference.include_activity %}
+    <section class="settings-card full report-preview-section">
+        <div class="settings-heading">
+            <span class="settings-icon"><i class="bi bi-activity"></i></span>
+            <h2>Recorded activity</h2>
+        </div>
+        <div class="report-metric-grid">
+            <div><strong>{{ report.active_days }}</strong><span>Active days</span></div>
+            <div><strong>{{ report.study_minutes }} min</strong><span>Study time</span></div>
+            <div><strong>{{ report.completed_days }}</strong><span>Roadmap days completed</span></div>
+            <div><strong>{{ report.completed_tests }}</strong><span>Tests completed</span></div>
+            <div><strong>{{ report.completed_challenges }}</strong><span>Challenges completed</span></div>
+            <div><strong>{% if report.average_test_score != None %}{{ report.average_test_score }}%{% else %}—{% endif %}</strong><span>Average recorded test score</span></div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if preference.include_skill_progress %}
+    <section class="settings-card full report-preview-section">
+        <div class="settings-heading">
+            <span class="settings-icon"><i class="bi bi-passport-fill"></i></span>
+            <h2>Evidence and skill progress</h2>
+        </div>
+        <div class="report-metric-grid">
+            <div><strong>{{ report.evidence_records }}</strong><span>Evidence records this week</span></div>
+            <div><strong>{{ report.scoreable_evidence_records }}</strong><span>Scoreable records</span></div>
+            <div><strong>{{ report.evidenced_skills }}</strong><span>Skills with new evidence</span></div>
+            <div>
+                <strong>{% if report.passport_total_skills != None %}{{ report.passport_observed_skills }}/{{ report.passport_total_skills }}{% else %}—{% endif %}</strong>
+                <span>Current Passport coverage</span>
+            </div>
+        </div>
+        <p>Skill estimates are evidence observed, not independently verified credentials.</p>
+    </section>
+    {% endif %}
+
+    {% if preference.include_next_steps %}
+    <section class="settings-card full report-preview-section">
+        <div class="settings-heading">
+            <span class="settings-icon"><i class="bi bi-signpost-split-fill"></i></span>
+            <h2>Next steps</h2>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Current mission</span>
+            <span class="settings-value">
+                {% if report.current_mission_title %}{{ report.current_mission_title }} · {{ report.current_mission_status }}{% else %}None recorded{% endif %}
+            </span>
+        </div>
+        <div class="settings-row">
+            <span class="settings-label">Retention reviews currently due</span>
+            <span class="settings-value">{% if report.retention_due_skills != None %}{{ report.retention_due_skills }}{% else %}Not available before diagnostics{% endif %}</span>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not report.has_recorded_activity %}
+    <div class="email-truth-note">
+        No included activity was recorded for this period. The report shows zero
+        instead of inventing progress.
+    </div>
+    {% endif %}
+
+    <section class="settings-card full report-send-card">
+        <div>
+            <h2>Send this preview</h2>
+            <p>
+                Sends through the currently configured Django email backend. The
+                default development console backend does not deliver to an inbox.
+            </p>
+        </div>
+        <form method="post" action="{% url 'accounts:send_weekly_report_test' %}">
+            {% csrf_token %}
+            <button class="settings-btn primary" type="submit">Send preview to {{ user.email|default:"account email" }}</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+CodeLabX weekly learning report
+{{ report.period_start|date:"d M Y" }} to {{ report.period_end|date:"d M Y" }}
+
+Hi {{ report_user.first_name|default:report_user.username }},
+
+This report contains recorded CodeLabX activity only. Missing activity is shown as zero; no AI-generated progress claims are added.
+
+{% if preference.include_activity %}RECORDED ACTIVITY
+- Active days: {{ report.active_days }}
+- Study time: {{ report.study_minutes }} minutes ({{ report.study_hours }} hours)
+- Roadmap days completed: {{ report.completed_days }} across {{ report.roadmaps_touched }} roadmap(s)
+- Tests completed: {{ report.completed_tests }}{% if report.average_test_score != None %}; average recorded score: {{ report.average_test_score }}%{% endif %}
+- Challenges completed: {{ report.completed_challenges }}
+
+{% endif %}{% if preference.include_skill_progress %}EVIDENCE AND SKILL PROGRESS
+- Learning-evidence records this week: {{ report.evidence_records }}
+- Scoreable evidence records: {{ report.scoreable_evidence_records }}
+- Skills with new evidence: {{ report.evidenced_skills }}
+{% if report.passport_total_skills != None %}- Current Skill Passport coverage: {{ report.passport_observed_skills }}/{{ report.passport_total_skills }} skills with scoreable evidence
+{% else %}- Skill Passport summary: not available until Learning Intelligence diagnostics are complete
+{% endif %}
+Skill estimates are evidence observed, not independently verified credentials.
+
+{% endif %}{% if preference.include_next_steps %}NEXT STEPS
+{% if report.current_mission_title %}- Current mission: {{ report.current_mission_title }} ({{ report.current_mission_status }})
+{% else %}- Current mission: none recorded
+{% endif %}{% if report.retention_due_skills != None %}- Skills currently worth a retention review: {{ report.retention_due_skills }}
+{% else %}- Retention summary: not available until Learning Intelligence diagnostics are complete
+{% endif %}
+{% endif %}
+You explicitly opted into this report. To change or stop it, sign in to CodeLabX and open Settings → Email reports.
+
+CodeLabX is a development-stage learning platform. This message is not a certificate or employment credential.

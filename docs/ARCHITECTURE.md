@@ -27,7 +27,7 @@ versions and hashes are in `static/vendor/manifest.json`.
 
 | App | Responsibility |
 | --- | --- |
-| `accounts` | Registration, authentication throttling, profiles, settings, password reset, export, deletion |
+| `accounts` | Authentication, profiles, privacy controls, email preferences, deterministic weekly reports, export, deletion |
 | `dashboard` | Public landing/legal pages and the signed-in verified activity overview |
 | `learning` | ML, DSA, and Django/full-stack roadmap generation, daily lessons, lifecycle actions, day completion |
 | `content` | Curated video categories, library, favorites, and watched state |
@@ -92,6 +92,17 @@ independent verification. The Retention Center recomputes time-current freshness
 and can propose one deterministic refresh Mission without rewriting mastery or
 displacing existing active work.
 
+### Email and weekly reports
+
+Email reports are explicit opt-in account features. The weekly report renderer
+queries authoritative activity, assessment, challenge, evidence, Passport, mission,
+and retention rows without AI-generated claims. `WeeklyReportDelivery` stores only
+period/status/hash metadata and prevents duplicate scheduled delivery. Preview
+emails are separate and do not consume a scheduled period. Development defaults to
+the console backend; real inbox delivery requires a transactional provider. An
+external scheduler must invoke `python manage.py send_weekly_reports` or enqueue its
+maintenance task.
+
 ## Cache and throttling
 
 Without `REDIS_URL`, local development uses `LocMemCache`. This is intentionally
@@ -134,6 +145,8 @@ blocker.
 - `/health/` checks database and cache read/write readiness and fails with 503.
 - `python manage.py production_preflight` reports secret-safe configuration
   blockers.
+- `python manage.py send_weekly_reports --dry-run` previews scheduler eligibility;
+  actual recurring execution still requires an external scheduler.
 - `python scripts/verify.py` runs compilation, critical lint, migration drift,
   tests, coverage, static collection, deploy checks, and dependency audit.
 - `python scripts/load_smoke.py` performs a deliberately bounded smoke load.

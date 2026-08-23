@@ -133,6 +133,13 @@ def collect_production_findings(config) -> list[Finding]:
         error("PRD016", "Configure a transactional production email backend.")
     if "localhost" in str(getattr(config, "DEFAULT_FROM_EMAIL", "")).lower():
         error("PRD017", "Configure a verified non-local default sender address.")
+    email_host = str(getattr(config, "EMAIL_HOST", "")).strip().lower()
+    if "smtp.EmailBackend" in email_backend and email_host in {
+        "",
+        "localhost",
+        "127.0.0.1",
+    }:
+        error("PRD020", "Configure a non-local SMTP host for production email.")
 
     ai_enabled = any(
         bool(getattr(config, name, False))

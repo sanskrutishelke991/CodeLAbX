@@ -45,6 +45,8 @@ class RouteSmokeTests(TestCase):
             'accounts:profile',
             'accounts:profile_edit',
             'accounts:settings',
+            'accounts:email_preferences',
+            'accounts:weekly_report_preview',
             'learning:roadmaps',
             'learning:roadmap_create',
             'content:library',

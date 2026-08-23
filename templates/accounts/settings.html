@@ -110,6 +110,33 @@
             </div>
         </section>
 
+        <section class="settings-card">
+            <div class="settings-heading">
+                <span class="settings-icon">
+                    <i class="bi bi-envelope-fill"></i>
+                </span>
+                <h2>Email reports</h2>
+            </div>
+
+            <div class="settings-row">
+                <span class="settings-label">Weekly report</span>
+                <span class="settings-value">
+                    {% if email_preference.weekly_report_enabled %}
+                        Enabled · {{ email_preference.get_report_weekday_display }}
+                    {% else %}
+                        Off
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="settings-actions">
+                <a class="settings-btn" href="{% url 'accounts:email_preferences' %}">
+                    <i class="bi bi-envelope-gear"></i>
+                    Manage email reports
+                </a>
+            </div>
+        </section>
+
         <section class="settings-card full">
             <div class="settings-heading">
                 <span class="settings-icon">
@@ -122,14 +149,14 @@
                 <a class="settings-btn" href="{% url 'accounts:password_reset' %}"><i class="bi bi-key"></i>Reset password</a>
                 <form method="post" action="{% url 'accounts:export_account_data' %}">{% csrf_token %}<button class="settings-btn" type="submit"><i class="bi bi-download"></i>Export my data</button></form>
             </div>
-            <hr style="border-color:var(--border-subtle);margin:20px 0;">
-            <h3 style="font-size:.9rem;color:var(--error);">Delete account</h3>
+            <hr class="settings-divider">
+            <h3 class="settings-danger-title">Delete account</h3>
             <p>Deletion permanently removes your account, learning data, chats, and uploaded media.</p>
             <form method="post" action="{% url 'accounts:delete_account' %}" data-confirm="Permanently delete this account?">
                 {% csrf_token %}
                 <input class="form-control mb-2" name="confirmation" required placeholder="Type your username">
                 <input class="form-control mb-2" name="password" type="password" required placeholder="Current password">
-                <button class="settings-btn" type="submit" style="color:var(--error);border-color:var(--error);"><i class="bi bi-trash"></i>Delete permanently</button>
+                <button class="settings-btn settings-danger-btn" type="submit"><i class="bi bi-trash"></i>Delete permanently</button>
             </form>
         </section>
     </div>

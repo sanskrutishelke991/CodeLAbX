@@ -1,5 +1,7 @@
 import json
+import logging
 
+from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.conf import settings as django_settings
@@ -30,8 +32,14 @@ from intelligence.models import (
 )
 from codelabx.throttling import is_rate_limited
 
-from .forms import ProfileUpdateForm, RegistrationForm
-from .models import UserProfile
+from .forms import EmailPreferenceForm, ProfileUpdateForm, RegistrationForm
+from .models import EmailPreference, UserProfile, WeeklyReportDelivery
+from .services.weekly_reports import (
+    render_weekly_report,
+    send_weekly_report_preview,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def register(request):
@@ -279,7 +287,123 @@ def public_profile(request, username):
 
 @login_required
 def settings(request):
-    return render(request, 'accounts/settings.html')
+    email_preference = EmailPreference.objects.filter(user=request.user).first()
+    return render(
+        request,
+        "accounts/settings.html",
+        {"email_preference": email_preference},
+    )
+
+
+@login_required
+def email_preferences(request):
+    preference = EmailPreference.objects.filter(user=request.user).first()
+    if request.method == "POST":
+        form = EmailPreferenceForm(
+            request.POST,
+            instance=preference,
+            user=request.user,
+        )
+        if form.is_valid():
+            preference = form.save()
+            messages.success(
+                request,
+                "Email report preferences saved."
+                if preference.weekly_report_enabled
+                else "Weekly report email remains off.",
+            )
+            return redirect("accounts:email_preferences")
+    else:
+        form = EmailPreferenceForm(instance=preference, user=request.user)
+
+    backend = django_settings.EMAIL_BACKEND.lower()
+    external_delivery_configured = not any(
+        marker in backend
+        for marker in ("console", "locmem", "dummy", "filebased")
+    )
+    deliveries = WeeklyReportDelivery.objects.filter(
+        user=request.user
+    ).order_by("-period_end")[:10]
+    return render(
+        request,
+        "accounts/email_preferences.html",
+        {
+            "form": form,
+            "preference": preference,
+            "deliveries": deliveries,
+            "external_delivery_configured": external_delivery_configured,
+        },
+    )
+
+
+@login_required
+def weekly_report_preview(request):
+    preference = (
+        EmailPreference.objects.filter(user=request.user).first()
+        or EmailPreference(user=request.user)
+    )
+    rendered = render_weekly_report(request.user, preference)
+    return render(
+        request,
+        "accounts/weekly_report_preview.html",
+        {
+            "preference": preference,
+            "report": rendered.data,
+            "subject": rendered.subject,
+        },
+    )
+
+
+@login_required
+@require_POST
+def send_weekly_report_test(request):
+    if is_rate_limited(
+        request,
+        f"weekly-report-preview:{request.user.id}",
+        django_settings.EMAIL_PREVIEW_ATTEMPTS,
+        django_settings.EMAIL_PREVIEW_WINDOW_SECONDS,
+    ):
+        messages.error(
+            request,
+            "Too many preview-email requests. Try again later.",
+        )
+        return redirect("accounts:weekly_report_preview")
+    preference = (
+        EmailPreference.objects.filter(user=request.user).first()
+        or EmailPreference(user=request.user)
+    )
+    try:
+        send_weekly_report_preview(request.user, preference)
+    except ValidationError:
+        messages.error(
+            request,
+            "A valid account email is required before a preview can be sent.",
+        )
+    except Exception:
+        logger.exception(
+            "Weekly report preview email failed",
+            extra={"user_id": request.user.id},
+        )
+        messages.error(
+            request,
+            "The configured email backend could not send the preview.",
+        )
+    else:
+        backend = django_settings.EMAIL_BACKEND.lower()
+        if any(
+            marker in backend
+            for marker in ("console", "locmem", "dummy", "filebased")
+        ):
+            messages.success(
+                request,
+                "Preview passed to the configured development backend; no external inbox delivery is claimed.",
+            )
+        else:
+            messages.success(
+                request,
+                "Weekly report preview sent to your account email.",
+            )
+    return redirect("accounts:weekly_report_preview")
 
 
 def _export_learning_intelligence(user):
@@ -497,6 +621,32 @@ def export_account_data(request):
                 "analysis_type",
                 "user_question",
                 "created_at",
+            )
+        ),
+        "email_preference": (
+            EmailPreference.objects.filter(user=user)
+            .values(
+                "weekly_report_enabled",
+                "report_weekday",
+                "include_activity",
+                "include_skill_progress",
+                "include_next_steps",
+                "created_at",
+                "updated_at",
+            )
+            .first()
+        ),
+        "weekly_report_deliveries": list(
+            WeeklyReportDelivery.objects.filter(user=user).values(
+                "period_start",
+                "period_end",
+                "status",
+                "subject",
+                "attempt_count",
+                "last_attempt_at",
+                "sent_at",
+                "created_at",
+                "updated_at",
             )
         ),
         "learning_intelligence": _export_learning_intelligence(user),

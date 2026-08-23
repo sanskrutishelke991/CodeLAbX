@@ -23,6 +23,17 @@ urlpatterns = [
     ), name='password_reset_complete'),
     path('export/', views.export_account_data, name='export_account_data'),
     path('delete/', views.delete_account, name='delete_account'),
+    path('email/', views.email_preferences, name='email_preferences'),
+    path(
+        'email/weekly-preview/',
+        views.weekly_report_preview,
+        name='weekly_report_preview',
+    ),
+    path(
+        'email/weekly-preview/send/',
+        views.send_weekly_report_test,
+        name='send_weekly_report_test',
+    ),
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
