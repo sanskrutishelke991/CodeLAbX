@@ -52,11 +52,8 @@ button,input{font:inherit}
   background-size:24px 24px
 }
 .formcol{width:min(370px,100%);margin:0 auto}
-.hero-mark{text-align:center;margin-bottom:26px}
-.hero-mark svg{width:66px;height:66px;display:block;margin:0 auto}
-.mark-dark{display:none}
-[data-theme="dark"] .mark-light{display:none}
-[data-theme="dark"] .mark-dark{display:block}
+.hero-mark{display:flex;justify-content:center;align-items:center;height:66px;margin-bottom:26px;overflow:hidden}
+.hero-mark svg{width:66px;height:66px;display:block;flex:none}
 
 h1{font-family:var(--font-display);font-size:44px;font-weight:400;letter-spacing:-.01em;line-height:1.08;text-align:center}
 .lede{margin-top:8px;font-size:16px;color:var(--text-2);text-align:center}

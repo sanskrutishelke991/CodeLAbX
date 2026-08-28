@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CodeLabX — Sign in</title>
 <link rel="icon" href="{% static 'brand/favicon.svg' %}">
-<link rel="stylesheet" href="{% static 'css/v2/login.css' %}">
+<link rel="stylesheet" href="{% static 'css/v2/login.css' %}?v=3">
 </head>
 <body>
 <a class="sr" href="#login-form">Skip to sign in</a>
@@ -21,28 +21,16 @@
 
   <section class="panel">
     <div class="formcol">
-      <div class="hero-mark">
-        <svg class="mark-light" viewBox="0 0 128 128" aria-hidden="true">
+      <div class="hero-mark" aria-hidden="true">
+        <svg width="66" height="66" viewBox="0 0 128 128" focusable="false">
           <defs>
-            <linearGradient id="chipmetal" x1="0" y1="0" x2="0.7" y2="1">
-              <stop offset="0" stop-color="#323743"/>
-              <stop offset="0.55" stop-color="#20242C"/>
-              <stop offset="1" stop-color="#12151B"/>
+            <linearGradient id="markmetal" x1="0" y1="0" x2="0.7" y2="1">
+              <stop offset="0" stop-color="var(--mark-0)"/>
+              <stop offset="0.55" stop-color="var(--mark-1)"/>
+              <stop offset="1" stop-color="var(--mark-2)"/>
             </linearGradient>
           </defs>
-          <path fill="none" stroke="url(#chipmetal)" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
-          <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
-        </svg>
-        <svg class="mark-dark" viewBox="0 0 128 128" aria-hidden="true">
-          <defs>
-            <linearGradient id="herometal" x1="0" y1="0" x2="0.7" y2="1">
-              <stop offset="0" stop-color="#FFFFFF"/>
-              <stop offset="0.55" stop-color="#EDE9DE"/>
-              <stop offset="1" stop-color="#C9C4B6"/>
-            </linearGradient>
-          </defs>
-          <path fill="none" stroke="#000000" stroke-opacity="0.45" stroke-width="15" stroke-linejoin="round" transform="translate(0 2.5)" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
-          <path fill="none" stroke="url(#herometal)" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+          <path fill="none" stroke="url(#markmetal)" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
           <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
         </svg>
       </div>
@@ -81,6 +69,6 @@
     </div>
   </section>
 </main>
-<script src="{% static 'js/v2/login.js' %}" defer></script>
+<script src="{% static 'js/v2/login.js' %}?v=3" defer></script>
 </body>
 </html>
