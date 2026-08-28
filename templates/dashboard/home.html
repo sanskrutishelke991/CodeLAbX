@@ -3,10 +3,10 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CodeLabX — Home</title>
 <link rel="icon" href="{% static 'brand/favicon.svg' %}">
-<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=6">
 </head>
 <body>
 <a class="sr" href="#day">Skip to today</a>
@@ -16,40 +16,39 @@
   <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3 V5 M12 19 V21 M3 12 H5 M19 12 H21 M5.6 5.6 L7 7 M17 17 L18.4 18.4 M18.4 5.6 L17 7 M7 17 L5.6 18.4"/></svg>
 </button>
 
-<section class="map" aria-hidden="true"></section>
+<section class="map" aria-hidden="true">
+  <img class="map-light" src="{% static 'brand/dash-map-light.jpg' %}" alt="">
+  <img class="map-dark" src="{% static 'brand/dash-map-dark.jpg' %}" alt="">
+</section>
 
 <section class="sheet" id="day">
 {% if roadmaps %}
   {% with rm=roadmaps.0 %}
-  {% with nxt=rm.completed_days|add:1 %}
   <p class="kicker" id="day-kicker">{{ rm.get_topic_display }} · {{ rm.daily_hours }} h</p>
-  <h1 id="day-h">Day {% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %}</h1>
+  <h1 id="day-h">Day {{ rm.next_day_number }}</h1>
   <p class="lede" id="day-lede">{{ rm.title }}</p>
   <p class="body">This is the next unfinished day on the path you set. Daily hours and level stay the ones you chose. A later proposal does not rewrite this route until you approve it.</p>
-  {% if nxt > rm.total_days %}
+  {% if rm.next_is_done %}
   <a class="btn" id="continue" href="{% url 'learning:roadmap_detail' rm.id %}">Continue</a>
   {% else %}
-  <a class="btn" id="continue" href="{% url 'learning:day_detail' rm.id nxt %}">Continue</a>
+  <a class="btn" id="continue" href="{% url 'learning:day_detail' rm.id rm.next_day_number %}">Continue</a>
   {% endif %}
-  {% endwith %}
   {% endwith %}
 
   <div class="paths" aria-label="Current path">
     <p class="paths-kicker">Current path</p>
     {% for rm in roadmaps %}
-    {% with nxt=rm.completed_days|add:1 %}
     <button type="button"
       class="path-row{% if forloop.first %} on{% endif %}"
       {% if forloop.first %}aria-current="true"{% else %}aria-current="false"{% endif %}
       data-id="{{ rm.id }}"
-      data-day="{% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %}"
+      data-day="{{ rm.next_day_number }}"
       data-kicker="{{ rm.get_topic_display }} · {{ rm.daily_hours }} h"
       data-title="{{ rm.title }}"
-      data-href="{% if nxt > rm.total_days %}{% url 'learning:roadmap_detail' rm.id %}{% else %}{% url 'learning:day_detail' rm.id nxt %}{% endif %}">
-      <span class="path-name">{{ rm.get_topic_display }}</span>
-      <span class="path-meta">Day {% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %} · {{ rm.daily_hours }} h</span>
+      data-href="{% if rm.next_is_done %}{% url 'learning:roadmap_detail' rm.id %}{% else %}{% url 'learning:day_detail' rm.id rm.next_day_number %}{% endif %}">
+      <span class="path-name">{{ rm.title }}</span>
+      <span class="path-meta">Day {{ rm.next_day_number }} · {{ rm.daily_hours }} h</span>
     </button>
-    {% endwith %}
     {% endfor %}
     <a class="path-new" href="{% url 'learning:roadmap_create' %}">Create another path</a>
   </div>
@@ -79,7 +78,7 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 5 H14 A3 3 0 0 1 17 8 V20 H8 A3 3 0 0 0 5 17 Z M14 5 V17 A3 3 0 0 0 17 20"/></svg>
     <span class="dock-cap">Learn</span>
   </a>
-  <button type="button" class="dock-i dock-path" id="open-dial" title="Path Dial" aria-haspopup="dialog" aria-controls="dial">
+  <button type="button" class="dock-i" id="open-dial" title="Path Dial" aria-haspopup="dialog" aria-controls="dial">
     <svg viewBox="0 0 128 128" aria-hidden="true">
       <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
       <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
@@ -110,10 +109,15 @@
 
 <div class="dial-back" id="dial-back" hidden>
   <div class="dial" role="dialog" aria-modal="true" aria-labelledby="dial-title" id="dial">
-    <div class="wheel" id="wheel">
+    <div class="wheel" id="wheel" tabindex="0" aria-label="Path Dial wheel">
       <svg viewBox="0 0 400 400" aria-hidden="true">
-        <path class="wedge" data-i="0" d="M200.0,12.0 A188,188 0 0 1 332.9,67.1 L255.2,144.8 A78,78 0 0 0 200.0,122.0 Z"/>
-        <path class="wedge on" data-i="1" d="M332.9,67.1 A188,188 0 0 1 388.0,200.0 L278.0,200.0 A78,78 0 0 0 255.2,144.8 Z"/>
+        <defs>
+          <filter id="neo-on" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#1F7A5C" flood-opacity=".28"/>
+          </filter>
+        </defs>
+        <path class="wedge on" data-i="0" d="M200.0,12.0 A188,188 0 0 1 332.9,67.1 L255.2,144.8 A78,78 0 0 0 200.0,122.0 Z"/>
+        <path class="wedge" data-i="1" d="M332.9,67.1 A188,188 0 0 1 388.0,200.0 L278.0,200.0 A78,78 0 0 0 255.2,144.8 Z"/>
         <path class="wedge" data-i="2" d="M388.0,200.0 A188,188 0 0 1 332.9,332.9 L255.2,255.2 A78,78 0 0 0 278.0,200.0 Z"/>
         <path class="wedge" data-i="3" d="M332.9,332.9 A188,188 0 0 1 200.0,388.0 L200.0,278.0 A78,78 0 0 0 255.2,255.2 Z"/>
         <path class="wedge" data-i="4" d="M200.0,388.0 A188,188 0 0 1 67.1,332.9 L144.8,255.2 A78,78 0 0 0 200.0,278.0 Z"/>
@@ -121,15 +125,16 @@
         <path class="wedge" data-i="6" d="M12.0,200.0 A188,188 0 0 1 67.1,67.1 L144.8,144.8 A78,78 0 0 0 122.0,200.0 Z"/>
         <path class="wedge" data-i="7" d="M67.1,67.1 A188,188 0 0 1 200.0,12.0 L200.0,122.0 A78,78 0 0 0 144.8,144.8 Z"/>
       </svg>
-      <a class="slice s0" href="{% url 'dashboard:home' %}">Dashboard</a>
-      <a class="slice s1 on" href="{% url 'content:library' %}">Learn</a>
-      <a class="slice s2" href="{% url 'practice:task_list' %}">Practice</a>
-      <a class="slice s3" href="{% url 'learning:roadmaps' %}">Roadmaps</a>
-      <a class="slice s4" href="{% url 'assessments:quiz_list' %}">Assessments</a>
-      <a class="slice s5" href="{% url 'challenges:dashboard' %}">Challenges</a>
-      <a class="slice s6" href="{% url 'ai_tools:home' %}">AI Tutor</a>
-      <a class="slice s7" href="{% url 'accounts:settings' %}">Settings</a>
+      <a class="slice s0 on" data-i="0" href="{% url 'dashboard:home' %}">Dashboard</a>
+      <a class="slice s1" data-i="1" href="{% url 'content:library' %}">Learn</a>
+      <a class="slice s2" data-i="2" href="{% url 'practice:task_list' %}">Practice</a>
+      <a class="slice s3" data-i="3" href="{% url 'learning:roadmaps' %}">Roadmaps</a>
+      <a class="slice s4" data-i="4" href="{% url 'assessments:quiz_list' %}">Assessments</a>
+      <a class="slice s5" data-i="5" href="{% url 'challenges:dashboard' %}">Challenges</a>
+      <a class="slice s6" data-i="6" href="{% url 'ai_tools:home' %}">AI Tutor</a>
+      <a class="slice s7" data-i="7" href="{% url 'accounts:settings' %}">Settings</a>
       <div class="hub" aria-hidden="true"></div>
+      <div class="dial-pip" aria-hidden="true"></div>
       <div class="dial-tab" aria-hidden="true">
         <svg viewBox="0 0 128 128">
           <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
@@ -138,15 +143,15 @@
       </div>
     </div>
     <p class="dial-title" id="dial-title">Path Dial</p>
-    <nav class="dlist" aria-label="Destinations">
-      <a href="{% url 'dashboard:home' %}">Dashboard</a>
-      <a class="on" href="{% url 'content:library' %}">Learn</a>
-      <a href="{% url 'practice:task_list' %}">Practice</a>
-      <a href="{% url 'learning:roadmaps' %}">Roadmaps</a>
-      <a href="{% url 'assessments:quiz_list' %}">Assessments</a>
-      <a href="{% url 'challenges:dashboard' %}">Challenges</a>
-      <a href="{% url 'ai_tools:home' %}">AI Tutor</a>
-      <a href="{% url 'accounts:settings' %}">Settings</a>
+    <nav class="dlist" id="dlist" aria-label="Destinations">
+      <a class="on" data-i="0" href="{% url 'dashboard:home' %}">Dashboard</a>
+      <a data-i="1" href="{% url 'content:library' %}">Learn</a>
+      <a data-i="2" href="{% url 'practice:task_list' %}">Practice</a>
+      <a data-i="3" href="{% url 'learning:roadmaps' %}">Roadmaps</a>
+      <a data-i="4" href="{% url 'assessments:quiz_list' %}">Assessments</a>
+      <a data-i="5" href="{% url 'challenges:dashboard' %}">Challenges</a>
+      <a data-i="6" href="{% url 'ai_tools:home' %}">AI Tutor</a>
+      <a data-i="7" href="{% url 'accounts:settings' %}">Settings</a>
     </nav>
     <button type="button" class="dial-x" id="dial-close">Close</button>
   </div>
