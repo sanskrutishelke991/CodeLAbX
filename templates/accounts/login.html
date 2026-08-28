@@ -1,101 +1,90 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeLabX — Sign in</title>
+<link rel="icon" href="{% static 'brand/favicon.svg' %}">
+<link rel="stylesheet" href="{% static 'css/v2/login.css' %}">
+</head>
+<body>
+<a class="sr" href="#login-form">Skip to sign in</a>
 
-{% block title %}Log In - CodeLabX{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/accounts-login.css' %}">
-{% endblock %}
-
-{% block content %}
-<div class="container">
-    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
-        <div class="col-md-6 col-lg-5">
-            <div class="card auth-card">
-                <div class="card-header text-center py-4">
-                    <h2 class="mb-0">
-                        <i class="bi bi-code-square me-2"></i>CodeLabX
-                    </h2>
-                    <p class="mb-0 text-muted">Welcome back</p>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <div class="input-group">
-                                <span class="input-group-text" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.6);">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="username" 
-                                       name="username" 
-                                       placeholder="Enter your username"
-                                       required
-                                       autofocus>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.6);">
-                                    <i class="bi bi-lock"></i>
-                                </span>
-                                <input type="password" 
-                                       class="form-control" 
-                                       id="password" 
-                                       name="password" 
-                                       placeholder="Enter your password"
-                                       required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.6);">
-                                    <i class="bi bi-eye" id="eyeIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">
-                                Remember me
-                            </label>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Log In
-                            </button>
-                        </div>
-                    </form>
-                    
-                    <div class="text-center mt-4">
-                        <p class="mb-0">
-                            Don't have an account? 
-                            <a href="{% url 'accounts:register' %}" class="auth-link">Sign up</a>
-                        </p>
-                    </div>
-                    
-                    <div class="text-center mt-3">
-                        <a href="{% url 'accounts:password_reset' %}" class="auth-link small">
-                            <i class="bi bi-question-circle me-1"></i>Forgot password?
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="text-center mt-4">
-                <small class="text-muted">
-                    <a href="{% url 'dashboard:terms' %}" class="auth-link">Terms of Service</a> • 
-                    <a href="{% url 'dashboard:privacy' %}" class="auth-link">Privacy Policy</a>
-                </small>
-            </div>
-        </div>
-    </div>
+<div class="ttoggle" role="group" aria-label="Theme">
+  <button type="button" id="tl" aria-pressed="true">Light</button>
+  <button type="button" id="td" aria-pressed="false">Dark</button>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/pages/accounts-login.js' %}"></script>
-{% endblock %}
+<main class="stage">
+  <section class="terrain" aria-hidden="true">
+    <svg id="topo-light" class="topo topo-light" viewBox="0 0 620 780" width="620" height="780" preserveAspectRatio="xMidYMid slice"></svg>
+    <svg id="topo-dark" class="topo topo-dark" viewBox="0 0 620 780" width="620" height="780" preserveAspectRatio="xMidYMid slice"></svg>
+    <span class="frag frag-a">def next_mission(dna):</span>
+    <span class="frag frag-b">return evidence[-7:]</span>
+    <span class="frag frag-c">streak += 1</span>
+    <div class="chip">
+      <svg viewBox="0 0 128 128" aria-hidden="true">
+        <defs>
+          <linearGradient id="chipmetal" x1="0" y1="0" x2="0.7" y2="1">
+            <stop offset="0" stop-color="#323743"/>
+            <stop offset="0.55" stop-color="#20242C"/>
+            <stop offset="1" stop-color="#12151B"/>
+          </linearGradient>
+        </defs>
+        <path fill="none" stroke="url(#chipmetal)" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+        <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+      </svg>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="formcol">
+      <a class="home-link" href="{% url 'landing' %}">CodeLabX</a>
+      <div class="hero-dark">
+        <svg viewBox="0 0 128 128" aria-hidden="true">
+          <defs>
+            <linearGradient id="herometal" x1="0" y1="0" x2="0.7" y2="1">
+              <stop offset="0" stop-color="#FFFFFF"/>
+              <stop offset="0.55" stop-color="#EDE9DE"/>
+              <stop offset="1" stop-color="#C9C4B6"/>
+            </linearGradient>
+          </defs>
+          <path fill="none" stroke="#000000" stroke-opacity="0.45" stroke-width="15" stroke-linejoin="round" transform="translate(0 2.5)" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+          <path fill="none" stroke="url(#herometal)" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+          <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+        </svg>
+      </div>
+
+      <h1>Welcome back</h1>
+      <p class="lede">Continue your learning path</p>
+
+      {% if messages %}
+      <ul class="auth-messages">
+        {% for message in messages %}
+        <li class="msg msg-{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <form id="login-form" method="post" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+        <div class="field">
+          <label class="flabel" for="username">Username</label>
+          <input id="username" name="username" type="text" placeholder="Username" autocomplete="username" required autofocus>
+        </div>
+        <div class="field">
+          <label class="flabel" for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+        </div>
+        <a class="forgot" href="{% url 'accounts:password_reset' %}">Forgot password?</a>
+        <button class="btn" type="submit">Sign in</button>
+        <p class="signup">New here? <a href="{% url 'accounts:register' %}">Create an account</a></p>
+        <p class="micro">Private by default.</p>
+      </form>
+    </div>
+  </section>
+</main>
+<script src="{% static 'js/v2/login.js' %}" defer></script>
+</body>
+</html>
