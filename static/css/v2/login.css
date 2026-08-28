@@ -1,4 +1,4 @@
-/* CodeLabX V2 login — Signal & Path. Exact locked composition. CSP-safe. */
+/* CodeLabX V2 login — same immersive split in light and dark. CSP-safe. */
 @font-face{
   font-family:"Instrument Serif";
   src:url("../../fonts/instrument-serif.woff") format("woff");
@@ -11,63 +11,57 @@
   --canvas:#F5F1E8; --panel:#FBF9F3; --field:#FFFFFF; --text:#20242C; --text-2:#626A76;
   --border:#D9D4C8; --mint:#35C99A; --mint-ink:#1F7A5C; --amber:#E5A93D; --red:#D95959;
   --cta-bg:#20242C; --cta-ink:#F5F1E8; --terrain-bg:#EDE8DB;
+  --dot:rgba(32,36,44,.045);
   --font-display:"Instrument Serif","Newsreader",Georgia,"Times New Roman",serif;
   --font-ui:"Geist Sans",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
-  --font-mono:"Geist Mono","JetBrains Mono",ui-monospace,Menlo,monospace;
 }
 [data-theme="dark"]{
   color-scheme:dark;
   --canvas:#0B0D12; --panel:#0B0D12; --field:#11151C; --text:#F3F0E8; --text-2:#A5ACB8;
   --border:#30343A; --mint-ink:#7CE0BC; --cta-bg:#F3F0E8; --cta-ink:#0B0D12; --terrain-bg:#0E1219;
+  --dot:rgba(243,240,232,.05);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
   background:var(--canvas);color:var(--text);font-family:var(--font-ui);
-  display:grid;place-items:center;padding:32px;
-  -webkit-font-smoothing:antialiased;transition:background .18s ease
+  -webkit-font-smoothing:antialiased
 }
-[data-theme="dark"] body{padding:0}
 a{color:inherit}
 button,input{font:inherit}
 :focus-visible{outline:3px solid rgba(53,201,154,.72);outline-offset:3px}
 
 .stage{
-  display:grid;grid-template-columns:1.12fr .88fr;width:min(1180px,100%);
-  min-height:min(760px,calc(100vh - 64px));
-  border-radius:20px;overflow:hidden;border:1px solid var(--border);
-  box-shadow:0 24px 64px rgba(32,36,44,.10);background:var(--panel)
+  display:grid;grid-template-columns:1.12fr .88fr;
+  width:100%;min-height:100vh;background:var(--panel)
 }
-[data-theme="dark"] .stage{border-radius:0;border:0;min-height:100vh;width:100%;box-shadow:none}
 
 .terrain{
-  position:relative;background-color:var(--terrain-bg);overflow:hidden;
+  position:relative;overflow:hidden;background-color:var(--terrain-bg);
   background-image:url("../../brand/login-terrain-light.jpg");
-  background-repeat:no-repeat;background-size:cover;background-position:left center
+  background-repeat:no-repeat;background-size:cover;background-position:center center
 }
 [data-theme="dark"] .terrain{
-  background-image:url("../../brand/login-terrain-dark.jpg");
-  background-position:center center
+  background-image:url("../../brand/login-terrain-dark.jpg")
 }
 
 .panel{
   position:relative;display:flex;flex-direction:column;justify-content:center;
-  padding:56px clamp(32px,6vw,72px);background:var(--panel)
-}
-[data-theme="dark"] .panel{
-  background-image:radial-gradient(rgba(243,240,232,.05) 1px,transparent 1px);
+  padding:56px clamp(32px,6vw,72px);background:var(--panel);
+  background-image:radial-gradient(var(--dot) 1px,transparent 1px);
   background-size:24px 24px
 }
 .formcol{width:min(370px,100%);margin:0 auto}
-.hero-dark{display:none;text-align:center;margin-bottom:26px}
-.hero-dark svg{width:66px;height:66px}
-[data-theme="dark"] .hero-dark{display:block}
-h1{font-family:var(--font-display);font-size:44px;font-weight:400;letter-spacing:-.01em;line-height:1.08}
-.lede{margin-top:8px;font-size:16px;color:var(--text-2)}
-[data-theme="dark"] h1,[data-theme="dark"] .lede{text-align:center}
+.hero-mark{text-align:center;margin-bottom:26px}
+.hero-mark svg{width:66px;height:66px;display:block;margin:0 auto}
+.mark-dark{display:none}
+[data-theme="dark"] .mark-light{display:none}
+[data-theme="dark"] .mark-dark{display:block}
+
+h1{font-family:var(--font-display);font-size:44px;font-weight:400;letter-spacing:-.01em;line-height:1.08;text-align:center}
+.lede{margin-top:8px;font-size:16px;color:var(--text-2);text-align:center}
 form{margin-top:32px;display:flex;flex-direction:column}
-.flabel{display:none;font-size:12.5px;font-weight:600;letter-spacing:.01em;color:var(--text-2);margin:0 2px 6px}
-[data-theme="dark"] .flabel{display:block}
+.flabel{display:block;font-size:12.5px;font-weight:600;letter-spacing:.01em;color:var(--text-2);margin:0 2px 6px}
 .field{margin-bottom:16px}
 input{
   width:100%;height:50px;padding:0 16px;font:inherit;font-size:15px;color:var(--text);
@@ -83,7 +77,7 @@ input:focus{border-color:var(--mint);box-shadow:0 0 0 3px rgba(53,201,154,.45)}
 .forgot-static:hover{text-decoration:none;color:var(--text-2)}
 .btn{
   height:52px;border:0;border-radius:8px;font:inherit;font-size:15.5px;font-weight:650;cursor:pointer;
-  background:var(--cta-bg);color:var(--cta-ink);transition:box-shadow .18s ease,transform .18s ease
+  background:var(--cta-bg);color:var(--cta-ink);transition:box-shadow .18s ease
 }
 .btn:hover,.btn:focus-visible{box-shadow:0 0 0 4px rgba(53,201,154,.42)}
 .btn:focus-visible{outline:none}
@@ -107,10 +101,8 @@ input:focus{border-color:var(--mint);box-shadow:0 0 0 3px rgba(53,201,154,.45)}
 .ttoggle button[aria-pressed="true"]{background:var(--text);color:var(--canvas)}
 
 @media (max-width:880px){
-  body,[data-theme="dark"] body{padding:0}
-  .stage{grid-template-columns:1fr;min-height:100vh;border-radius:0;border:0;width:100%}
-  .terrain{height:230px;background-position:left top}
-  [data-theme="dark"] .terrain{background-position:center top}
+  .stage{grid-template-columns:1fr}
+  .terrain{height:230px;background-position:center top}
   .panel{padding:40px 24px 64px;justify-content:flex-start}
   h1{font-size:34px}
   .ttoggle{top:auto;bottom:16px;right:16px}
