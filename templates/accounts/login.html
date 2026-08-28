@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,30 +17,10 @@
 </div>
 
 <main class="stage">
-  <section class="terrain" aria-hidden="true">
-    <svg id="topo-light" class="topo topo-light" viewBox="0 0 620 780" width="620" height="780" preserveAspectRatio="xMidYMid slice"></svg>
-    <svg id="topo-dark" class="topo topo-dark" viewBox="0 0 620 780" width="620" height="780" preserveAspectRatio="xMidYMid slice"></svg>
-    <span class="frag frag-a">def next_mission(dna):</span>
-    <span class="frag frag-b">return evidence[-7:]</span>
-    <span class="frag frag-c">streak += 1</span>
-    <div class="chip">
-      <svg viewBox="0 0 128 128" aria-hidden="true">
-        <defs>
-          <linearGradient id="chipmetal" x1="0" y1="0" x2="0.7" y2="1">
-            <stop offset="0" stop-color="#323743"/>
-            <stop offset="0.55" stop-color="#20242C"/>
-            <stop offset="1" stop-color="#12151B"/>
-          </linearGradient>
-        </defs>
-        <path fill="none" stroke="url(#chipmetal)" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
-        <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
-      </svg>
-    </div>
-  </section>
+  <section class="terrain" aria-hidden="true"></section>
 
   <section class="panel">
     <div class="formcol">
-      <a class="home-link" href="{% url 'landing' %}">CodeLabX</a>
       <div class="hero-dark">
         <svg viewBox="0 0 128 128" aria-hidden="true">
           <defs>
@@ -77,7 +57,12 @@
           <label class="flabel" for="password">Password</label>
           <input id="password" name="password" type="password" placeholder="Password" autocomplete="current-password" required>
         </div>
-        <a class="forgot" href="{% url 'accounts:password_reset' %}">Forgot password?</a>
+        {% url 'accounts:password_reset' as reset_url %}
+        {% if reset_url %}
+        <a class="forgot" href="{{ reset_url }}">Forgot password?</a>
+        {% else %}
+        <span class="forgot forgot-static">Forgot password?</span>
+        {% endif %}
         <button class="btn" type="submit">Sign in</button>
         <p class="signup">New here? <a href="{% url 'accounts:register' %}">Create an account</a></p>
         <p class="micro">Private by default.</p>
