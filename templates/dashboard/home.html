@@ -1,48 +1,132 @@
-{% extends 'base.html' %}
 {% load static %}
-{% block title %}Dashboard — CodeLabX{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/dashboard-home.css' %}">
-{% endblock %}
-{% block content %}
-<div class="dash">
-<section class="dash-hero">
-<div class="eyebrow"><i class="bi bi-calendar3"></i>{{ today|date:"D, M d" }} · {{ current_streak }} day streak</div>
-<h1>Welcome back, {{ user.username }}</h1>
-<p>Your dashboard now shows only activity recorded by CodeLabX—no random heatmap cells, fabricated achievements, or simulated recommendations.</p>
-<div class="hero-actions">
-{% if roadmaps and roadmaps.0.next_day %}<a class="dash-btn primary" href="{% url 'learning:day_detail' roadmaps.0.id roadmaps.0.next_day.day_number %}"><i class="bi bi-play-fill"></i>Continue learning</a>{% else %}<a class="dash-btn primary" href="{% url 'learning:roadmap_create' %}"><i class="bi bi-plus-lg"></i>Create a path</a>{% endif %}
-<a class="dash-btn" href="{% url 'challenges:dashboard' %}"><i class="bi bi-lightning-charge"></i>Challenges</a>
-</div>
-</section>
-<section class="stats" aria-label="Learning statistics">
-<div class="stat"><div class="stat-value">{{ active_roadmaps }}</div><div class="stat-label">Active paths</div></div>
-<div class="stat"><div class="stat-value">{{ days_completed }}</div><div class="stat-label">Days completed</div></div>
-<div class="stat"><div class="stat-value">{{ total_hours }}h</div><div class="stat-label">Study time</div></div>
-<div class="stat"><div class="stat-value">{{ total_badges_earned }}</div><div class="stat-label">Real badges</div></div>
-<div class="stat"><div class="stat-value">{{ user_level.total_xp_earned }}</div><div class="stat-label">Verified XP</div></div>
-</section>
-<div class="dash-grid">
-<main class="column">
-<section class="dash-card">
-<div class="card-head"><div><h2 class="card-title">Current learning</h2><div class="card-sub">Your active roadmap progress</div></div><a href="{% url 'learning:roadmaps' %}">View all</a></div>
-{% if roadmaps %}<div class="roadmaps">{% for roadmap in roadmaps %}<a class="roadmap" href="{% url 'learning:roadmap_detail' roadmap.id %}"><span class="roadmap-icon"><i class="bi bi-map"></i></span><span><span class="roadmap-name">{{ roadmap.title }}</span><span class="roadmap-meta">{{ roadmap.dashboard_completed_days }}/{{ roadmap.total_days }} days · {{ roadmap.get_level_display }}</span><span class="bar"><span style="--progress:{{ roadmap.dashboard_progress }}%"></span></span></span><span class="percent">{{ roadmap.dashboard_progress }}%</span></a>{% endfor %}</div>{% else %}<div class="empty">No active roadmap. Create one to begin tracking real progress.</div>{% endif %}
-</section>
-<section class="dash-card">
-<div class="card-head"><div><h2 class="card-title">Learning activity</h2><div class="card-sub">Exactly 365 days from recorded study events</div></div><span>{{ total_active_days }} active days</span></div>
-<div class="heatmap-wrap"><div class="heatmap">{% for item in heatmap_data %}<span class="heat l{{ item.level }}" title="{{ item.date }} · level {{ item.level }}"></span>{% endfor %}</div></div>
-<div class="legend"><span>Current streak: {{ current_streak }}</span><span>Longest streak: {{ longest_streak }}</span></div>
-</section>
-<section class="dash-card">
-<div class="card-head"><div><h2 class="card-title">Recent verified activity</h2><div class="card-sub">Events recorded by the XP ledger</div></div></div>
-{% if recent_activity %}<div class="activity-list">{% for event in recent_activity %}<div class="activity"><span class="activity-icon"><i class="bi bi-check2-circle"></i></span><span><span class="activity-title">{{ event.reason }}</span><span class="activity-date">{{ event.created_at|date:"M d, Y · H:i" }} · {{ event.get_event_type_display|default:event.event_type }}</span></span><span class="activity-xp">+{{ event.amount }} XP</span></div>{% endfor %}</div>{% else %}<div class="empty">No verified activity yet. Complete a lesson, test, video, or challenge.</div>{% endif %}
-</section>
-</main>
-<aside class="column">
-<section class="dash-card"><div class="card-head"><div><h2 class="card-title">Achievements</h2><div class="card-sub">Badges actually earned</div></div><a href="{% url 'progress:achievements' %}">All</a></div>{% if recent_badges %}<div class="badges">{% for earned in recent_badges %}<div class="badge-real" title="{{ earned.badge.description }}"><div class="icon">{{ earned.badge.icon }}</div><div class="name">{{ earned.badge.name }}</div></div>{% endfor %}</div>{% else %}<div class="empty">No badges earned yet.</div>{% endif %}</section>
-<section class="dash-card"><div class="card-head"><div><h2 class="card-title">Today's challenges</h2><div class="card-sub">Pre-generated, not created by this page</div></div></div>{% if challenge_cards %}{% for item in challenge_cards %}<div class="challenge"><div class="challenge-top"><span class="challenge-name">{{ item.challenge.title }}</span><span class="pill">{% if item.attempt.status == 'completed' %}Completed{% else %}Available{% endif %}</span></div><a class="card-sub" href="{% url 'challenges:attempt' item.challenge.id %}">{{ item.challenge.get_challenge_type_display }} · {{ item.challenge.xp_reward }} XP</a></div>{% endfor %}{% else %}<div class="empty">No challenge generated for today. Run the scheduled challenge command.</div>{% endif %}</section>
-<section class="dash-card"><div class="card-head"><div><h2 class="card-title">Snapshot</h2><div class="card-sub">Additional real totals</div></div></div><div class="quick"><a href="{% url 'assessments:quiz_list' %}"><i class="bi bi-clipboard-check"></i>{{ tests_completed }} tests completed</a><a href="{% url 'content:my_videos' %}"><i class="bi bi-play-btn"></i>{{ videos_watched }} videos watched</a><a href="{% url 'notes:list' %}"><i class="bi bi-journal"></i>Open notes</a><a href="{% url 'progress:analytics' %}"><i class="bi bi-graph-up"></i>View analytics</a></div></section>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeLabX — Home</title>
+<link rel="icon" href="{% static 'brand/favicon.svg' %}">
+<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=1">
+</head>
+<body>
+<a class="sr" href="#day">Skip to today</a>
+
+<aside class="rail" aria-label="Primary">
+  <a class="rail-mark" href="{% url 'dashboard:home' %}" aria-label="CodeLabX home" aria-current="page">
+    <svg viewBox="0 0 128 128" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+      <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+    </svg>
+  </a>
+  <a href="{% url 'dashboard:home' %}" title="Home" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 11 L12 4 L20 11 V20 H15 V14 H9 V20 H4 Z"/></svg>
+  </a>
+  <button type="button" class="rail-dial" id="open-dial" title="Path Dial" aria-haspopup="dialog" aria-controls="dial">
+    <svg viewBox="0 0 128 128" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+      <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+    </svg>
+  </button>
+  <a href="{% url 'content:library' %}" title="Learn">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 5 H14 A3 3 0 0 1 17 8 V20 H8 A3 3 0 0 0 5 17 Z M14 5 V17 A3 3 0 0 0 17 20"/></svg>
+  </a>
+  <a href="{% url 'learning:roadmaps' %}" title="Roadmaps">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 19 C8 13 10 8 12 8 C14 8 16 13 19 19"/><circle cx="12" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+  </a>
+  <span class="rail-gap"></span>
+  <button type="button" id="tl" class="theme-btn" title="Light">L</button>
+  <button type="button" id="td" class="theme-btn" title="Dark">D</button>
+  <a href="{% url 'accounts:settings' %}" title="Settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5 5 L7.2 7.2 M16.8 16.8 L19 19 M19 5 L16.8 7.2 M7.2 16.8 L5 19"/></svg>
+  </a>
 </aside>
+
+<section class="map" aria-hidden="true"></section>
+
+<section class="sheet" id="day">
+{% if roadmaps %}
+  {% with rm=roadmaps.0 %}
+  {% with nxt=rm.completed_days|add:1 %}
+  <p class="kicker">{{ rm.get_topic_display }} · {{ rm.daily_hours }} h</p>
+  <h1>Day {% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %}</h1>
+  <p class="lede">{{ rm.title }}</p>
+  <p class="body">This is the next unfinished day on the path you set. Daily hours and level stay the ones you chose. A later proposal does not rewrite this route until you approve it.</p>
+  {% if nxt > rm.total_days %}
+  <a class="btn" href="{% url 'learning:roadmap_detail' rm.id %}">Continue</a>
+  {% else %}
+  <a class="btn" href="{% url 'learning:day_detail' rm.id nxt %}">Continue</a>
+  {% endif %}
+  {% endwith %}
+  {% endwith %}
+{% else %}
+  <p class="kicker">No active path</p>
+  <h1>Begin</h1>
+  <p class="lede">Create your first path</p>
+  <p class="body">Choose Machine Learning or Data Structures &amp; Algorithms. You set duration, daily hours, and level. Work the days in order.</p>
+  <a class="btn" href="{% url 'learning:roadmap_create' %}">Create a path</a>
+{% endif %}
+
+  <div class="week" aria-label="This week">
+    {% for d in heatmap_data|slice:"-7:" %}
+    <i class="{% if d.level %}on{% endif %}" title="{{ d.day_name }}"></i>
+    {% empty %}
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    {% endfor %}
+  </div>
+</section>
+
+<nav class="tabs" aria-label="Mobile">
+  <a href="{% url 'dashboard:home' %}" aria-current="page">Home</a>
+  <a href="{% url 'content:library' %}">Learn</a>
+  <button type="button" id="tab-dial" aria-haspopup="dialog">Path</button>
+  <a href="{% url 'progress:analytics' %}">Progress</a>
+  <a href="{% url 'accounts:settings' %}">More</a>
+</nav>
+
+<div class="dial-back" id="dial-back" hidden>
+  <div class="dial" role="dialog" aria-modal="true" aria-labelledby="dial-title" id="dial">
+    <div class="wheel" id="wheel">
+      <svg viewBox="0 0 400 400" aria-hidden="true">
+        <path class="wedge" data-i="0" d="M200.0,12.0 A188,188 0 0 1 332.9,67.1 L255.2,144.8 A78,78 0 0 0 200.0,122.0 Z"/>
+        <path class="wedge on" data-i="1" d="M332.9,67.1 A188,188 0 0 1 388.0,200.0 L278.0,200.0 A78,78 0 0 0 255.2,144.8 Z"/>
+        <path class="wedge" data-i="2" d="M388.0,200.0 A188,188 0 0 1 332.9,332.9 L255.2,255.2 A78,78 0 0 0 278.0,200.0 Z"/>
+        <path class="wedge" data-i="3" d="M332.9,332.9 A188,188 0 0 1 200.0,388.0 L200.0,278.0 A78,78 0 0 0 255.2,255.2 Z"/>
+        <path class="wedge" data-i="4" d="M200.0,388.0 A188,188 0 0 1 67.1,332.9 L144.8,255.2 A78,78 0 0 0 200.0,278.0 Z"/>
+        <path class="wedge" data-i="5" d="M67.1,332.9 A188,188 0 0 1 12.0,200.0 L122.0,200.0 A78,78 0 0 0 144.8,255.2 Z"/>
+        <path class="wedge" data-i="6" d="M12.0,200.0 A188,188 0 0 1 67.1,67.1 L144.8,144.8 A78,78 0 0 0 122.0,200.0 Z"/>
+        <path class="wedge" data-i="7" d="M67.1,67.1 A188,188 0 0 1 200.0,12.0 L200.0,122.0 A78,78 0 0 0 144.8,144.8 Z"/>
+      </svg>
+      <a class="slice s0" href="{% url 'dashboard:home' %}">Dashboard</a>
+      <a class="slice s1 on" href="{% url 'content:library' %}">Learn</a>
+      <a class="slice s2" href="{% url 'practice:task_list' %}">Practice</a>
+      <a class="slice s3" href="{% url 'learning:roadmaps' %}">Roadmaps</a>
+      <a class="slice s4" href="{% url 'assessments:quiz_list' %}">Assessments</a>
+      <a class="slice s5" href="{% url 'challenges:dashboard' %}">Challenges</a>
+      <a class="slice s6" href="{% url 'ai_tools:home' %}">AI Tutor</a>
+      <a class="slice s7" href="{% url 'accounts:settings' %}">Settings</a>
+      <div class="hub" aria-hidden="true"></div>
+      <div class="dial-tab" aria-hidden="true">
+        <svg viewBox="0 0 128 128">
+          <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+          <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+        </svg>
+      </div>
+    </div>
+    <p class="dial-title" id="dial-title">Path Dial</p>
+    <nav class="dlist" aria-label="Destinations">
+      <a href="{% url 'dashboard:home' %}">Dashboard</a>
+      <a class="on" href="{% url 'content:library' %}">Learn</a>
+      <a href="{% url 'practice:task_list' %}">Practice</a>
+      <a href="{% url 'learning:roadmaps' %}">Roadmaps</a>
+      <a href="{% url 'assessments:quiz_list' %}">Assessments</a>
+      <a href="{% url 'challenges:dashboard' %}">Challenges</a>
+      <a href="{% url 'ai_tools:home' %}">AI Tutor</a>
+      <a href="{% url 'accounts:settings' %}">Settings</a>
+    </nav>
+    <button type="button" class="dial-x" id="dial-close">Close</button>
+  </div>
 </div>
-</div>
-{% endblock %}
+
+<script src="{% static 'js/v2/dashboard.js' %}?v=1" defer></script>
+</body>
+</html>
