@@ -1,1066 +1,485 @@
-
-{% load static i18n %}
-{% get_current_language as LANGUAGE_CODE %}
+{% load static %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}" data-mode="developer">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CodeLabX helps learners follow structured roadmaps, practice, complete assessments, and track evidence-backed progress.">
-    <meta name="theme-color" content="#6c5ce7">
-    <meta name="application-name" content="CodeLabX">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>CodeLabX — Structured learning with optional AI assistance</title>
-    <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/pwa-180.png' %}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/pwa-192.png' %}">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
-    <link rel="stylesheet" href="{% static 'css/pwa-accessibility.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeLabX — Learn how you learn</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect x='4' y='4' width='120' height='120' rx='26' fill='%2311151C'/%3E%3Cpath fill='none' stroke='%23F3F0E8' stroke-width='12' stroke-linecap='butt' d='M84.49 80.01 A26 26 0 1 1 84.49 47.99'/%3E%3Crect x='48' y='99' width='32' height='7' rx='3.5' fill='%2335C99A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --canvas:#F5F1E8; --surface:#FBF9F3; --raised:#FFFFFF;
+  --text:#20242C; --text-2:#626A76; --text-3:#8A909A;
+  --border:#D9D4C8; --mint:#35C99A; --mint-ink:#1F7A5C;
+  --amber:#E5A93D; --red:#D95959; --sky:#3F91C9;
+  --cta-bg:#20242C; --cta-ink:#F5F1E8;
+  --font-display:"Instrument Serif","Newsreader",Georgia,"Times New Roman",serif;
+  --font-ui:"Geist Sans",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --font-mono:"Geist Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r-ctrl:8px; --r-card:12px; --r-hero:18px;
+  --dur:180ms; --ease:cubic-bezier(.2,0,.1,1);
+  --focus:0 0 0 3px rgba(53,201,154,.45);
+  --shadow:0 18px 48px rgba(32,36,44,.08);
+}
+[data-theme="dark"]{
+  color-scheme:dark;
+  --canvas:#0B0D12; --surface:#11151C; --raised:#171C25;
+  --text:#F3F0E8; --text-2:#A5ACB8; --text-3:#7A818C;
+  --border:#30343A; --mint-ink:#7CE0BC;
+  --cta-bg:#F3F0E8; --cta-ink:#0B0D12;
+  --focus:0 0 0 3px rgba(53,201,154,.55);
+  --shadow:0 24px 64px rgba(0,0,0,.45);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--canvas);color:var(--text);font-family:var(--font-ui);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit}
+button{cursor:pointer;border:0;background:none;color:inherit}
+img,svg{display:block}
+:focus-visible{outline:3px solid rgba(53,201,154,.72);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
+/* theme toggle */
+.ttoggle{position:fixed;top:16px;right:16px;z-index:80;display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:999px;box-shadow:var(--shadow)}
+.ttoggle button{padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--text-2)}
+.ttoggle button[aria-pressed="true"]{background:var(--text);color:var(--canvas)}
 
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:var(--r-ctrl);font-size:15.5px;font-weight:650;transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease)}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--cta-bg);color:var(--cta-ink)}
+.btn-primary:hover,.btn-primary:focus-visible{box-shadow:0 0 0 4px rgba(53,201,154,.42)}
+.btn-ghost{background:transparent;color:var(--text);border:1.5px solid var(--mint);color:var(--mint-ink)}
+[data-theme="dark"] .btn-ghost{color:var(--mint-ink)}
+.btn-ghost:hover{background:rgba(53,201,154,.08)}
+.btn-text{min-height:40px;padding:8px 10px;color:var(--text-2);font-size:14.5px;font-weight:600}
+.btn-text:hover{color:var(--text)}
+
+/* mark */
+.mark{width:36px;height:36px;flex:none}
+.wordmark{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-.03em}
+.wordmark b{font-weight:700;color:var(--mint)}
+.mark-c{stroke:#20242C}
+[data-theme="dark"] .mark-c{stroke:#F3F0E8}
+
+/* nav */
+.nav-wrap{position:sticky;top:0;z-index:40;padding:16px 20px 0}
+.nav{max-width:1120px;margin:0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 14px 0 16px;border:1px solid var(--border);border-radius:15px;background:color-mix(in srgb,var(--surface) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.nav-links{display:flex;gap:22px;color:var(--text-2);font-size:13.5px;font-weight:500}
+.nav-links a:hover{color:var(--text)}
+.nav-right{display:flex;align-items:center;gap:4px}
+.nav .btn{min-height:40px;padding:0 16px;font-size:13.5px}
+
+/* hero */
+.hero{position:relative;isolation:isolate;overflow:hidden;padding:72px 24px 88px;text-align:center}
+.topo{position:absolute;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,color-mix(in srgb,var(--canvas) 20%,transparent) 0%,var(--canvas) 92%);pointer-events:none}
+.hero-inner{position:relative;max-width:860px;margin:0 auto}
+.eyebrow{display:inline-block;margin-bottom:18px;color:var(--text-2);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+h1{font-family:var(--font-display);font-size:clamp(48px,8vw,84px);font-weight:400;letter-spacing:-.035em;line-height:.98}
+.lede{max-width:34em;margin:18px auto 0;color:var(--text-2);font-size:clamp(17px,2vw,21px);line-height:1.55}
+.hero-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:32px}
+.trust-line{margin-top:18px;color:var(--text-3);font-size:13px}
+
+/* proof */
+.proof-wrap{max-width:1080px;margin:-24px auto 0;padding:0 24px 24px}
+.proof{border:1px solid var(--border);border-radius:var(--r-hero);background:var(--raised);box-shadow:var(--shadow);overflow:hidden}
+.proof-label{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);color:var(--text-2);font-size:12.5px;font-weight:650}
+.proof-label small{color:var(--text-3);font-weight:500}
+.proof-grid{display:grid;grid-template-columns:1.05fr 1.2fr;gap:0}
+.proof-copy{padding:28px 24px 32px;text-align:left;border-right:1px solid var(--border)}
+.proof-copy h2{font-family:var(--font-display);font-size:32px;font-weight:400;letter-spacing:-.02em;line-height:1.1}
+.proof-copy p{margin-top:10px;color:var(--text-2);font-size:15px;max-width:38em}
+.bottleneck{margin-top:22px;padding:12px 14px;border-left:3px solid var(--amber);background:color-mix(in srgb,var(--amber) 10%,transparent)}
+.bottleneck span{display:block;color:var(--text-3);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.bottleneck strong{display:block;margin-top:2px;font-size:15px}
+.dna{padding:22px 20px 8px}
+.dna-head{display:grid;grid-template-columns:1.4fr .8fr .9fr .9fr;gap:8px;padding:0 4px 8px;color:var(--text-3);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.dna-row{display:grid;grid-template-columns:1.4fr .8fr .9fr .9fr;gap:8px;align-items:center;padding:12px 4px;border-top:1px solid var(--border);font-size:13.5px}
+.dna-row strong{font-weight:650}
+.bar{height:5px;border-radius:99px;background:var(--surface);overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--mint);border-radius:99px}
+.due{color:var(--amber);font-weight:650}
+.mission{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 16px 16px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--r-card);background:var(--surface)}
+.mission span{display:block;color:var(--text-3);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.mission strong{display:block;margin-top:2px}
+
+/* sections */
+.section{max-width:1080px;margin:0 auto;padding:88px 24px}
+.section-head{max-width:34em;margin-bottom:36px}
+.section-head h2{font-family:var(--font-display);font-size:clamp(32px,4.4vw,52px);font-weight:400;letter-spacing:-.03em;line-height:1.05;margin-top:8px}
+.section-head p{margin-top:12px;color:var(--text-2);font-size:17px;line-height:1.65}
+
+.split{display:grid;grid-template-columns:.9fr 1.2fr;gap:48px;align-items:center}
+.route-card{padding:28px 24px 20px;border:1px solid var(--border);border-radius:var(--r-hero);background:var(--surface)}
+.route-card svg{width:100%;height:auto}
+.route-labels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;color:var(--text-3);font-size:11px;text-align:center}
+.route-labels strong{color:var(--text);font-weight:650}
+
+.cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{min-height:220px;padding:24px;border:1px solid var(--border);border-radius:var(--r-card);background:var(--surface)}
+.card .idx{color:var(--mint);font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.12em}
+.card h3{margin:40px 0 8px;font-size:22px;letter-spacing:-.02em}
+.card p{color:var(--text-2);font-size:14.5px;line-height:1.6}
+
+.steps{display:grid;gap:0;border:1px solid var(--border);border-radius:var(--r-hero);overflow:hidden;background:var(--surface)}
+.step{display:grid;grid-template-columns:72px 1fr;gap:8px;padding:22px 24px;border-top:1px solid var(--border)}
+.step:first-child{border-top:0}
+.step .n{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--mint);padding-top:3px}
+.step h3{font-size:17px;letter-spacing:-.015em}
+.step p{margin-top:4px;color:var(--text-2);font-size:14.5px}
+
+.trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.trust-item{padding:22px;border:1px solid var(--border);border-radius:var(--r-card);background:var(--surface)}
+.trust-item h3{font-size:16px;margin-bottom:6px}
+.trust-item p{color:var(--text-2);font-size:14px;line-height:1.6}
+
+.final{padding:96px 24px 80px;text-align:center;border-top:1px solid var(--border)}
+.final .mark{width:52px;height:52px;margin:0 auto 22px}
+.final h2{font-family:var(--font-display);font-size:clamp(36px,5vw,64px);font-weight:400;letter-spacing:-.03em;line-height:1.05;max-width:16em;margin:0 auto}
+.final .hero-actions{margin-top:28px}
+.final .micro{margin-top:16px;color:var(--text-2);font-size:14px}
+.final .micro a{font-weight:650;text-decoration:underline;text-underline-offset:3px}
+
+.footer{padding:28px 24px 40px;border-top:1px solid var(--border)}
+.footer-inner{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:var(--text-3);font-size:13px}
+.footer-links{display:flex;gap:18px}
+.footer-links a:hover{color:var(--text)}
+
+@media (max-width:880px){
+  .nav-links{display:none}
+  .hero{padding:48px 20px 64px;text-align:left}
+  .hero-inner{max-width:none}
+  .lede{margin-left:0;margin-right:0}
+  .hero-actions{justify-content:stretch}
+  .hero-actions .btn{flex:1;min-width:0}
+  .proof-grid{grid-template-columns:1fr}
+  .proof-copy{border-right:0;border-bottom:1px solid var(--border)}
+  .dna-head{display:none}
+  .dna-row{grid-template-columns:1.4fr 1fr;grid-template-areas:"n n" "m c" "f f"}
+  .dna-row strong{grid-area:n}
+  .split,.cards-3,.trust-grid{grid-template-columns:1fr}
+  .section{padding:64px 20px}
+  .card{min-height:0}
+  .card h3{margin-top:18px}
+  .mission{flex-direction:column;align-items:flex-start}
+  .ttoggle{top:auto;bottom:16px;right:16px}
+}
+@media (max-width:480px){
+  h1{font-size:48px}
+  .nav .btn-primary span.long{display:none}
+  .hero-actions{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
 </head>
 <body>
-    <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>
+<a class="sr" href="#main">Skip to content</a>
 
-    <!-- ========== NAVBAR ========== -->
-    <nav class="nav">
-        <div class="nav-container">
-            <a href="/" class="nav-brand">
-                <div class="nav-logo">C</div>
-                <span>CodeLabX</span>
-            </a>
+<div class="ttoggle" role="group" aria-label="Theme">
+  <button type="button" id="tl" aria-pressed="true">Light</button>
+  <button type="button" id="td" aria-pressed="false">Dark</button>
+</div>
 
-            <div class="nav-right">
-                <!-- Mode Toggle -->
-                <div class="mode-toggle" role="tablist">
-                    <button class="mode-btn" data-mode-btn="student" role="tab">
-                        <i class="bi bi-mortarboard-fill"></i>
-                        <span>Student</span>
-                    </button>
-                    <button class="mode-btn active" data-mode-btn="developer" role="tab">
-                        <i class="bi bi-code-slash"></i>
-                        <span>Developer</span>
-                    </button>
-                </div>
-
-                {% include 'partials/language_selector.html' %}
-                <button class="pwa-a11y-btn"
-                        id="ttsToggleButton"
-                        type="button"
-                        title="{% translate 'Read page aloud' %}"
-                        aria-label="{% translate 'Open text-to-speech controls' %}"
-                        aria-expanded="false"
-                        aria-controls="ttsPanel">
-                    <i class="bi bi-volume-up-fill"></i>
-                </button>
-                <button class="pwa-a11y-btn"
-                        id="voiceToggleButton"
-                        type="button"
-                        title="{% translate 'Voice coding input' %}"
-                        aria-label="{% translate 'Open voice coding input controls' %}"
-                        aria-expanded="false"
-                        aria-controls="voicePanel">
-                    <i class="bi bi-mic-fill"></i>
-                </button>
-                <button class="pwa-a11y-btn"
-                        id="pwaInstallButton"
-                        type="button"
-                        title="{% translate 'Install CodeLabX' %}"
-                        aria-label="{% translate 'Install CodeLabX on this device' %}"
-                        aria-hidden="true"
-                        hidden>
-                    <i class="bi bi-download"></i>
-                </button>
-                <a href="{% url 'accounts:login' %}" class="nav-signin">{% translate "Sign in" %}</a>
-                <a href="{% url 'accounts:register' %}" class="btn-specular">
-                    {% translate "Get Started" %}
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-            </div>
-        </div>
+<div class="nav-wrap">
+  <header class="nav">
+    <a class="wordmark" href="{% url 'landing' %}" aria-label="CodeLabX home">
+      <svg class="mark" viewBox="0 0 128 128" aria-hidden="true">
+        <defs>
+          <linearGradient id="metalL" x1="0" y1="0" x2=".7" y2="1">
+            <stop offset="0" stop-color="#323743"/><stop offset=".55" stop-color="#20242C"/><stop offset="1" stop-color="#12151B"/>
+          </linearGradient>
+          <linearGradient id="metalD" x1="0" y1="0" x2=".7" y2="1">
+            <stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EDE9DE"/><stop offset="1" stop-color="#C9C4B6"/>
+          </linearGradient>
+        </defs>
+        <g fill="none" stroke-linejoin="round" stroke-linecap="butt">
+          <path class="mark-c" stroke-width="15" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+          <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+        </g>
+      </svg>
+      <span>Code<b>Lab</b>X</span>
+    </a>
+    <nav class="nav-links" aria-label="Page">
+      <a href="#how">How it works</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#trust">Privacy</a>
     </nav>
+    <div class="nav-right">
+      <a class="btn-text" href="{% url 'accounts:login' %}">Sign in</a>
+      <a class="btn btn-primary" href="{% url 'accounts:register' %}">Get started</a>
+    </div>
+  </header>
+</div>
 
-    {% include 'partials/tts_controls.html' %}
-    {% include 'partials/voice_controls.html' %}
+<main id="main">
+  <section class="hero">
+    <svg id="topo" class="topo" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <div class="hero-inner">
+      <span class="eyebrow">Adaptive learning, with receipts</span>
+      <h1>Learn how you learn.</h1>
+      <p class="lede">Evidence-backed paths that adapt with you. CodeLabX proposes the next step from what you already know — and changes a route only when you approve it.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{% url 'accounts:register' %}">Build my learning path</a>
+        <a class="btn btn-ghost" href="#evidence">See how evidence works</a>
+      </div>
+      <p class="trust-line">Private by default · No invented mastery · You control every route change</p>
+    </div>
+  </section>
 
-    <!-- ========== HERO SECTION ========== -->
-    <section class="hero" id="main-content" tabindex="-1">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <span class="hero-badge-pill">New</span>
-                <span>AI Study Buddy is here</span>
-                <i class="bi bi-arrow-right"></i>
-            </div>
-
-            <h1 class="hero-title">
-                Learn to code with a path<br>
-                <span class="hero-title-accent">you can measure and control</span>
-            </h1>
-
-            <p class="hero-subtitle">
-                Structured ML and DSA roadmaps, recorded progress, assessments, challenges, and optional AI-assisted study tools.
-            </p>
-
-            <div class="hero-actions">
-                <a href="{% url 'accounts:register' %}" class="btn-specular btn-specular-lg">
-                    Create a development account
-                    <i class="bi bi-arrow-right"></i>
-                </a>
-                <a href="#features" class="btn-outline btn-outline-lg">
-                    <i class="bi bi-play-circle"></i>
-                    See how it works
-                </a>
-            </div>
-
-            <div class="hero-trust">
-                <div class="hero-trust-item">
-                    <span class="hero-trust-dot"></span>
-                    <span>Free during development</span>
-                </div>
-                <div class="hero-trust-item">
-                    <span class="hero-trust-dot"></span>
-                    <span>No billing integration</span>
-                </div>
-                <div class="hero-trust-item">
-                    <span class="hero-trust-dot"></span>
-                    <span>Made by students</span>
-                </div>
-            </div>
+  <div class="proof-wrap">
+    <article class="proof" aria-label="Product preview">
+      <div class="proof-label">
+        <span>Learning Mirror</span>
+        <small>Illustrative preview — not live learner data</small>
+      </div>
+      <div class="proof-grid">
+        <div class="proof-copy">
+          <h2>Progress without pretending certainty.</h2>
+          <p>Mastery, confidence, and freshness stay separate because they answer different questions. A high score on old work is not the same as a skill you can still use.</p>
+          <div class="bottleneck">
+            <span>Attention · freshness due</span>
+            <strong>Debugging — short retrieval check</strong>
+          </div>
         </div>
-    </section>
-
-
-    <!-- ========== LOGO LOOP - TECH STACK ========== -->
-    <section class="logo-loop-section">
-        <div class="logo-loop-header">
-            <div class="logo-loop-label">Built with Python, Django, and optional Gemini integration</div>
+        <div>
+          <div class="dna" role="table" aria-label="Example skill states">
+            <div class="dna-head" role="row"><span>Skill</span><span>Mastery</span><span>Confidence</span><span>Freshness</span></div>
+            <div class="dna-row" role="row">
+              <strong>Problem decomposition</strong>
+              <span>61%<div class="bar" aria-hidden="true"><i style="width:61%"></i></div></span>
+              <span>68%</span>
+              <span>93%</span>
+            </div>
+            <div class="dna-row" role="row">
+              <strong>Debugging</strong>
+              <span>76%<div class="bar" aria-hidden="true"><i style="width:76%"></i></div></span>
+              <span>74%</span>
+              <span class="due">62%</span>
+            </div>
+            <div class="dna-row" role="row">
+              <strong>Algorithms</strong>
+              <span>61%<div class="bar" aria-hidden="true"><i style="width:61%"></i></div></span>
+              <span>58%</span>
+              <span>79%</span>
+            </div>
+          </div>
+          <div class="mission">
+            <div>
+              <span>Recommended next mission</span>
+              <strong>Break a problem into testable steps</strong>
+            </div>
+            <small style="color:var(--text-3)">Example · 25 min · practice</small>
+          </div>
         </div>
+      </div>
+    </article>
+  </div>
 
-        <div class="logo-loop-container">
-            <div class="logo-loop-track">
-                <!-- First set -->
-                <div class="logo-item python">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11.914 0C5.82 0 6.2 2.656 6.2 2.656l.007 2.752h5.814v.826H3.9S0 5.789 0 11.969c0 6.18 3.403 5.96 3.403 5.96h2.03v-2.867s-.109-3.42 3.35-3.42h5.766s3.24.052 3.24-3.148V3.202S18.28 0 11.914 0zM8.708 1.85c.578 0 1.046.474 1.046 1.06 0 .583-.468 1.058-1.046 1.058-.579 0-1.046-.475-1.046-1.06 0-.583.467-1.058 1.046-1.058z"/>
-                        <path d="M12.087 24c6.092 0 5.712-2.656 5.712-2.656l-.007-2.752h-5.814v-.826h8.121s3.9.445 3.9-5.735c0-6.18-3.404-5.96-3.404-5.96h-2.03v2.867s.109 3.42-3.35 3.42H9.451s-3.242-.052-3.242 3.147v5.292S5.72 24 12.087 24zm3.206-1.85c-.578 0-1.046-.474-1.046-1.06 0-.583.468-1.058 1.046-1.058.579 0 1.046.475 1.046 1.06 0 .583-.467 1.058-1.046 1.058z"/>
-                    </svg>
-                    <span>Python</span>
-                </div>
-                <div class="logo-item django">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11.146 0h3.924v18.166c-2.013.382-3.491.535-5.096.535-4.791 0-7.288-2.166-7.288-6.32 0-4.002 2.65-6.6 6.753-6.6.637 0 1.121.05 1.707.203zm0 9.143a3.894 3.894 0 0 0-1.325-.204c-1.988 0-3.134 1.223-3.134 3.365 0 2.09 1.096 3.236 3.109 3.236.433 0 .79-.025 1.35-.102V9.143z"/>
-                        <path d="M19.089 6.216v9.055c0 3.12-.229 4.618-.917 5.917-.637 1.249-1.478 2.039-3.211 2.905l-3.644-1.733c1.733-.815 2.574-1.529 3.109-2.625.561-1.121.739-2.421.739-5.822V6.216h3.924zM15.165 0h3.924v4.026h-3.924V0z"/>
-                    </svg>
-                    <span>Django</span>
-                </div>
-                <div class="logo-item gemini">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4a8 8 0 100 16 8 8 0 000-16zm0 2a6 6 0 110 12 6 6 0 010-12zm0 2a4 4 0 100 8 4 4 0 000-8z"/>
-                    </svg>
-                    <span>Gemini AI</span>
-                </div>
-                <div class="logo-item javascript">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M0 0h24v24H0V0zm22.034 18.276c-.175-1.095-.888-2.015-3.003-2.873-.736-.345-1.554-.585-1.797-1.14-.091-.33-.105-.51-.046-.705.15-.646.915-.84 1.515-.66.39.12.75.42.976.9 1.034-.676 1.034-.676 1.755-1.125-.27-.42-.404-.601-.586-.78-.63-.705-1.469-1.065-2.834-1.034l-.705.089c-.676.165-1.32.525-1.71 1.005-1.14 1.291-.811 3.541.569 4.471 1.365 1.02 3.361 1.244 3.616 2.205.24 1.17-.87 1.545-1.966 1.41-.811-.18-1.26-.586-1.755-1.336l-1.83 1.051c.21.48.45.689.81 1.109 1.74 1.756 6.09 1.666 6.871-1.004.029-.09.24-.705.074-1.65l.046.067zm-8.983-7.245h-2.248c0 1.938-.009 3.864-.009 5.805 0 1.232.063 2.363-.138 2.711-.33.689-1.18.601-1.566.48-.396-.196-.597-.466-.83-.855-.063-.105-.11-.196-.127-.196l-1.825 1.125c.305.63.75 1.172 1.324 1.517.855.51 2.004.675 3.207.405.783-.226 1.458-.691 1.811-1.411.51-.93.402-2.07.397-3.346.012-2.054 0-4.109 0-6.179l.004-.056z"/>
-                    </svg>
-                    <span>JavaScript</span>
-                </div>
-                <div class="logo-item react">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.36-.034-.47 0-.92.014-1.36.034.44-.572.895-1.096 1.36-1.564zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.36.034.47 0 .92-.014 1.36-.034-.44.572-.895 1.095-1.36 1.56-.465-.467-.92-.99-1.36-1.56z"/>
-                    </svg>
-                    <span>React</span>
-                </div>
-                <div class="logo-item git">
-                    <i class="bi bi-git"></i>
-                    <span>Git</span>
-                </div>
-                <div class="logo-item github">
-                    <i class="bi bi-github"></i>
-                    <span>GitHub</span>
-                </div>
-                <div class="logo-item postgres">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M23.111 5.441c-.14-.42-.564-.694-1.06-.816-.234-.058-.5-.093-.788-.093a3.71 3.71 0 0 0-.646.056c-.402-.68-.902-1.045-1.393-1.238-.632-.246-1.235-.213-1.626-.14-.148.028-.276.061-.379.09-.245-.79-.664-1.494-1.208-2.08C15.106.416 13.795-.05 12.216.005 10.766.056 9.647.628 8.988 1.05a5.36 5.36 0 0 0-.317.22c-.51-.093-1.052-.14-1.605-.14-1.294 0-2.71.243-3.847 1.075-.964.707-1.719 1.808-2.238 3.293C.457 7.005.041 9.078.041 11.633c0 2.4.416 4.407 1.163 6.023.723 1.567 1.795 2.834 3.152 3.802 1.316.937 2.822 1.577 4.463 1.911 1.68.343 3.435.408 5.226.198 1.804-.213 3.577-.7 5.253-1.463 1.68-.766 3.155-1.762 4.362-2.98 1.218-1.226 2.155-2.65 2.766-4.185.615-1.541.85-3.164.696-4.81-.15-1.607-.685-3.192-1.61-4.688z"/>
-                    </svg>
-                    <span>PostgreSQL</span>
-                </div>
-
-                <!-- Duplicate set for seamless loop -->
-                <div class="logo-item python">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11.914 0C5.82 0 6.2 2.656 6.2 2.656l.007 2.752h5.814v.826H3.9S0 5.789 0 11.969c0 6.18 3.403 5.96 3.403 5.96h2.03v-2.867s-.109-3.42 3.35-3.42h5.766s3.24.052 3.24-3.148V3.202S18.28 0 11.914 0zM8.708 1.85c.578 0 1.046.474 1.046 1.06 0 .583-.468 1.058-1.046 1.058-.579 0-1.046-.475-1.046-1.06 0-.583.467-1.058 1.046-1.058z"/>
-                        <path d="M12.087 24c6.092 0 5.712-2.656 5.712-2.656l-.007-2.752h-5.814v-.826h8.121s3.9.445 3.9-5.735c0-6.18-3.404-5.96-3.404-5.96h-2.03v2.867s.109 3.42-3.35 3.42H9.451s-3.242-.052-3.242 3.147v5.292S5.72 24 12.087 24zm3.206-1.85c-.578 0-1.046-.474-1.046-1.06 0-.583.468-1.058 1.046-1.058.579 0 1.046.475 1.046 1.06 0 .583-.467 1.058-1.046 1.058z"/>
-                    </svg>
-                    <span>Python</span>
-                </div>
-                <div class="logo-item django">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11.146 0h3.924v18.166c-2.013.382-3.491.535-5.096.535-4.791 0-7.288-2.166-7.288-6.32 0-4.002 2.65-6.6 6.753-6.6.637 0 1.121.05 1.707.203zm0 9.143a3.894 3.894 0 0 0-1.325-.204c-1.988 0-3.134 1.223-3.134 3.365 0 2.09 1.096 3.236 3.109 3.236.433 0 .79-.025 1.35-.102V9.143z"/>
-                        <path d="M19.089 6.216v9.055c0 3.12-.229 4.618-.917 5.917-.637 1.249-1.478 2.039-3.211 2.905l-3.644-1.733c1.733-.815 2.574-1.529 3.109-2.625.561-1.121.739-2.421.739-5.822V6.216h3.924zM15.165 0h3.924v4.026h-3.924V0z"/>
-                    </svg>
-                    <span>Django</span>
-                </div>
-                <div class="logo-item gemini">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4a8 8 0 100 16 8 8 0 000-16zm0 2a6 6 0 110 12 6 6 0 010-12zm0 2a4 4 0 100 8 4 4 0 000-8z"/>
-                    </svg>
-                    <span>Gemini AI</span>
-                </div>
-                <div class="logo-item javascript">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M0 0h24v24H0V0zm22.034 18.276c-.175-1.095-.888-2.015-3.003-2.873-.736-.345-1.554-.585-1.797-1.14-.091-.33-.105-.51-.046-.705.15-.646.915-.84 1.515-.66.39.12.75.42.976.9 1.034-.676 1.034-.676 1.755-1.125-.27-.42-.404-.601-.586-.78-.63-.705-1.469-1.065-2.834-1.034l-.705.089c-.676.165-1.32.525-1.71 1.005-1.14 1.291-.811 3.541.569 4.471 1.365 1.02 3.361 1.244 3.616 2.205.24 1.17-.87 1.545-1.966 1.41-.811-.18-1.26-.586-1.755-1.336l-1.83 1.051c.21.48.45.689.81 1.109 1.74 1.756 6.09 1.666 6.871-1.004.029-.09.24-.705.074-1.65l.046.067zm-8.983-7.245h-2.248c0 1.938-.009 3.864-.009 5.805 0 1.232.063 2.363-.138 2.711-.33.689-1.18.601-1.566.48-.396-.196-.597-.466-.83-.855-.063-.105-.11-.196-.127-.196l-1.825 1.125c.305.63.75 1.172 1.324 1.517.855.51 2.004.675 3.207.405.783-.226 1.458-.691 1.811-1.411.51-.93.402-2.07.397-3.346.012-2.054 0-4.109 0-6.179l.004-.056z"/>
-                    </svg>
-                    <span>JavaScript</span>
-                </div>
-                <div class="logo-item react">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236z"/>
-                    </svg>
-                    <span>React</span>
-                </div>
-                <div class="logo-item git">
-                    <i class="bi bi-git"></i>
-                    <span>Git</span>
-                </div>
-                <div class="logo-item github">
-                    <i class="bi bi-github"></i>
-                    <span>GitHub</span>
-                </div>
-                <div class="logo-item postgres">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M23.111 5.441c-.14-.42-.564-.694-1.06-.816z"/>
-                    </svg>
-                    <span>PostgreSQL</span>
-                </div>
-            </div>
+  <section class="section" id="routes">
+    <div class="split">
+      <div class="section-head" style="margin:0">
+        <span class="eyebrow">Same goal. Your route.</span>
+        <h2>Adaptation you can see — and refuse.</h2>
+        <p>CodeLabX can propose a different path from prerequisite gaps, thin evidence, and skills going stale. You see the reason first. Nothing rewrites your roadmap until you say yes.</p>
+      </div>
+      <div class="route-card">
+        <svg viewBox="0 0 640 220" role="img" aria-label="Three learning routes reaching one shared goal">
+          <path d="M28 48h150c45 0 35 62 90 62h90c40 0 32 62 82 62h170" fill="none" stroke="#35C99A" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M28 110h120c35 0 35-62 84-62h120c45 0 38 62 88 62h170" fill="none" stroke="#E5A93D" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M28 172h155c40 0 34-62 84-62h88c44 0 34-62 88-62h167" fill="none" stroke="currentColor" stroke-opacity=".28" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="28" cy="48" r="7" fill="var(--raised,#fff)" stroke="#35C99A" stroke-width="3"/>
+          <circle cx="28" cy="110" r="7" fill="var(--raised,#fff)" stroke="#E5A93D" stroke-width="3"/>
+          <circle cx="28" cy="172" r="7" fill="var(--raised,#fff)" stroke="currentColor" stroke-opacity=".35" stroke-width="3"/>
+          <circle cx="612" cy="110" r="11" fill="#E5A93D" stroke="var(--raised,#fff)" stroke-width="4"/>
+        </svg>
+        <div class="route-labels">
+          <span>Example-first</span>
+          <span>Practice-first</span>
+          <span>Project-first</span>
+          <strong>Shared goal</strong>
         </div>
-    </section>
+      </div>
+    </div>
+  </section>
 
+  <section class="section" id="evidence">
+    <div class="section-head">
+      <span class="eyebrow">The evidence model</span>
+      <h2>Three numbers. Three meanings.</h2>
+      <p>Mixing them into one “progress %” hides the truth. CodeLabX keeps them apart so a recommendation can be explained.</p>
+    </div>
+    <div class="cards-3">
+      <article class="card">
+        <span class="idx">01 · Mint</span>
+        <h3>Mastery</h3>
+        <p>What scoreable outcomes currently suggest you can do. It moves when you complete work that can be checked.</p>
+      </article>
+      <article class="card">
+        <span class="idx">02 · Mint</span>
+        <h3>Confidence</h3>
+        <p>How much weighted evidence supports that estimate. A lucky quiz is not the same as repeated, varied proof.</p>
+      </article>
+      <article class="card">
+        <span class="idx">03 · Amber when due</span>
+        <h3>Freshness</h3>
+        <p>How recently the skill produced strong evidence. Amber means a short retrieval check is due — not a failure.</p>
+      </article>
+    </div>
+  </section>
 
-    <!-- ========== BENTO GRID FEATURES ========== -->
-    <section class="bento-section" id="features">
-        <div class="bento-header">
-            <div class="bento-eyebrow">
-                <i class="bi bi-stars"></i>
-                <span>What Makes Us Different</span>
-            </div>
-            <h2 class="bento-title">
-                Three core workflows. <span class="bento-title-accent">Plus supporting tools.</span>
-            </h2>
-            <p class="bento-subtitle">
-                A current view of the roadmap, study-assistance, and recorded-progress workflows available in the development build.
-            </p>
+  <section class="section" id="how">
+    <div class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2>A path you actually take.</h2>
+      <p>These are the steps the product performs today. No waitlists, no hidden modules on this page.</p>
+    </div>
+    <ol class="steps">
+      <li class="step">
+        <span class="n">01</span>
+        <div>
+          <h3>Choose a roadmap</h3>
+          <p>Machine Learning or Data Structures &amp; Algorithms. You set duration, daily hours, and level before anything is generated.</p>
         </div>
-
-        <div class="bento-grid">
-
-            <!-- LARGE 1: AI Roadmaps with preview -->
-            <div class="bento-card large-1">
-                <div>
-                    <div class="bento-icon">
-                        <i class="bi bi-map-fill"></i>
-                    </div>
-                    <h3 class="bento-card-title">Structured Learning Paths</h3>
-                    <p class="bento-card-description">
-                        Create an ML or DSA roadmap from your selected level, duration, and daily study time.
-                    </p>
-                </div>
-                <div class="bento-preview">
-                    <div class="preview-item completed">
-                        <div class="preview-item-icon"><i class="bi bi-check"></i></div>
-                        <span>Python Fundamentals</span>
-                    </div>
-                    <div class="preview-item completed">
-                        <div class="preview-item-icon"><i class="bi bi-check"></i></div>
-                        <span>Data Structures Basics</span>
-                    </div>
-                    <div class="preview-item active">
-                        <div class="preview-item-icon">3</div>
-                        <span>Machine Learning Intro</span>
-                    </div>
-                    <div class="preview-item">
-                        <div class="preview-item-icon">4</div>
-                        <span>Neural Networks</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LARGE 2: Study Buddy Chat -->
-            <div class="bento-card large-2">
-                <span class="bento-tag">AI-generated preview</span>
-                <div>
-                    <div class="bento-icon">
-                        <i class="bi bi-chat-dots-fill"></i>
-                    </div>
-                    <h3 class="bento-card-title">AI Study Buddy</h3>
-                    <p class="bento-card-description">
-                        Ask a study question and receive a sanitized, AI-generated response when Gemini is enabled and quota is available.
-                    </p>
-                </div>
-                <div class="chat-preview">
-                    <div class="chat-msg user">Explain recursion simply</div>
-                    <div class="chat-msg ai">Sure! Recursion is when a function calls itself to solve smaller versions of a problem 🎯</div>
-                    <div class="chat-msg user">Show me a code example</div>
-                </div>
-            </div>
-
-            <!-- MEDIUM: Progress Analytics -->
-            <div class="bento-card medium-tall">
-                <div>
-                    <div class="bento-icon">
-                        <i class="bi bi-graph-up-arrow"></i>
-                    </div>
-                    <h3 class="bento-card-title">Progress Analytics</h3>
-                    <p class="bento-card-description">
-                        Review recorded study time, streaks, roadmap progress, topic activity, and assessment trends.
-                    </p>
-                </div>
-                <div class="stats-preview">
-                    <div class="stat-item">
-                        <div class="stat-value">47</div>
-                        <div class="stat-label">Day Streak</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">92%</div>
-                        <div class="stat-label">Accuracy</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MEDIUM: Mystery Card - "And more..." -->
-            <div class="bento-card medium-mystery">
-                <div class="mystery-content">
-                    <div class="mystery-icon">
-                        <i class="bi bi-boxes"></i>
-                    </div>
-                    <h3 class="mystery-title">More supporting tools</h3>
-                    <p class="mystery-description">
-                        Code review · Assessments · Challenges · Video library · Image analysis · Achievements · Notes
-                    </p>
-                    <a href="{% url 'accounts:register' %}" class="mystery-cta">
-                        Discover them all
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="mystery-glow"></div>
-            </div>
-
+      </li>
+      <li class="step">
+        <span class="n">02</span>
+        <div>
+          <h3>Work the next day</h3>
+          <p>Each roadmap is ordered days. Mark a day complete when you finish it. Optional AI explanations are labeled as assistance, not a grade.</p>
         </div>
-    </section>
-
-    <!-- ========== HOW IT WORKS ========== -->
-    <section class="how-section" id="how-it-works">
-        <div class="how-header">
-            <div class="how-eyebrow">
-                <i class="bi bi-lightning-charge-fill"></i>
-                <span>How It Works</span>
-            </div>
-            <h2 class="how-title">
-                Get started in <span class="how-title-accent">three simple steps</span>
-            </h2>
-            <p class="how-subtitle">
-                No complicated setup. No overwhelming choices.
-                Just a clear path from where you are to where you want to be.
-            </p>
+      </li>
+      <li class="step">
+        <span class="n">03</span>
+        <div>
+          <h3>Record evidence</h3>
+          <p>Practice problems, assessments, daily challenges, notes, and videos sit on the same account. Assessments keep answer keys on the server.</p>
         </div>
-
-        <div class="steps-container">
-
-            <!-- Step 1 -->
-            <div class="step-card">
-                <div class="step-number">01</div>
-                <div class="step-icon">
-                    <i class="bi bi-bullseye"></i>
-                </div>
-                <h3 class="step-title">Choose Your Path</h3>
-                <p class="step-description">
-                    Pick your topic, set your duration, and choose how many hours you can commit daily.
-                </p>
-                <ul class="step-features">
-                    <li><i class="bi bi-check-circle-fill"></i> ML, DSA, AI, and more</li>
-                    <li><i class="bi bi-check-circle-fill"></i> Flexible duration</li>
-                    <li><i class="bi bi-check-circle-fill"></i> Any skill level</li>
-                </ul>
-            </div>
-
-            <!-- Step 2 -->
-            <div class="step-card">
-                <div class="step-number">02</div>
-                <div class="step-icon">
-                    <i class="bi bi-robot"></i>
-                </div>
-                <h3 class="step-title">Learn With AI</h3>
-                <p class="step-description">
-                    Use generated lessons, AI-assisted code review, and study chat when AI features are configured and available.
-                </p>
-                <ul class="step-features">
-                    <li><i class="bi bi-check-circle-fill"></i> Generated explanations</li>
-                    <li><i class="bi bi-check-circle-fill"></i> AI-assisted feedback</li>
-                    <li><i class="bi bi-check-circle-fill"></i> Quota-limited chat</li>
-                </ul>
-            </div>
-
-            <!-- Step 3 -->
-            <div class="step-card">
-                <div class="step-number">03</div>
-                <div class="step-icon">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-                <h3 class="step-title">Track Progress</h3>
-                <p class="step-description">
-                    See your growth with streaks, badges, and detailed analytics. Stay motivated with real results.
-                </p>
-                <ul class="step-features">
-                    <li><i class="bi bi-check-circle-fill"></i> Activity heatmap</li>
-                    <li><i class="bi bi-check-circle-fill"></i> Earn badges</li>
-                    <li><i class="bi bi-check-circle-fill"></i> Recorded trends</li>
-                </ul>
-            </div>
-
+      </li>
+      <li class="step">
+        <span class="n">04</span>
+        <div>
+          <h3>Keep the route honest</h3>
+          <p>If the product later proposes a path change, you see why. Your current roadmap does not rewrite itself in the background.</p>
         </div>
+      </li>
+    </ol>
+  </section>
 
-        <div class="how-cta">
-            <p class="how-cta-text">Ready to start your learning journey?</p>
-            <a href="{% url 'accounts:register' %}" class="btn-specular btn-specular-lg">
-                Create account
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </section>
+  <section class="section" id="trust">
+    <div class="section-head">
+      <span class="eyebrow">Trust, stated plainly</span>
+      <h2>Your data. Your evidence. Your route.</h2>
+      <p>Only claims we can stand behind on this codebase. If a guarantee is missing, it is missing on purpose.</p>
+    </div>
+    <div class="trust-grid">
+      <article class="trust-item">
+        <h3>Private by default</h3>
+        <p>Roadmaps, notes, assessments, and chat history are owner-scoped. Other learners do not see them.</p>
+      </article>
+      <article class="trust-item">
+        <h3>You can leave</h3>
+        <p>Export your account data as JSON, or delete the account after an explicit confirmation. Logout is POST-only.</p>
+      </article>
+      <article class="trust-item">
+        <h3>AI is assistance</h3>
+        <p>Lesson help, chat, and code review can be incomplete or wrong. Code review does not execute submitted code.</p>
+      </article>
+      <article class="trust-item">
+        <h3>No invented metrics</h3>
+        <p>Dashboards show recorded activity. Sample numbers on this page are labeled illustrative and are not a user profile.</p>
+      </article>
+    </div>
+  </section>
 
+  <section class="final">
+    <svg class="mark" viewBox="0 0 128 128" aria-hidden="true">
+      <g fill="none" stroke-linejoin="round" stroke-linecap="butt">
+        <path class="final-c" stroke="currentColor" stroke-width="15" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+        <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+      </g>
+    </svg>
+    <h2>Your evidence. Your route.</h2>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{% url 'accounts:register' %}">Build my learning path</a>
+    </div>
+    <p class="micro">Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a></p>
+  </section>
+</main>
 
-    <!-- ========== PRODUCT SHOWCASE ========== -->
-    <section class="showcase-section" id="showcase">
-        <div class="showcase-header">
-            <div class="showcase-eyebrow">
-                <i class="bi bi-eye-fill"></i>
-                <span>See It In Action</span>
-            </div>
-            <h2 class="showcase-title">
-                A product built for <span class="showcase-title-accent">real learners</span>
-            </h2>
-            <p class="showcase-subtitle">
-                The interface previews below are illustrative; their names and values are sample data, not user or performance claims.
-            </p>
-        </div>
+<footer class="footer">
+  <div class="footer-inner">
+    <span>© 2026 CodeLabX</span>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="https://github.com/sanskrutishelke991/CodeLAbX">GitHub</a>
+      <a href="{% url 'accounts:login' %}">Sign in</a>
+      <a href="{% url 'accounts:register' %}">Create an account</a>
+    </nav>
+  </div>
+</footer>
 
-        <!-- Tabs -->
-        <div class="showcase-tabs">
-            <button class="showcase-tab active" data-tab="dashboard">
-                <i class="bi bi-grid-1x2-fill"></i>
-                <span>Dashboard</span>
-            </button>
-            <button class="showcase-tab" data-tab="learning">
-                <i class="bi bi-book-fill"></i>
-                <span>Learning</span>
-            </button>
-            <button class="showcase-tab" data-tab="chat">
-                <i class="bi bi-chat-dots-fill"></i>
-                <span>AI Chat</span>
-            </button>
-            <button class="showcase-tab" data-tab="analytics">
-                <i class="bi bi-graph-up"></i>
-                <span>Analytics</span>
-            </button>
-        </div>
-
-        <!-- Browser Window -->
-        <div class="browser-window">
-            <div class="browser-header">
-                <div class="browser-dots">
-                    <div class="browser-dot red"></div>
-                    <div class="browser-dot yellow"></div>
-                    <div class="browser-dot green"></div>
-                </div>
-                <div class="browser-url">
-                    <i class="bi bi-lock-fill"></i>
-                    CodeLabX development preview · sample data
-                </div>
-            </div>
-
-            <!-- DASHBOARD -->
-            <div class="browser-content active" data-content="dashboard">
-                <div class="mock-dashboard">
-                    <div class="mock-hero">
-                        <div class="mock-hero-label">JUL 28 · STREAK 12</div>
-                        <div class="mock-hero-title">Good morning, Alex</div>
-                        <div class="mock-hero-desc">Continue where you left off — Machine Learning</div>
-                    </div>
-                    <div class="mock-stat">
-                        <div class="mock-stat-value">6</div>
-                        <div class="mock-stat-label">Active Paths</div>
-                    </div>
-                    <div class="mock-stat">
-                        <div class="mock-stat-value">42</div>
-                        <div class="mock-stat-label">Days Done</div>
-                    </div>
-                    <div class="mock-stat">
-                        <div class="mock-stat-value">84h</div>
-                        <div class="mock-stat-label">Studied</div>
-                    </div>
-                    <div class="mock-stat">
-                        <div class="mock-stat-value">12</div>
-                        <div class="mock-stat-label">Badges</div>
-                    </div>
-                    <div class="mock-card">
-                        <div class="mock-card-eyebrow">TODAY</div>
-                        <div class="mock-card-title">Machine Learning: Neural Networks</div>
-                        <div class="mock-card-desc">Continue your journey into deep learning fundamentals.</div>
-                        <div class="mock-card-link">Continue →</div>
-                    </div>
-                    <div class="mock-card">
-                        <div class="mock-card-eyebrow">DAILY CHALLENGE</div>
-                        <div class="mock-card-title">Reverse a Linked List</div>
-                        <div class="mock-card-desc">Medium difficulty · Solve in 15 minutes to earn bonus XP.</div>
-                        <div class="mock-card-link">Start challenge →</div>
-                    </div>
-                    <div class="mock-heatmap">
-                        <div class="mock-card-eyebrow">ACTIVITY · LAST 30 DAYS</div>
-                        <div class="mock-heatmap-grid">
-                            <div class="mock-heat-cell level-2"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-1"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-2"></div>
-                            <div class="mock-heat-cell"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-2"></div>
-                            <div class="mock-heat-cell level-1"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-2"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-1"></div>
-                            <div class="mock-heat-cell"></div>
-                            <div class="mock-heat-cell level-2"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-2"></div>
-                            <div class="mock-heat-cell level-1"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-4"></div>
-                            <div class="mock-heat-cell level-3"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LEARNING -->
-            <div class="browser-content" data-content="learning">
-                <div class="mock-learning">
-                    <div class="mock-sidebar">
-                        <div class="mock-sidebar-title">ML Roadmap</div>
-                        <div class="mock-day-list">
-                            <div class="mock-day completed">Day 1 · Intro</div>
-                            <div class="mock-day completed">Day 2 · Data</div>
-                            <div class="mock-day completed">Day 3 · NumPy</div>
-                            <div class="mock-day active">Day 4 · Pandas</div>
-                            <div class="mock-day">Day 5 · Visualization</div>
-                            <div class="mock-day">Day 6 · Statistics</div>
-                            <div class="mock-day">Day 7 · ML Intro</div>
-                        </div>
-                    </div>
-                    <div class="mock-content">
-                        <h4>Day 4: Data Manipulation with Pandas</h4>
-                        <p>Pandas is a powerful Python library for data manipulation and analysis. It provides two main data structures: Series (1D) and DataFrame (2D).</p>
-                        <div class="mock-code-block">
-<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
-<span class="comment"># Create a DataFrame</span>
-df = pd.DataFrame({
-    <span class="string">'name'</span>: [<span class="string">'Alice'</span>, <span class="string">'Bob'</span>],
-    <span class="string">'age'</span>: [25, 30]
-})
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AI CHAT -->
-            <div class="browser-content" data-content="chat">
-                <div class="mock-chat">
-                    <div class="mock-chat-msg user">
-                        <div class="mock-avatar user">A</div>
-                        <div class="mock-msg-bubble">What's the difference between let and var in JavaScript?</div>
-                    </div>
-                    <div class="mock-chat-msg ai">
-                        <div class="mock-avatar ai">AI</div>
-                        <div class="mock-msg-bubble">
-                            Great question! The main differences are:<br><br>
-                            • <code>var</code> is function-scoped, <code>let</code> is block-scoped<br>
-                            • <code>var</code> can be redeclared, <code>let</code> cannot<br>
-                            • <code>let</code> has temporal dead zone
-                        </div>
-                    </div>
-                    <div class="mock-chat-msg user">
-                        <div class="mock-avatar user">A</div>
-                        <div class="mock-msg-bubble">Can you show me an example?</div>
-                    </div>
-                    <div class="mock-chat-msg ai">
-                        <div class="mock-avatar ai">AI</div>
-                        <div class="mock-msg-bubble">
-                            Sure! Here's a quick example showing scope difference between the two...
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ANALYTICS -->
-            <div class="browser-content" data-content="analytics">
-                <div class="mock-analytics">
-                    <div class="mock-chart-card">
-                        <div class="mock-chart-title">Daily Study Time · Last 7 Days</div>
-                        <div class="mock-chart">
-                            <div class="mock-bar" style="height: 40%"></div>
-                            <div class="mock-bar" style="height: 65%"></div>
-                            <div class="mock-bar" style="height: 45%"></div>
-                            <div class="mock-bar" style="height: 80%"></div>
-                            <div class="mock-bar" style="height: 90%"></div>
-                            <div class="mock-bar" style="height: 70%"></div>
-                            <div class="mock-bar" style="height: 100%"></div>
-                        </div>
-                    </div>
-                    <div class="mock-chart-card">
-                        <div class="mock-chart-title">Consistency Score</div>
-                        <div class="mock-ring">
-                            <div class="mock-ring-value">67%</div>
-                        </div>
-                    </div>
-                    <div class="mock-chart-card">
-                        <div class="mock-chart-title">Topic Mastery</div>
-                        <div class="mock-chart">
-                            <div class="mock-bar" style="height: 85%"></div>
-                            <div class="mock-bar" style="height: 60%"></div>
-                            <div class="mock-bar" style="height: 90%"></div>
-                            <div class="mock-bar" style="height: 45%"></div>
-                            <div class="mock-bar" style="height: 70%"></div>
-                        </div>
-                    </div>
-                    <div class="mock-chart-card">
-                        <div class="mock-chart-title">Test Performance</div>
-                        <div class="mock-chart">
-                            <div class="mock-bar" style="height: 70%"></div>
-                            <div class="mock-bar" style="height: 85%"></div>
-                            <div class="mock-bar" style="height: 60%"></div>
-                            <div class="mock-bar" style="height: 90%"></div>
-                            <div class="mock-bar" style="height: 95%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Features under the mockup -->
-        <div class="showcase-features">
-            <div class="showcase-feature">
-                <div class="showcase-feature-icon">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                </div>
-                <div class="showcase-feature-text">
-                    <h4>Bounded list views</h4>
-                    <p>High-growth lists use pagination and selected dashboard queries are bounded; production load testing is still pending.</p>
-                </div>
-            </div>
-            <div class="showcase-feature">
-                <div class="showcase-feature-icon">
-                    <i class="bi bi-shield-check"></i>
-                </div>
-                <div class="showcase-feature-text">
-                    <h4>Documented data flow</h4>
-                    <p>Your learning data is stored by CodeLabX. AI requests are processed by Google Gemini when you use AI features.</p>
-                </div>
-            </div>
-            <div class="showcase-feature">
-                <div class="showcase-feature-icon">
-                    <i class="bi bi-phone-fill"></i>
-                </div>
-                <div class="showcase-feature-text">
-                    <h4>Responsive web layouts</h4>
-                    <p>Layouts are intended for modern desktop and mobile browsers; compatibility testing remains part of staging.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- ========== STATS SECTION ========== -->
-    <section class="stats-section" id="stats">
-        <div class="stats-wrapper">
-            <div class="stats-header">
-                <div class="stats-eyebrow">
-                    <i class="bi bi-bar-chart-fill"></i>
-                    <span>By The Numbers</span>
-                </div>
-                <h2 class="stats-title">
-                    Numbers that <span class="stats-title-accent">speak for themselves</span>
-                </h2>
-                <p class="stats-subtitle">
-                    Built with focus. Designed with purpose. Ready to help you grow.
-                </p>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="bi bi-stars"></i>
-                    </div>
-                    <div>
-                        <span class="stat-number" data-count="10">0</span>
-                    </div>
-                    <div class="stat-label">Django apps</div>
-                    <div class="stat-description">One maintainable monolith</div>
-                </div>
-
-                <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="bi bi-clock-fill"></i>
-                    </div>
-                    <div>
-                        <span class="stat-number" data-count="365">0</span>
-                    </div>
-                    <div class="stat-label">Activity days</div>
-                    <div class="stat-description">Visible in the dashboard</div>
-                </div>
-
-                <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="bi bi-book-fill"></i>
-                    </div>
-                    <div>
-                        <span class="stat-number" data-count="2">0</span><span class="stat-suffix"></span>
-                    </div>
-                    <div class="stat-label">Roadmap Tracks</div>
-                    <div class="stat-description">ML and DSA foundations</div>
-                </div>
-
-                <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="bi bi-heart-fill"></i>
-                    </div>
-                    <div>
-                        <span class="stat-number" data-count="1">0</span>
-                    </div>
-                    <div class="stat-label">XP ledger</div>
-                    <div class="stat-description">Idempotent reward history</div>
-                </div>
-            </div>
-
-            <!-- Trust badges -->
-            <div class="stats-trust">
-                <div class="trust-item">
-                    <i class="bi bi-shield-check"></i>
-                    <span>Owner-scoped records</span>
-                </div>
-                <div class="trust-item">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                    <span>Validated uploads</span>
-                </div>
-                <div class="trust-item">
-                    <i class="bi bi-github"></i>
-                    <span>Open repository</span>
-                </div>
-                <div class="trust-item">
-                    <i class="bi bi-heart-fill"></i>
-                    <span>Development preview</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- ========== FAQ SECTION ========== -->
-    <section class="faq-section" id="faq">
-        <div class="faq-header">
-            <div class="faq-eyebrow">
-                <i class="bi bi-question-circle-fill"></i>
-                <span>Common Questions</span>
-            </div>
-            <h2 class="faq-title">
-                Frequently asked <span class="faq-title-accent">questions</span>
-            </h2>
-            <p class="faq-subtitle">
-                Everything you need to know about CodeLabX. Can't find what you're looking for? Reach out.
-            </p>
-        </div>
-
-        <div class="faq-list">
-
-            <div class="faq-item">
-                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
-                    <div class="faq-question-text">Does CodeLabX currently have billing?</div>
-                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        <strong>No billing flow exists in the current development build.</strong> Public availability, future pricing, and AI-provider costs are not promised. AI features also require server configuration and are subject to quotas.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
-                    <div class="faq-question-text">What programming languages and topics are supported?</div>
-                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        Roadmap creation currently offers two maintained tracks:
-                        <ul>
-                            <li><strong>Machine Learning</strong></li>
-                            <li><strong>Data Structures &amp; Algorithms</strong></li>
-                        </ul>
-                        Free-form AI tools may discuss other topics when they are enabled, but generated material can be incomplete or incorrect.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
-                    <div class="faq-question-text">Do I need any prior coding experience?</div>
-                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        <strong>Absolutely not!</strong> CodeLabX is designed for learners at all levels.
-                        When you create a roadmap, you can choose from three difficulty levels:
-                        <ul>
-                            <li><strong>Beginner:</strong> Perfect if you're just starting out</li>
-                            <li><strong>Intermediate:</strong> For those with some coding background</li>
-                            <li><strong>Advanced:</strong> Deep dive into complex topics</li>
-                        </ul>
-                        Roadmaps use your selected duration, study time, and level. Generated lessons provide additional AI-assisted explanations.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
-                    <div class="faq-question-text">How does the AI code review work?</div>
-                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        The AI Code Examiner sends submitted code to <strong>Google Gemini</strong> and returns a sanitized explanatory review. Depending on the response, it may identify potential issues, suggest improvements, discuss complexity, or propose alternatives. It does not execute the code and its feedback is not a correctness verdict.
-                        The result is AI-generated guidance, not executed or independently verified code.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
-                    <div class="faq-question-text">Is my code and data private and secure?</div>
-                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        <strong>CodeLabX uses owner-scoped access controls for private learning data.</strong>
-                        <ul>
-                            <li>Passwords are handled by Django's password hashing system</li>
-                            <li>Profiles can be public or private</li>
-                            <li>AI prompts, code, and images are sent to Google Gemini only when an AI feature is used</li>
-                            <li>You can export or permanently delete your account from Settings</li>
-                            <li>Uploaded images are validated and normalized before processing</li>
-                        </ul>
-                        Review the Privacy page for the current data-processing summary.
-                    </div>
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
-                    <div class="faq-question-text">Can I use CodeLabX on mobile devices?</div>
-                    <div class="faq-icon"><i class="bi bi-plus-lg"></i></div>
-                </div>
-                <div class="faq-answer">
-                    <div class="faq-answer-content">
-                        <strong>CodeLabX uses responsive layouts intended for:</strong>
-                        <ul>
-                            <li>Desktop computers</li>
-                            <li>Laptops</li>
-                            <li>Tablets</li>
-                            <li>Mobile phones</li>
-                        </ul>
-                        The web app can be installed from a supported browser. Offline mode keeps only the public shell and static assets; signed-in learning data still requires a server connection. There is no separate native app-store build today.
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Contact CTA -->
-        <div class="faq-contact">
-            <div class="faq-contact-content">
-                <div class="faq-contact-icon">
-                    <i class="bi bi-chat-heart-fill"></i>
-                </div>
-                <h3 class="faq-contact-title">Still have questions?</h3>
-                <p class="faq-contact-desc">
-                    We're here to help. Reach out and we'll get back to you as soon as possible.
-                </p>
-                <div class="faq-contact-actions">
-                    <a href="mailto:support@codelabx.com" class="btn-specular">
-                        <i class="bi bi-envelope-fill"></i>
-                        Email Us
-                    </a>
-                    <a href="https://github.com/sanskrutishelke991/CodeLAbX/issues" class="btn-outline" target="_blank" rel="noopener noreferrer">
-                        <i class="bi bi-github"></i>
-                        Open an issue
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- ========== FINAL CTA SECTION ========== -->
-    <section class="cta-section" id="cta">
-        <div class="cta-wrapper">
-            <div class="cta-content">
-                <div class="cta-badge">
-                    <i class="bi bi-rocket-takeoff-fill"></i>
-                    <span>Try the development build</span>
-                </div>
-
-                <div class="cta-ratings">
-                    <div class="cta-stars">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                    </div>
-                    <span class="cta-rating-text">Development preview — validate before production</span>
-                </div>
-
-                <h2 class="cta-title">
-                    Ready to <span class="cta-title-accent">level up</span><br>
-                    your coding journey?
-                </h2>
-
-                <p class="cta-description">
-                    Create an account to evaluate the current roadmap, practice, assessment, progress, and optional AI-assisted learning workflows.
-                </p>
-
-                <div class="cta-actions">
-                    <a href="{% url 'accounts:register' %}" class="btn-specular btn-specular-lg">
-                        Create account
-                        <i class="bi bi-arrow-right"></i>
-                    </a>
-                    <a href="#features" class="btn-outline btn-outline-lg">
-                        <i class="bi bi-play-circle"></i>
-                        Explore Features
-                    </a>
-                </div>
-
-                <div class="cta-trust">
-                    <div class="cta-trust-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Free during development</span>
-                    </div>
-                    <div class="cta-trust-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>No billing integration required</span>
-                    </div>
-                    <div class="cta-trust-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Local setup documented</span>
-                    </div>
-                    <div class="cta-trust-item">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Delete account in Settings</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== FOOTER ========== -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-main">
-
-                <!-- Brand Column -->
-                <div class="footer-brand">
-                    <div class="footer-logo">
-                        <div class="footer-logo-icon">C</div>
-                        <span>CodeLabX</span>
-                    </div>
-                    <p class="footer-tagline">
-                        Development-stage learning platform with structured roadmaps, recorded progress, and optional AI assistance.
-                    </p>
-                    <div class="footer-social">
-                        <a href="https://github.com/sanskrutishelke991/CodeLAbX" target="_blank" rel="noopener noreferrer" title="GitHub repository" aria-label="CodeLabX GitHub repository">
-                            <i class="bi bi-github"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Product Column -->
-                <div class="footer-column">
-                    <h4>Product</h4>
-                    <ul>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="#showcase">Screenshots</a></li>
-                        <li><a href="{% url 'accounts:register' %}">Create account</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-column">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="#faq">FAQ</a></li>
-                        <li><a href="https://github.com/sanskrutishelke991/CodeLAbX#readme" target="_blank" rel="noopener noreferrer">Documentation</a></li>
-                        <li><a href="https://github.com/sanskrutishelke991/CodeLAbX/issues" target="_blank" rel="noopener noreferrer">Issue tracker</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-column">
-                    <h4>Project</h4>
-                    <ul>
-                        <li><a href="https://github.com/sanskrutishelke991/CodeLAbX" target="_blank" rel="noopener noreferrer">Source code</a></li>
-                        <li><a href="{% url 'dashboard:privacy' %}">Privacy</a></li>
-                        <li><a href="{% url 'dashboard:terms' %}">Terms</a></li>
-                    </ul>
-                </div>
-
-            </div>
-
-            <!-- Bottom Bar -->
-            <div class="footer-bottom">
-                <div class="footer-copyright">
-                    © 2026 <strong>CodeLabX</strong>. All rights reserved.
-                </div>
-
-                <div class="footer-made-with">
-                    <span>Made with</span>
-                    <i class="bi bi-heart-fill"></i>
-                    <span>by students, for students</span>
-                </div>
-
-                <div class="footer-legal">
-                    <a href="{% url 'dashboard:privacy' %}">Privacy</a>
-                    <a href="{% url 'dashboard:terms' %}">Terms</a>
-                    <a href="{% url 'dashboard:privacy' %}">Data &amp; cookies</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-
-    <!-- ========== SCRIPTS ========== -->
-
-    <script src="{% static 'js/landing.js' %}"></script>
-    <script src="{% static 'js/pwa.js' %}"></script>
-    <script src="{% static 'js/tts.js' %}"></script>
-    <script src="{% static 'js/voice-input.js' %}"></script>
+<script>
+(function(){
+  const svg = document.getElementById('topo');
+  const NS = 'http://www.w3.org/2000/svg';
+  function ringPath(cx, cy, base, w1, f1, p1, w2, f2, p2){
+    const pts=[];
+    for(let a=0;a<=360;a+=5){
+      const t=a*Math.PI/180;
+      const r=base*(1+w1*Math.sin(f1*t+p1)+w2*Math.sin(f2*t+p2));
+      pts.push([cx+r*Math.cos(t), cy+r*Math.sin(t)]);
+    }
+    let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    for(let i=1;i<pts.length-1;i++){
+      const [x1,y1]=pts[i], [x2,y2]=pts[i+1];
+      d+=` Q${x1.toFixed(1)},${y1.toFixed(1)} ${((x1+x2)/2).toFixed(1)},${((y1+y2)/2).toFixed(1)}`;
+    }
+    return d+'Z';
+  }
+  function peak(x,y,r0,step,rings,seed,stroke){
+    for(let i=0;i<rings;i++){
+      const p=document.createElementNS(NS,'path');
+      p.setAttribute('d', ringPath(x,y,r0+i*step,.16,3,1.1+seed,.06,5,2.4+seed*2));
+      p.setAttribute('fill','none');
+      p.setAttribute('stroke', stroke);
+      p.setAttribute('stroke-width','1.05');
+      svg.appendChild(p);
+    }
+  }
+  function paint(){
+    while(svg.lastChild) svg.removeChild(svg.lastChild);
+    const dark=document.documentElement.getAttribute('data-theme')==='dark';
+    const stroke=dark?'rgba(236,232,222,0.10)':'rgba(80,84,74,0.28)';
+    peak(180,160,28,32,9,0.2,stroke);
+    peak(720,220,24,30,8,1.1,stroke);
+    peak(1180,140,26,28,8,0.7,stroke);
+    peak(320,520,30,34,9,2.0,stroke);
+    peak(980,560,28,32,8,0.4,stroke);
+    peak(60,780,22,26,7,1.6,stroke);
+    peak(1320,720,20,24,6,0.9,stroke);
+  }
+  function setTheme(t){
+    if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    else document.documentElement.removeAttribute('data-theme');
+    document.getElementById('tl').setAttribute('aria-pressed', t==='light'?'true':'false');
+    document.getElementById('td').setAttribute('aria-pressed', t==='dark'?'true':'false');
+    try{ localStorage.setItem('codelabx-v2-theme', t); }catch(e){}
+    paint();
+  }
+  document.getElementById('tl').onclick=()=>setTheme('light');
+  document.getElementById('td').onclick=()=>setTheme('dark');
+  let start='light';
+  try{ start=localStorage.getItem('codelabx-v2-theme')||start; }catch(e){}
+  if(start==='dark') setTheme('dark'); else paint();
+})();
+</script>
 </body>
 </html>
