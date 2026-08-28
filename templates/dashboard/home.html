@@ -6,40 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CodeLabX — Home</title>
 <link rel="icon" href="{% static 'brand/favicon.svg' %}">
-<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=2">
 </head>
 <body>
 <a class="sr" href="#day">Skip to today</a>
 
-<aside class="rail" aria-label="Primary">
-  <a class="rail-mark" href="{% url 'dashboard:home' %}" aria-label="CodeLabX home" aria-current="page">
-    <svg viewBox="0 0 128 128" aria-hidden="true">
-      <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
-      <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
-    </svg>
-  </a>
-  <a href="{% url 'dashboard:home' %}" title="Home" aria-current="page">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 11 L12 4 L20 11 V20 H15 V14 H9 V20 H4 Z"/></svg>
-  </a>
-  <button type="button" class="rail-dial" id="open-dial" title="Path Dial" aria-haspopup="dialog" aria-controls="dial">
-    <svg viewBox="0 0 128 128" aria-hidden="true">
-      <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
-      <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
-    </svg>
-  </button>
-  <a href="{% url 'content:library' %}" title="Learn">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 5 H14 A3 3 0 0 1 17 8 V20 H8 A3 3 0 0 0 5 17 Z M14 5 V17 A3 3 0 0 0 17 20"/></svg>
-  </a>
-  <a href="{% url 'learning:roadmaps' %}" title="Roadmaps">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 19 C8 13 10 8 12 8 C14 8 16 13 19 19"/><circle cx="12" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-  </a>
-  <span class="rail-gap"></span>
-  <button type="button" id="tl" class="theme-btn" title="Light">L</button>
-  <button type="button" id="td" class="theme-btn" title="Dark">D</button>
-  <a href="{% url 'accounts:settings' %}" title="Settings">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5 5 L7.2 7.2 M16.8 16.8 L19 19 M19 5 L16.8 7.2 M7.2 16.8 L5 19"/></svg>
-  </a>
-</aside>
+<button type="button" class="theme-btn" id="theme-toggle" title="Switch theme" aria-label="Switch to dark theme">
+  <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M15 3.5 A9 9 0 1 0 20.5 14 A7 7 0 0 1 15 3.5 Z"/></svg>
+  <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3 V5 M12 19 V21 M3 12 H5 M19 12 H21 M5.6 5.6 L7 7 M17 17 L18.4 18.4 M18.4 5.6 L17 7 M7 17 L5.6 18.4"/></svg>
+</button>
 
 <section class="map" aria-hidden="true"></section>
 
@@ -47,23 +22,43 @@
 {% if roadmaps %}
   {% with rm=roadmaps.0 %}
   {% with nxt=rm.completed_days|add:1 %}
-  <p class="kicker">{{ rm.get_topic_display }} · {{ rm.daily_hours }} h</p>
-  <h1>Day {% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %}</h1>
-  <p class="lede">{{ rm.title }}</p>
+  <p class="kicker" id="day-kicker">{{ rm.get_topic_display }} · {{ rm.daily_hours }} h</p>
+  <h1 id="day-h">Day {% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %}</h1>
+  <p class="lede" id="day-lede">{{ rm.title }}</p>
   <p class="body">This is the next unfinished day on the path you set. Daily hours and level stay the ones you chose. A later proposal does not rewrite this route until you approve it.</p>
   {% if nxt > rm.total_days %}
-  <a class="btn" href="{% url 'learning:roadmap_detail' rm.id %}">Continue</a>
+  <a class="btn" id="continue" href="{% url 'learning:roadmap_detail' rm.id %}">Continue</a>
   {% else %}
-  <a class="btn" href="{% url 'learning:day_detail' rm.id nxt %}">Continue</a>
+  <a class="btn" id="continue" href="{% url 'learning:day_detail' rm.id nxt %}">Continue</a>
   {% endif %}
   {% endwith %}
   {% endwith %}
+
+  <div class="paths" aria-label="Current path">
+    <p class="paths-kicker">Current path</p>
+    {% for rm in roadmaps %}
+    {% with nxt=rm.completed_days|add:1 %}
+    <button type="button"
+      class="path-row{% if forloop.first %} on{% endif %}"
+      {% if forloop.first %}aria-current="true"{% else %}aria-current="false"{% endif %}
+      data-id="{{ rm.id }}"
+      data-day="{% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %}"
+      data-kicker="{{ rm.get_topic_display }} · {{ rm.daily_hours }} h"
+      data-title="{{ rm.title }}"
+      data-href="{% if nxt > rm.total_days %}{% url 'learning:roadmap_detail' rm.id %}{% else %}{% url 'learning:day_detail' rm.id nxt %}{% endif %}">
+      <span class="path-name">{{ rm.get_topic_display }}</span>
+      <span class="path-meta">Day {% if nxt > rm.total_days %}{{ rm.total_days }}{% else %}{{ nxt }}{% endif %} · {{ rm.daily_hours }} h</span>
+    </button>
+    {% endwith %}
+    {% endfor %}
+    <a class="path-new" href="{% url 'learning:roadmap_create' %}">Create another path</a>
+  </div>
 {% else %}
-  <p class="kicker">No active path</p>
-  <h1>Begin</h1>
-  <p class="lede">Create your first path</p>
+  <p class="kicker" id="day-kicker">No active path</p>
+  <h1 id="day-h">Begin</h1>
+  <p class="lede" id="day-lede">Create your first path</p>
   <p class="body">Choose Machine Learning or Data Structures &amp; Algorithms. You set duration, daily hours, and level. Work the days in order.</p>
-  <a class="btn" href="{% url 'learning:roadmap_create' %}">Create a path</a>
+  <a class="btn" id="continue" href="{% url 'learning:roadmap_create' %}">Create a path</a>
 {% endif %}
 
   <div class="week" aria-label="This week">
@@ -75,12 +70,42 @@
   </div>
 </section>
 
-<nav class="tabs" aria-label="Mobile">
-  <a href="{% url 'dashboard:home' %}" aria-current="page">Home</a>
-  <a href="{% url 'content:library' %}">Learn</a>
-  <button type="button" id="tab-dial" aria-haspopup="dialog">Path</button>
-  <a href="{% url 'progress:analytics' %}">Progress</a>
-  <a href="{% url 'accounts:settings' %}">More</a>
+<nav class="dock" id="dock" aria-label="Primary">
+  <a class="dock-i" href="{% url 'dashboard:home' %}" title="Home" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 11 L12 4 L20 11 V20 H15 V14 H9 V20 H4 Z"/></svg>
+    <span class="dock-cap">Home</span>
+  </a>
+  <a class="dock-i" href="{% url 'content:library' %}" title="Learn">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 5 H14 A3 3 0 0 1 17 8 V20 H8 A3 3 0 0 0 5 17 Z M14 5 V17 A3 3 0 0 0 17 20"/></svg>
+    <span class="dock-cap">Learn</span>
+  </a>
+  <button type="button" class="dock-i dock-path" id="open-dial" title="Path Dial" aria-haspopup="dialog" aria-controls="dial">
+    <svg viewBox="0 0 128 128" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+      <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+    </svg>
+    <span class="dock-cap">Path</span>
+  </button>
+  <a class="dock-i desk" href="{% url 'learning:roadmaps' %}" title="Roadmaps">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M3 19 L9 8 L12 13 L15 9 L21 19 Z"/></svg>
+    <span class="dock-cap">Roadmaps</span>
+  </a>
+  <a class="dock-i desk" href="{% url 'practice:task_list' %}" title="Practice">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M8 6 L3 12 L8 18 M16 6 L21 12 L16 18"/></svg>
+    <span class="dock-cap">Practice</span>
+  </a>
+  <a class="dock-i desk" href="{% url 'accounts:settings' %}" title="Settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5 5 L7.2 7.2 M16.8 16.8 L19 19 M19 5 L16.8 7.2 M7.2 16.8 L5 19"/></svg>
+    <span class="dock-cap">Settings</span>
+  </a>
+  <a class="dock-i mob" href="{% url 'progress:analytics' %}" title="Progress">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 16 L10 10 L14 13 L20 6 M4 19 H20"/></svg>
+    <span class="dock-cap">Progress</span>
+  </a>
+  <a class="dock-i mob" href="{% url 'accounts:settings' %}" title="More">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M5 7 H19 M5 12 H19 M5 17 H19"/></svg>
+    <span class="dock-cap">More</span>
+  </a>
 </nav>
 
 <div class="dial-back" id="dial-back" hidden>
@@ -127,6 +152,6 @@
   </div>
 </div>
 
-<script src="{% static 'js/v2/dashboard.js' %}?v=1" defer></script>
+<script src="{% static 'js/v2/dashboard.js' %}?v=2" defer></script>
 </body>
 </html>
