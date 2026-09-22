@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from learning.models import Roadmap
 from progress.services import ActivityLogger, BadgeManager
 from progress.models import UserBadge
+from django.urls import reverse
 
 
 def landing(request):

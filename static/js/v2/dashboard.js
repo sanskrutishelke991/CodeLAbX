@@ -16,6 +16,11 @@
   var slices = wheel ? wheel.querySelectorAll(".slice") : [];
   var listLinks = document.querySelectorAll("#dlist a");
   var selected = 0;
+  var bootDial = document.body.getAttribute("data-dial");
+  if (bootDial != null && bootDial !== "") {
+    var bootN = Number(bootDial);
+    if (!isNaN(bootN)) selected = ((bootN % 8) + 8) % 8;
+  }
 
   function theme(t) {
     root.setAttribute("data-theme", t);
@@ -236,4 +241,5 @@
   window.addEventListener("resize", function () {
     if (isMobile() || reduceMotion()) resetDock();
   });
+  setSel(selected);
 })();

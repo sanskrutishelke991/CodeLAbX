@@ -50,9 +50,8 @@ svg{display:block}
 }
 [data-theme="light"] .map{background:#EDE8DC}
 .map img{
-  position:absolute;top:0;left:0;width:100%;height:100%;max-width:none;
-  object-fit:cover;object-position:46% 50%;display:block;
-  transform:scale(1.12);transform-origin:85% 50%
+  position:absolute;inset:0;width:100%;height:100%;max-width:none;
+  object-fit:cover;object-position:46% 0;display:block
 }
 [data-theme="light"] .map-dark{display:none}
 [data-theme="dark"] .map-light{display:none}
@@ -140,7 +139,7 @@ h1{
 .wheel{
   --rot:22.5deg;
   position:relative;width:min(420px,86vw);aspect-ratio:1;margin:0 auto;
-  border-radius:50%;background:var(--canvas);
+  border-radius:50%;background:var(--canvas);touch-action:none;
   box-shadow:
     16px 16px 32px rgba(32,36,44,.14),
     -10px -10px 24px rgba(255,255,255,.78),

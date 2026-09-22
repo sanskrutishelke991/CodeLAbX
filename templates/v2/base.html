@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>{% block title %}CodeLabX{% endblock %}</title>
+<link rel="icon" href="{% static 'brand/favicon.svg' %}">
+<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=9">
+<link rel="stylesheet" href="{% static 'css/v2/learning.css' %}?v=1">
+{% block extra_css %}{% endblock %}
+</head>
+<body class="v2-page" data-dial="{% block dial_index %}3{% endblock %}">
+<a class="sr" href="#main">Skip to content</a>
+{% include "v2/partials/theme_btn.html" %}
+<a class="brand" href="{% url 'dashboard:home' %}">
+  <svg class="brand-c" viewBox="0 0 128 128" aria-hidden="true">
+    <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+    <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+  </svg>
+  <span class="brand-word">Code<span class="lab">Lab</span>X</span>
+</a>
+<main class="page" id="main">
+  {% if messages %}
+  <ul class="flash">
+    {% for message in messages %}
+    <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+{% include "v2/partials/dock.html" %}
+{% include "v2/partials/dial.html" %}
+<script src="{% static 'js/v2/dashboard.js' %}?v=9" defer></script>
+<script src="{% static 'js/v2/learning.js' %}?v=1" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

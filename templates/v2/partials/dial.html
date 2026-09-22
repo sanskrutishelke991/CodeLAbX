@@ -1,0 +1,49 @@
+<div class="dial-back" id="dial-back" hidden>
+  <div class="dial" role="dialog" aria-modal="true" aria-labelledby="dial-title" id="dial">
+    <div class="wheel" id="wheel" tabindex="0" aria-label="Path Dial wheel">
+      <svg viewBox="0 0 400 400" aria-hidden="true">
+        <defs>
+          <filter id="neo-on" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#1F7A5C" flood-opacity=".28"/>
+          </filter>
+        </defs>
+        <path class="wedge" data-i="0" d="M200.0,12.0 A188,188 0 0 1 332.9,67.1 L255.2,144.8 A78,78 0 0 0 200.0,122.0 Z"/>
+        <path class="wedge" data-i="1" d="M332.9,67.1 A188,188 0 0 1 388.0,200.0 L278.0,200.0 A78,78 0 0 0 255.2,144.8 Z"/>
+        <path class="wedge" data-i="2" d="M388.0,200.0 A188,188 0 0 1 332.9,332.9 L255.2,255.2 A78,78 0 0 0 278.0,200.0 Z"/>
+        <path class="wedge" data-i="3" d="M332.9,332.9 A188,188 0 0 1 200.0,388.0 L200.0,278.0 A78,78 0 0 0 255.2,255.2 Z"/>
+        <path class="wedge" data-i="4" d="M200.0,388.0 A188,188 0 0 1 67.1,332.9 L144.8,255.2 A78,78 0 0 0 200.0,278.0 Z"/>
+        <path class="wedge" data-i="5" d="M67.1,332.9 A188,188 0 0 1 12.0,200.0 L122.0,200.0 A78,78 0 0 0 144.8,255.2 Z"/>
+        <path class="wedge" data-i="6" d="M12.0,200.0 A188,188 0 0 1 67.1,67.1 L144.8,144.8 A78,78 0 0 0 122.0,200.0 Z"/>
+        <path class="wedge" data-i="7" d="M67.1,67.1 A188,188 0 0 1 200.0,12.0 L200.0,122.0 A78,78 0 0 0 144.8,144.8 Z"/>
+      </svg>
+      <a class="slice s0" data-i="0" href="{% url 'dashboard:home' %}">Dashboard</a>
+      <a class="slice s1" data-i="1" href="{% url 'content:library' %}">Learn</a>
+      <a class="slice s2" data-i="2" href="{% url 'practice:task_list' %}">Practice</a>
+      <a class="slice s3" data-i="3" href="{% url 'learning:roadmaps' %}">Roadmaps</a>
+      <a class="slice s4" data-i="4" href="{% url 'assessments:quiz_list' %}">Assessments</a>
+      <a class="slice s5" data-i="5" href="{% url 'challenges:dashboard' %}">Challenges</a>
+      <a class="slice s6" data-i="6" href="{% url 'ai_tools:home' %}">AI Tutor</a>
+      <a class="slice s7" data-i="7" href="{% url 'accounts:settings' %}">Settings</a>
+      <div class="hub" aria-hidden="true"></div>
+      <div class="dial-pip" aria-hidden="true"></div>
+      <div class="dial-tab" aria-hidden="true">
+        <svg viewBox="0 0 128 128">
+          <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+          <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+        </svg>
+      </div>
+    </div>
+    <p class="dial-title" id="dial-title">Path Dial</p>
+    <nav class="dlist" id="dlist" aria-label="Destinations">
+      <a data-i="0" href="{% url 'dashboard:home' %}">Dashboard</a>
+      <a data-i="1" href="{% url 'content:library' %}">Learn</a>
+      <a data-i="2" href="{% url 'practice:task_list' %}">Practice</a>
+      <a data-i="3" href="{% url 'learning:roadmaps' %}">Roadmaps</a>
+      <a data-i="4" href="{% url 'assessments:quiz_list' %}">Assessments</a>
+      <a data-i="5" href="{% url 'challenges:dashboard' %}">Challenges</a>
+      <a data-i="6" href="{% url 'ai_tools:home' %}">AI Tutor</a>
+      <a data-i="7" href="{% url 'accounts:settings' %}">Settings</a>
+    </nav>
+    <button type="button" class="dial-x" id="dial-close">Close</button>
+  </div>
+</div>

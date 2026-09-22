@@ -1,33 +1,33 @@
-import logging
-
-from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Roadmap, Day
+from .forms import RoadmapCreateForm
+from .services import RoadmapGenerator
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from ai_tools.services import GeminiService
+import logging
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
-from django.views.decorators.http import require_POST
-
 from ai_tools.api import provider_error_response, safe_api_errors
 from ai_tools.security import protect_ai_endpoint
-from ai_tools.services import GeminiService
 from intelligence.services.emitters import emit_day_completion
 from progress.models import UserStreak
 from progress.services import BadgeManager
-
-from .forms import RoadmapCreateForm
 from .models import Day, Roadmap
-from .services import RoadmapGenerator
-
-
-logger = logging.getLogger(__name__)
 
 
 @login_required
 def roadmap_list(request):
     """Display all roadmaps for the current user with real stats."""
+    from django.db.models import Sum, Count, Q, Avg
+    from datetime import timedelta
+    from django.utils import timezone
+    
     # Get filter params
     status_filter = request.GET.get('status', 'all')
     topic_filter = request.GET.get('topic', 'all')
@@ -37,12 +37,7 @@ def roadmap_list(request):
     view_mode = request.GET.get('view', 'grid')
     
     # Base queryset
-    roadmaps = Roadmap.objects.filter(user=request.user).annotate(
-        completed_days_count=Count(
-            "days",
-            filter=Q(days__is_completed=True),
-        )
-    )
+    roadmaps = Roadmap.objects.filter(user=request.user)
     
     # Apply filters
     if status_filter != 'all':
@@ -72,12 +67,7 @@ def roadmap_list(request):
         roadmaps = roadmaps.order_by('-total_days')
     
     # Calculate real statistics
-    all_user_roadmaps = Roadmap.objects.filter(user=request.user).annotate(
-        completed_days_count=Count(
-            "days",
-            filter=Q(days__is_completed=True),
-        )
-    )
+    all_user_roadmaps = Roadmap.objects.filter(user=request.user)
     
     total_paths = all_user_roadmaps.count()
     active_paths = all_user_roadmaps.filter(status='active').count()
@@ -100,8 +90,15 @@ def roadmap_list(request):
     else:
         avg_progress = 0
     
-    streak_obj = UserStreak.objects.filter(user=request.user).first()
-    current_streak = streak_obj.current_streak if streak_obj else 0
+    # Get streak from progress app if available
+    current_streak = 0
+    try:
+        from progress.models import UserStreak
+        streak_obj = UserStreak.objects.filter(user=request.user).first()
+        if streak_obj:
+            current_streak = streak_obj.current_streak
+    except:
+        pass
     
     # Get available topics for filter
     available_topics = all_user_roadmaps.values_list('topic', flat=True).distinct()
@@ -112,11 +109,8 @@ def roadmap_list(request):
     # Recently updated roadmap (for "Continue" quick action)
     recent_roadmap = all_user_roadmaps.filter(status='active').order_by('-updated_at').first()
     
-    page_obj = Paginator(roadmaps, 9).get_page(request.GET.get('page'))
-
     context = {
-        'roadmaps': page_obj,
-        'page_obj': page_obj,
+        'roadmaps': roadmaps,
         'total_paths': total_paths,
         'active_paths': active_paths,
         'completed_paths': completed_paths,
@@ -147,50 +141,32 @@ def roadmap_create(request):
         form = RoadmapCreateForm(request.POST)
         if form.is_valid():
             try:
-                with transaction.atomic():
-                    roadmap = RoadmapGenerator.generate_roadmap(
-                        user=request.user,
-                        topic=form.cleaned_data["topic"],
-                        duration_months=form.cleaned_data["duration_months"],
-                        daily_hours=form.cleaned_data["daily_hours"],
-                        level=form.cleaned_data["level"],
-                        start_date=form.cleaned_data.get("start_date"),
-                    )
-                    description = form.cleaned_data.get("description")
-                    if description:
-                        roadmap.description = description
-                        roadmap.save(
-                            update_fields=["description", "updated_at"]
-                        )
-                    BadgeManager.add_xp(
-                        request.user,
-                        25,
-                        "Created roadmap",
-                        idempotency_key=f"roadmap-created:{roadmap.id}",
-                        event_type="roadmap-created",
-                        source_object_type="roadmap",
-                        source_object_id=roadmap.id,
-                    )
+                roadmap = RoadmapGenerator.generate_roadmap(
+                    user=request.user,
+                    topic=form.cleaned_data['topic'],
+                    duration_months=form.cleaned_data['duration_months'],
+                    daily_hours=form.cleaned_data['daily_hours'],
+                    level=form.cleaned_data['level'],
+                    start_date=form.cleaned_data.get('start_date')
+                )
+                
+                if form.cleaned_data.get('description'):
+                    roadmap.description = form.cleaned_data['description']
+                    roadmap.save()
+                
+                # Award XP for creating first roadmap
+                try:
+                    from progress.services import BadgeManager
+                    BadgeManager.add_xp(request.user, 25, "Created roadmap")
                     BadgeManager.check_and_award_badges(request.user)
-            except Exception:
-                logger.exception(
-                    "Roadmap creation rolled back",
-                    extra={"user_id": request.user.pk},
-                )
-                messages.error(
-                    request,
-                    "The roadmap could not be created. No changes were saved.",
-                )
-            else:
-                messages.success(
-                    request,
-                    f'Roadmap "{roadmap.title}" created with '
-                    f"{roadmap.total_days} days.",
-                )
-                return redirect(
-                    "learning:roadmap_detail",
-                    roadmap_id=roadmap.id,
-                )
+                except Exception as e:
+                    print(f"Badge error: {e}")
+                
+                messages.success(request, f'Roadmap "{roadmap.title}" created successfully with {roadmap.total_days} days!')
+                return redirect('learning:roadmap_detail', roadmap_id=roadmap.id)
+                
+            except Exception as e:
+                messages.error(request, f'Error creating roadmap: {str(e)}')
     else:
         form = RoadmapCreateForm()
     
@@ -205,198 +181,109 @@ def roadmap_create(request):
 @login_required
 def roadmap_detail(request, roadmap_id):
     """Display detail view of a specific roadmap with timeline."""
-    from intelligence.models import RoadmapRevision
-
     roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
-    days = roadmap.days.all().order_by('order')
-    adaptive_revisions = list(
-        RoadmapRevision.objects.filter(
-            roadmap=roadmap,
-            status__in={"active", "proposed"},
-        ).order_by("-revision_number")
-    )
-    adaptive_active = next(
-        (item for item in adaptive_revisions if item.status == "active"),
-        None,
-    )
-    adaptive_proposed = next(
-        (item for item in adaptive_revisions if item.status == "proposed"),
-        None,
-    )
-
+    days = list(roadmap.days.all().order_by('order'))
+    current_day = None
+    for d in days:
+        if not d.is_completed:
+            current_day = d
+            break
     return render(request, 'learning/roadmap_detail.html', {
         'roadmap': roadmap,
         'days': days,
-        'adaptive_active': adaptive_active,
-        'adaptive_proposed': adaptive_proposed,
+        'current_day': current_day,
     })
 
 
 @login_required
 def day_detail(request, roadmap_id, day_number):
-    """Display an owned day plus private owner comments and group links."""
-    from community.forms import DayCommentForm
-    from community.models import DayComment, GroupRoadmapShare
-
+    """Display detail view for a specific day in a roadmap."""
     roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
     day = get_object_or_404(Day, roadmap=roadmap, day_number=day_number)
-    personal_comments = DayComment.objects.filter(
-        day=day,
-        group__isnull=True,
-        author=request.user,
-    ).order_by("created_at")
-    group_shares = (
-        GroupRoadmapShare.objects.filter(
-            roadmap=roadmap,
-            group__memberships__user=request.user,
-        )
-        .select_related("group")
-        .distinct()
-    )
+    
     return render(request, 'learning/day_detail.html', {
         'roadmap': roadmap,
-        'day': day,
-        'personal_comments': personal_comments,
-        'day_comment_form': DayCommentForm(),
-        'group_shares': group_shares,
+        'day': day
     })
 
 
 @login_required
 @require_POST
-@protect_ai_endpoint(
-    "day-content",
-    "AI_GENERATION_BURST_LIMIT",
-)
-@safe_api_errors
-def generate_day_content(
-    request,
-    roadmap_id,
-    day_number,
-):
-    """Generate sanitized content for an owned day."""
-    roadmap = get_object_or_404(
-        Roadmap,
-        id=roadmap_id,
-        user=request.user,
-    )
-
-    day = get_object_or_404(
-        Day,
-        roadmap=roadmap,
-        day_number=day_number,
-    )
-
-    result = (
-        GeminiService()
-        .generate_theory(
-            day.title,
-            level=roadmap.level,
-        )
-    )
-
-    if not result.get("success"):
-        return provider_error_response(
-            logger,
-            "day-content",
-            result.get("error"),
-        )
-
-    day.ai_content = result["content_html"]
-    day.ai_content_generated_at = (
-        timezone.now()
-    )
-
-    day.save(
-        update_fields=[
-            "ai_content",
-            "ai_content_generated_at",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "success": True,
-            "content": result["content_html"],
-        }
-    )
+def generate_day_content(request, roadmap_id, day_number):
+    """Generate AI theory content for a day"""
+    roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
+    day = get_object_or_404(Day, roadmap=roadmap, day_number=day_number)
+    
+    try:
+        gemini = GeminiService()
+        result = gemini.generate_theory(day.title, level=roadmap.level)
+        
+        if result['success']:
+            day.ai_content = result['content_html']
+            day.ai_content_generated_at = timezone.now()
+            day.save()
+            
+            return JsonResponse({
+                'success': True,
+                'content': result['content_html']
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': result.get('error', 'Unknown error')
+            }, status=500)
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 @login_required
 @require_POST
-@transaction.atomic
 def mark_day_complete(request, roadmap_id, day_number):
-    """Complete a roadmap day exactly once."""
-    from progress.services import ActivityLogger, BadgeManager
-
-    roadmap = get_object_or_404(
-        Roadmap.objects.select_for_update(),
-        id=roadmap_id,
-        user=request.user,
-    )
-    day = get_object_or_404(
-        Day.objects.select_for_update(),
-        roadmap=roadmap,
-        day_number=day_number,
-    )
-
-    if day.is_completed:
-        return JsonResponse(
-            {
-                "success": True,
-                "already_completed": True,
-                "message": f"Day {day.day_number} was already completed.",
-                "xp_earned": 0,
-            }
-        )
-
-    day.is_completed = True
-    day.completed_at = timezone.now()
-    day.save(update_fields=["is_completed", "completed_at"])
+    """Mark a day as complete and log activity with XP + Badges"""
+    from progress.services import ActivityLogger
+    
+    roadmap = get_object_or_404(Roadmap, id=roadmap_id, user=request.user)
+    day = get_object_or_404(Day, roadmap=roadmap, day_number=day_number)
+    
+    # Mark as completed
+    day.mark_completed()
+    
+    # Log activity + update streak
     ActivityLogger.log_day_completion(request.user, day)
+    
+    # Prepare response
+    response_data = {
+        'success': True,
+        'message': f'Day {day.day_number} marked as complete!'
+    }
+    
+    # Award XP and check badges
+    try:
+        from progress.services import BadgeManager
+        
+        # Add XP for completing day
+        xp_result = BadgeManager.add_xp(request.user, 20, "Completed a day")
+        
+        # Check for new badges
+        new_badges = BadgeManager.check_and_award_badges(request.user)
+        
+        response_data['xp_earned'] = 20
+        response_data['xp_reason'] = 'Day completed'
+        response_data['leveled_up'] = xp_result.get('leveled_up', False)
+        response_data['new_level'] = xp_result.get('new_level')
+        response_data['new_badges'] = [
+            {'name': b.badge.name, 'icon': b.badge.icon} 
+            for b in new_badges
+        ]
+    except Exception as e:
+        print(f"Badge/XP error: {e}")
+    
+    return JsonResponse(response_data)
 
-    xp_result = BadgeManager.add_xp(
-        request.user,
-        20,
-        "Completed a day",
-        idempotency_key=f"day-completed:{day.id}",
-        event_type="day-completed",
-        source_object_type="day",
-        source_object_id=day.id,
-    )
-    new_badges = BadgeManager.check_and_award_badges(request.user)
-
-    if not roadmap.days.filter(is_completed=False).exists():
-        roadmap.status = "completed"
-        roadmap.end_date = timezone.localdate()
-        roadmap.save(update_fields=["status", "end_date", "updated_at"])
-
-    emit_day_completion(request.user, day)
-
-    return JsonResponse(
-        {
-            "success": True,
-            "already_completed": False,
-            "message": f"Day {day.day_number} marked as complete!",
-            "xp_earned": xp_result["xp_added"],
-            "xp_reason": "Day completed",
-            "leveled_up": xp_result["leveled_up"],
-            "new_level": xp_result["new_level"],
-            "new_badges": [
-                {
-                    "name": getattr(item, "badge", item).name,
-                    "icon": getattr(item, "badge", item).icon,
-                }
-                for item in new_badges
-            ],
-            "roadmap_completed": roadmap.status == "completed",
-        }
-    )
-
-
-
-@login_required
-@require_POST
 def roadmap_action(request, roadmap_id, action):
     """Apply an owner-authorized roadmap lifecycle action."""
     roadmap = get_object_or_404(

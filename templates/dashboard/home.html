@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CodeLabX — Home</title>
 <link rel="icon" href="{% static 'brand/favicon.svg' %}">
-<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=6">
+<link rel="stylesheet" href="{% static 'css/v2/dashboard.css' %}?v=9">
 </head>
 <body>
 <a class="sr" href="#day">Skip to today</a>
@@ -16,7 +16,7 @@
   <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3 V5 M12 19 V21 M3 12 H5 M19 12 H21 M5.6 5.6 L7 7 M17 17 L18.4 18.4 M18.4 5.6 L17 7 M7 17 L5.6 18.4"/></svg>
 </button>
 
-<section class="map" aria-hidden="true">
+<section class="map" id="map" aria-label="Learning path map">
   <img class="map-light" src="{% static 'brand/dash-map-light.jpg' %}" alt="">
   <img class="map-dark" src="{% static 'brand/dash-map-dark.jpg' %}" alt="">
 </section>
@@ -157,6 +157,6 @@
   </div>
 </div>
 
-<script src="{% static 'js/v2/dashboard.js' %}?v=2" defer></script>
+<script src="{% static 'js/v2/dashboard.js' %}?v=9" defer></script>
 </body>
 </html>

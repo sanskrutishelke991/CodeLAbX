@@ -1,194 +1,61 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}My Learning Paths - CodeLabX{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/learning-roadmap_list.css' %}">
-{% endblock %}
-
+{% extends "v2/base.html" %}
+{% block title %}CodeLabX — Paths{% endblock %}
+{% block dial_index %}3{% endblock %}
 {% block content %}
-<div class="roadmap-container">
-    
-    <!-- HERO -->
-    <div class="roadmap-hero">
-        <div class="roadmap-hero-content">
-            <div class="roadmap-hero-text">
-                <h1>My Learning <span>Paths</span></h1>
-                <p>Journey through your personalized roadmaps. Track progress, celebrate milestones, and never lose momentum.</p>
-            </div>
-            <a href="{% url 'learning:roadmap_create' %}" class="btn-create-roadmap">
-                <i class="bi bi-plus-lg"></i>
-                Create New Path
-            </a>
-        </div>
-    </div>
-    
-    <!-- STATS -->
-    <div class="roadmap-stats">
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <div class="stat-icon total"><i class="bi bi-collection-fill"></i></div>
-                <div class="stat-label">Total Paths</div>
-            </div>
-            <div class="stat-value">{{ total_paths }}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <div class="stat-icon active"><i class="bi bi-lightning-fill"></i></div>
-                <div class="stat-label">Active</div>
-            </div>
-            <div class="stat-value">{{ active_paths }}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <div class="stat-icon days"><i class="bi bi-calendar-check-fill"></i></div>
-                <div class="stat-label">Days Done</div>
-            </div>
-            <div class="stat-value">{{ total_days_completed }}<span class="stat-suffix">/{{ total_days_planned }}</span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <div class="stat-icon hours"><i class="bi bi-clock-fill"></i></div>
-                <div class="stat-label">Hours Total</div>
-            </div>
-            <div class="stat-value">{{ total_hours_studied }}<span class="stat-suffix">h</span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <div class="stat-icon progress"><i class="bi bi-graph-up-arrow"></i></div>
-                <div class="stat-label">Avg Progress</div>
-            </div>
-            <div class="stat-value">{{ avg_progress }}<span class="stat-suffix">%</span></div>
-        </div>
-    </div>
-    
-    <!-- FILTERS -->
-    <div class="roadmap-filters">
-        <div class="filter-tabs">
-            <a href="?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">
-                All <span class="count">{{ total_paths }}</span>
-            </a>
-            <a href="?status=active" class="filter-tab {% if status_filter == 'active' %}active{% endif %}">
-                <i class="bi bi-lightning-fill"></i> Active <span class="count">{{ active_paths }}</span>
-            </a>
-            <a href="?status=paused" class="filter-tab {% if status_filter == 'paused' %}active{% endif %}">
-                <i class="bi bi-pause-fill"></i> Paused <span class="count">{{ paused_paths }}</span>
-            </a>
-            <a href="?status=completed" class="filter-tab {% if status_filter == 'completed' %}active{% endif %}">
-                <i class="bi bi-check-circle-fill"></i> Completed <span class="count">{{ completed_paths }}</span>
-            </a>
-        </div>
-        
-        <div class="filter-right">
-            <div class="search-box">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="search-input" data-roadmap-search placeholder="Search paths..." value="{{ search_query }}">
-            </div>
-            <select class="sort-select" data-roadmap-sort>
-                <option value="recent" {% if sort_by == 'recent' %}selected{% endif %}>Recent</option>
-                <option value="progress" {% if sort_by == 'progress' %}selected{% endif %}>Progress</option>
-                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
-                <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Duration</option>
-            </select>
-            <div class="view-toggle">
-                <button type="button" class="view-btn {% if view_mode == 'grid' %}active{% endif %}" data-roadmap-view="grid" title="Grid view">
-                    <i class="bi bi-grid-fill"></i>
-                </button>
-                <button type="button" class="view-btn {% if view_mode == 'list' %}active{% endif %}" data-roadmap-view="list" title="List view">
-                    <i class="bi bi-list-ul"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ROADMAPS -->
-    {% if roadmaps %}
-    <div class="roadmaps-grid {% if view_mode == 'list' %}list-view{% endif %}">
-        {% for roadmap in roadmaps %}
-        <a href="{% url 'learning:roadmap_detail' roadmap.id %}" class="roadmap-card"
-           style="--card-accent: {{ roadmap.topic_color }}; --card-icon-bg: {{ roadmap.topic_color }}20; --card-color: {{ roadmap.topic_color }}15; --status-bg: {{ roadmap.status_color }}20; --status-color: {{ roadmap.status_color }}; --level-bg: {{ roadmap.level_color }}20; --level-color: {{ roadmap.level_color }};">
-            <div class="card-header">
-                <div class="card-icon-wrapper"><i class="bi {{ roadmap.topic_icon }}"></i></div>
-                <div class="card-badges">
-                    <span class="badge badge-status">
-                        {% if roadmap.status == 'active' %}<i class="bi bi-lightning-fill"></i>
-                        {% elif roadmap.status == 'completed' %}<i class="bi bi-check-circle-fill"></i>
-                        {% elif roadmap.status == 'paused' %}<i class="bi bi-pause-fill"></i>{% endif %}
-                        {{ roadmap.get_status_display }}
-                    </span>
-                    <span class="badge badge-level">{{ roadmap.get_level_display }}</span>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="card-topic">{{ roadmap.get_topic_display }}</div>
-                <h3 class="card-title">{{ roadmap.title }}</h3>
-                <p class="card-description">{{ roadmap.description|default:"A personalized learning path to master this topic step by step." }}</p>
-                <div class="progress-container">
-                    <div class="progress-ring">
-                        <svg viewBox="0 0 70 70">
-                            <circle class="progress-ring-bg" cx="35" cy="35" r="30"></circle>
-                            <circle class="progress-ring-fill" cx="35" cy="35" r="30" style="stroke-dasharray: 188.4; stroke-dashoffset: calc(188.4 - (188.4 * {{ roadmap.progress_percentage|default:0 }} / 100));"></circle>
-                        </svg>
-                        <div class="progress-ring-text">
-                            <div class="progress-ring-value">{{ roadmap.progress_percentage|floatformat:0 }}%</div>
-                            <div class="progress-ring-label">Done</div>
-                        </div>
-                    </div>
-                    <div class="progress-info">
-                        <div class="progress-days">{{ roadmap.completed_days }}/{{ roadmap.total_days }} days</div>
-                        <div class="progress-remaining">{{ roadmap.remaining_days }} days remaining</div>
-                    </div>
-                </div>
-                <div class="card-meta">
-                    <div class="meta-item"><i class="bi bi-clock"></i><span>{{ roadmap.daily_hours }}h/day</span></div>
-                    <div class="meta-item"><i class="bi bi-calendar3"></i><span>{{ roadmap.total_days }} days</span></div>
-                    <div class="meta-item"><i class="bi bi-hourglass-split"></i><span>{{ roadmap.total_hours|floatformat:0 }}h total</span></div>
-                </div>
-            </div>
-            <div class="card-actions">
-                <span class="btn-continue">
-                    {% if roadmap.status == 'completed' %}<i class="bi bi-check-circle-fill"></i> View Path
-                    {% else %}Continue <i class="bi bi-arrow-right"></i>{% endif %}
-                </span>
-
-            </div>
-        </a>
-        {% endfor %}
-        
-        {% if view_mode != 'list' %}
-        <a href="{% url 'learning:roadmap_create' %}" class="create-card">
-            <div class="create-icon"><i class="bi bi-plus-lg"></i></div>
-            <div class="create-title">Start Something New</div>
-            <div class="create-desc">Create your next personalized learning path</div>
-            <div class="create-templates">
-                <span class="template-chip">Machine Learning</span>
-                <span class="template-chip">DSA</span>
-                <span class="template-chip">Web Dev</span>
-            </div>
-        </a>
-        {% endif %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon"><i class="bi bi-map"></i></div>
-        <h2 class="empty-title">
-            {% if search_query or status_filter != 'all' %}No paths match your filters
-            {% else %}Start your learning journey{% endif %}
-        </h2>
-        <p class="empty-desc">
-            {% if search_query or status_filter != 'all' %}Try adjusting your search or filters.
-            {% else %}Create your first personalized learning roadmap. Choose a topic, set your pace, and let AI guide your journey.{% endif %}
-        </p>
-        <a href="{% url 'learning:roadmap_create' %}" class="btn-create-roadmap">
-            <i class="bi bi-plus-lg"></i> Create Your First Path
-        </a>
-    </div>
-    {% endif %}
+<div class="top-row">
+  <div>
+    <p class="kicker">Paths</p>
+    <h1>Your paths</h1>
+  </div>
+  <a class="btn" href="{% url 'learning:roadmap_create' %}">Create a path</a>
 </div>
-{% include 'partials/pagination.html' with page_obj=page_obj %}
-{% endblock %}
+<p class="evidence">{{ active_paths }} active · {{ total_days_completed }} / {{ total_days_planned }} days</p>
+<nav class="filters" aria-label="Path status">
+  <a href="?status=all" class="{% if status_filter == 'all' %}on{% endif %}">All</a>
+  <a href="?status=active" class="{% if status_filter == 'active' %}on{% endif %}">Active</a>
+  <a href="?status=paused" class="{% if status_filter == 'paused' %}on{% endif %}">Paused</a>
+  <a href="?status=completed" class="{% if status_filter == 'completed' %}on{% endif %}">Completed</a>
+</nav>
 
-{% block extra_js %}
-<script src="{% static 'js/pages/learning-roadmap_list.js' %}"></script>
+{% if roadmaps %}
+  {% for roadmap in roadmaps %}
+    {% if forloop.first %}
+    <a class="hero-path" href="{% url 'learning:roadmap_detail' roadmap.id %}">
+      <p class="hero-kicker">{{ roadmap.get_topic_display }} · {{ roadmap.daily_hours }} h</p>
+      <h2>{{ roadmap.title }}</h2>
+      <p class="hero-meta">
+        {% if roadmap.completed_days >= roadmap.total_days %}
+          Complete · {{ roadmap.get_level_display }}
+        {% else %}
+          Day {{ roadmap.completed_days|add:1 }} of {{ roadmap.total_days }} · {{ roadmap.get_level_display }}
+        {% endif %}
+      </p>
+      <div class="hair" aria-hidden="true"><i data-p="{{ roadmap.progress_percentage|default:0|floatformat:0 }}"></i></div>
+      <span class="btn-sm">{% if roadmap.status == 'completed' %}View path{% else %}Continue{% endif %}</span>
+    </a>
+    {% else %}
+    <a class="prow" href="{% url 'learning:roadmap_detail' roadmap.id %}">
+      <span class="prow-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 18 L9 8 L12 13 L15 9 L20 18 Z"/></svg>
+      </span>
+      <span class="prow-body">
+        <span class="prow-title">{{ roadmap.title }}</span>
+        <span class="prow-meta">
+          {% if roadmap.status == 'paused' %}Paused · {% endif %}
+          {% if roadmap.completed_days >= roadmap.total_days %}Complete{% else %}Day {{ roadmap.completed_days|add:1 }} of {{ roadmap.total_days }}{% endif %}
+          · {{ roadmap.daily_hours }} h · {{ roadmap.get_level_display }}
+        </span>
+        <span class="hair" aria-hidden="true"><i data-p="{{ roadmap.progress_percentage|default:0|floatformat:0 }}"></i></span>
+      </span>
+      {% if roadmap.status == 'paused' %}<span class="pill">Paused</span>{% endif %}
+    </a>
+    {% endif %}
+  {% endfor %}
+{% else %}
+  <div class="empty">
+    <h1>Begin</h1>
+    <p>{% if search_query or status_filter != 'all' %}No paths match this filter.{% else %}Choose Machine Learning or Data Structures &amp; Algorithms. You set duration, daily hours, and level. Work the days in order.{% endif %}</p>
+    <a class="btn" href="{% url 'learning:roadmap_create' %}">Create a path</a>
+  </div>
+{% endif %}
 {% endblock %}
