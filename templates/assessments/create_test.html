@@ -4,33 +4,35 @@
 {% block dial_index %}4{% endblock %}
 {% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=2">
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/v2/assessments.js' %}?v=1" defer></script>
+<script src="{% static 'js/v2/assessments.js' %}?v=2" defer></script>
 {% endblock %}
 {% block content %}
 {% csrf_token %}
-<div class="as-compose">
-  <div class="as-copy">
-    <p class="crumb"><a href="{% url 'assessments:quiz_list' %}">Tests</a> / New</p>
-    <p class="kicker">New test</p>
-            <h1>Set the paper.</h1>
-            <i class="as-rule" aria-hidden="true"></i>
-    <p class="form-copy">Name a topic. Choose level, length, and time. The generator writes multiple-choice questions. It can be wrong. You still sit the paper.</p>
-  </div>
-  <form class="as-form" id="make-test" method="post">
+<div class="as-sheet">
+  <header class="as-sheet-head">
     <div>
+      <p class="crumb"><a href="{% url 'assessments:quiz_list' %}">Tests</a> / New</p>
+      <p class="kicker">Cover sheet</p>
+      <h1>Set the paper.</h1>
+      <i class="as-rule" aria-hidden="true"></i>
+    </div>
+    <button type="submit" class="btn" id="gen-test" form="make-test">Generate this test</button>
+  </header>
+  <form class="as-form" id="make-test" method="post">
+    <div class="as-span">
       <label class="fld" for="topic">Topic</label>
       <input class="as-field" id="topic" name="topic" maxlength="100" required placeholder="Machine Learning">
-    </div>
-    <div class="chips" id="topic-chips">
-      <button type="button" class="chip" data-topic="Machine Learning">Machine Learning</button>
-      <button type="button" class="chip" data-topic="Data Structures">Data Structures</button>
-      <button type="button" class="chip" data-topic="Python">Python</button>
-      <button type="button" class="chip" data-topic="JavaScript">JavaScript</button>
-      <button type="button" class="chip" data-topic="SQL">SQL</button>
-      <button type="button" class="chip" data-topic="Git">Git</button>
+      <div class="chips" id="topic-chips">
+        <button type="button" class="chip" data-topic="Machine Learning">Machine Learning</button>
+        <button type="button" class="chip" data-topic="Data Structures">Data Structures</button>
+        <button type="button" class="chip" data-topic="Python">Python</button>
+        <button type="button" class="chip" data-topic="JavaScript">JavaScript</button>
+        <button type="button" class="chip" data-topic="SQL">SQL</button>
+        <button type="button" class="chip" data-topic="Git">Git</button>
+      </div>
     </div>
     <div>
       <p class="kicker">Level</p>
@@ -41,7 +43,7 @@
       </div>
     </div>
     <div>
-      <p class="kicker">Questions</p>
+      <p class="kicker">Length</p>
       <div class="chips" id="n-picks">
         <button type="button" class="chip" data-n="5">5</button>
         <button type="button" class="chip on" data-n="10">10</button>
@@ -49,17 +51,14 @@
         <button type="button" class="chip" data-n="20">20</button>
         <button type="button" class="chip" data-n="30">30</button>
       </div>
-    </div>
-    <div>
-      <p class="kicker">Time</p>
+      <p class="kicker as-gap">Time</p>
       <div class="chips" id="t-picks">
         <button type="button" class="chip" data-t="5">5 min</button>
         <button type="button" class="chip on" data-t="10">10 min</button>
         <button type="button" class="chip" data-t="20">20 min</button>
       </div>
     </div>
-    <button type="submit" class="btn" id="gen-test">Generate this test</button>
-    <p class="note" id="gen-status">Assistance only. Questions can be wrong.</p>
+    <p class="note as-span" id="gen-status">Assistance only. Questions can be wrong.</p>
   </form>
 </div>
 {% endblock %}

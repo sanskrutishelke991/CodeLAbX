@@ -4,23 +4,23 @@
 {% block dial_index %}4{% endblock %}
 {% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=2">
 {% endblock %}
 {% block content %}
 <div class="as-head">
   <div>
     <p class="kicker">Assessments</p>
-    <h1>Your tests</h1>
+    <h1>Mark book</h1>
     <i class="as-rule" aria-hidden="true"></i>
   </div>
   <a class="btn" href="{% url 'assessments:create' %}">Create a test</a>
 </div>
-<p class="evidence">
-  {{ total_tests }} tests
-  · {{ in_progress }} in progress
-  · {{ completed_tests }} complete
-  {% if completed_tests %}· best {{ best_score }}%{% endif %}
-</p>
+<div class="as-stats" aria-label="Totals">
+  <div class="as-stat"><b>{{ total_tests }}</b><span>Papers</span></div>
+  <div class="as-stat"><b>{{ in_progress }}</b><span>In progress</span></div>
+  <div class="as-stat"><b>{{ completed_tests }}</b><span>Complete</span></div>
+  <div class="as-stat best"><b>{% if completed_tests %}{{ best_score }}%{% else %}—{% endif %}</b><span>Best</span></div>
+</div>
 <nav class="filters" aria-label="Status">
   <a href="?status=all" class="{% if status_filter == 'all' %}on{% endif %}">All</a>
   <a href="?status=created" class="{% if status_filter == 'created' %}on{% endif %}">Ready</a>
@@ -29,27 +29,26 @@
 </nav>
 
 {% if tests %}
-<div class="as-grid">
+<div class="as-board">
   {% for test in tests %}
-  <a class="as-card{% if forloop.first %} feat{% endif %}{% if forloop.first and test.status == 'completed' %} scored{% endif %}"
-     href="{% if test.status == 'completed' %}{% url 'assessments:result' test.id %}{% else %}{% url 'assessments:take' test.id %}{% endif %}">
+  <a class="as-row" href="{% if test.status == 'completed' %}{% url 'assessments:result' test.id %}{% else %}{% url 'assessments:take' test.id %}{% endif %}">
+    <span class="as-ix">{% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}</span>
     <div>
       <p class="as-k">{{ test.topic }} · {{ test.get_difficulty_display }}</p>
       <h2>{{ test.title }}</h2>
-      <p class="as-meta">
-        {{ test.num_questions }} questions · {{ test.time_limit_minutes }} min
-        · {{ test.get_status_display }}
-      </p>
-      <span class="btn-sm">
-        {% if test.status == 'completed' %}View result{% elif test.status == 'in_progress' %}Resume{% else %}Start{% endif %}
-      </span>
+      <p class="as-meta">{{ test.num_questions }} questions · {{ test.time_limit_minutes }} min · {{ test.get_status_display }}</p>
     </div>
-    {% if test.status == 'completed' %}
-    <div>
+    <div class="as-markcol">
+      {% if test.status == 'completed' %}
       <p class="as-score">{{ test.percentage }}%</p>
       <p class="as-grade">{{ test.grade }}</p>
+      {% else %}
+      <p class="as-score as-wait">—</p>
+      {% endif %}
     </div>
-    {% endif %}
+    <span class="btn-sm">
+      {% if test.status == 'completed' %}Result{% elif test.status == 'in_progress' %}Resume{% else %}Sit{% endif %}
+    </span>
   </a>
   {% endfor %}
 </div>

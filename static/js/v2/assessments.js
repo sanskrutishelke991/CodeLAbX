@@ -182,6 +182,7 @@
       if (i === current) b.classList.add("now");
       b.setAttribute("data-i", String(i));
       b.setAttribute("aria-label", "Question " + (i + 1));
+      b.textContent = String(i + 1);
       dots.appendChild(b);
     }
   }
