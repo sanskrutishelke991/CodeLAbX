@@ -4,10 +4,10 @@
 {% block dial_index %}4{% endblock %}
 {% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=3">
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/v2/assessments.js' %}?v=2" defer></script>
+<script src="{% static 'js/v2/assessments.js' %}?v=3" defer></script>
 {% endblock %}
 {% block content %}
 {% csrf_token %}
@@ -21,7 +21,7 @@
 {% else %}
 {{ test.questions|json_script:"quiz-json" }}
 <div class="as-take" id="exam" data-id="{{ test.id }}" data-mins="{{ test.time_limit_minutes }}">
-  <section class="q-stage">
+  <section class="q-stage glass">
     <p class="as-k" id="q-kicker">Question 1 of {{ test.num_questions }}</p>
     <p class="q-text" id="q-text"></p>
     <div class="opts" id="opts"></div>
@@ -31,7 +31,7 @@
       <button type="button" class="btn" id="submit-q" hidden>Submit paper</button>
     </div>
   </section>
-  <aside class="q-side">
+  <aside class="q-side glass">
     <p class="as-k">Time</p>
     <p class="timer" id="timer">{{ test.time_limit_minutes }}:00</p>
     <div class="hair" aria-hidden="true"><i id="q-hair"></i></div>

@@ -36,6 +36,34 @@
     }
   }
 
+  function reducedMotion() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  var pctEl = document.querySelector(".hero-pct");
+  if (pctEl) {
+    var target = parseFloat(pctEl.getAttribute("data-pct"));
+    var bar = document.querySelector(".as-bar > i");
+    if (bar) {
+      var fill = parseFloat(bar.getAttribute("data-p"));
+      if (!isNaN(fill)) bar.style.width = fill + "%";
+    }
+    if (!isNaN(target) && !reducedMotion()) {
+      pctEl.textContent = "0%";
+      var t0 = window.performance.now();
+      var dur = 720;
+      function tick(now) {
+        var p = Math.min(1, (now - t0) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        var val = target * eased;
+        pctEl.textContent = (Math.round(val * 10) / 10) + "%";
+        if (p < 1) window.requestAnimationFrame(tick);
+        else pctEl.textContent = target + "%";
+      }
+      window.requestAnimationFrame(tick);
+    }
+  }
+
   var form = document.getElementById("make-test");
   if (form) {
     var topic = document.getElementById("topic");

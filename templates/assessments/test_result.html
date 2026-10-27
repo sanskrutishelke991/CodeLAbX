@@ -4,12 +4,18 @@
 {% block dial_index %}4{% endblock %}
 {% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=3">
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/v2/assessments.js' %}?v=3" defer></script>
 {% endblock %}
 {% block content %}
 <p class="crumb"><a href="{% url 'assessments:quiz_list' %}">Tests</a> / Result</p>
-<header class="as-mark">
-  <p class="hero-pct">{{ test.percentage }}%</p>
+<header class="as-mark glass">
+  <div>
+    <p class="hero-pct" data-pct="{{ test.percentage }}">{{ test.percentage }}%</p>
+    <div class="as-bar" aria-hidden="true"><i data-p="{{ test.percentage }}"></i></div>
+  </div>
   <div>
     <p class="kicker">{{ test.topic }} · {{ test.get_difficulty_display }}</p>
     <h1>{{ test.grade }}</h1>
@@ -22,7 +28,7 @@
 </header>
 <div class="break">
   {% for item in question_breakdown %}
-  <article class="qitem {% if item.is_correct %}ok{% else %}bad{% endif %}">
+  <article class="qitem glass {% if item.is_correct %}ok{% else %}bad{% endif %}">
     <p class="as-k">Question {{ forloop.counter }}{% if item.is_correct %} · Correct{% else %} · Missed{% endif %}</p>
     <h3>{{ item.question }}</h3>
     {% for option in item.options %}
