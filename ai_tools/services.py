@@ -1,21 +1,68 @@
-"""
-Gemini AI Service for CodeLabX
-"""
+"""Gemini AI service for CodeLabX."""
+
+from __future__ import annotations
+
+import json
+import re
 
 from django.conf import settings
-import markdown as md
+
+from .rendering import render_ai_markdown
+
+
+_JSON_FENCE = re.compile(
+    r"```(?:json)?\s*(?P<content>.*?)\s*```",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
+
+def strip_json_code_fence(value: str) -> str:
+    """Return JSON text, accepting one complete optional Markdown fence."""
+    if not isinstance(value, str):
+        raise ValueError("AI response must be text.")
+
+    content = value.strip()
+    if not content:
+        raise ValueError("AI response was empty.")
+    if content.startswith("```"):
+        match = _JSON_FENCE.fullmatch(content)
+        if match is None:
+            raise ValueError("AI response used an invalid JSON code fence.")
+        content = match.group("content").strip()
+    return content
+
+
+def parse_json_object_response(value: str) -> dict:
+    """Parse one provider response and require a JSON object."""
+    try:
+        parsed = json.loads(strip_json_code_fence(value))
+    except json.JSONDecodeError as exc:
+        raise ValueError("AI response was not valid JSON.") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError("AI response must be a JSON object.")
+    return parsed
 
 
 class GeminiService:
     """Service to interact with Google Gemini AI"""
     
     def __init__(self):
+        if not settings.AI_FEATURES_ENABLED:
+            raise ValueError(
+                "AI features are currently disabled"
+            )
+
         if not settings.GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY not set in environment")
-        
+            raise ValueError(
+                "GEMINI_API_KEY not set in environment"
+            )
+
         from google import genai
-        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.model_name = "gemini-flash-latest"
+
+        self.client = genai.Client(
+            api_key=settings.GEMINI_API_KEY
+        )
+        self.model_name = settings.GEMINI_MODEL
     
     def generate_theory(self, topic_name, level='beginner'):
         """Generate complete theory content for a topic"""
@@ -69,9 +116,8 @@ IMPORTANT:
             
             markdown_content = response.text
             
-            html_content = md.markdown(
-                markdown_content,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                markdown_content
             )
             
             return {
@@ -133,9 +179,8 @@ IMPORTANT:
             )
             
             markdown_content = response.text
-            html_content = md.markdown(
-                markdown_content,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                markdown_content
             )
             
             return {
@@ -233,15 +278,8 @@ IMPORTANT:
                 contents=prompt
             )
             
-            content = response.text.strip()
-            
-            # Remove markdown code fences if present
-            if content.startswith('```'):
-                content = content.split('```')[1]
-                if content.startswith('json'):
-                    content = content[4:]
-                content = content.strip()
-            
+            content = strip_json_code_fence(response.text)
+
             return {'success': True, 'content': content}
         except Exception as e:
             return {'success': False, 'error': str(e)}
@@ -291,9 +329,8 @@ IMPORTANT:
             )
             
             # Convert markdown to HTML
-            html_content = md.markdown(
-                response.text,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                response.text
             )
             
             return {
@@ -315,8 +352,13 @@ IMPORTANT:
             difficulty: 'easy', 'medium', 'hard'
             user_level: User's current level for difficulty scaling
         """
-        import json
-        
+        if challenge_type not in {"coding", "theory"}:
+            raise ValueError("challenge_type must be coding or theory.")
+        if difficulty not in {"easy", "medium", "hard"}:
+            raise ValueError("difficulty must be easy, medium, or hard.")
+        if isinstance(user_level, bool) or not isinstance(user_level, int) or user_level < 1:
+            raise ValueError("user_level must be a positive integer.")
+
         if challenge_type == 'coding':
             prompt = (
                 f"Generate a unique {difficulty} level coding challenge for user at level {user_level}.\n\n"
@@ -367,26 +409,11 @@ IMPORTANT:
                 contents=prompt
             )
             
-            content = response.text.strip()
-            
-            # Clean markdown fences if present
-            if content.startswith('```'):
-                content = content.split('```')[1]
-                if content.startswith('json'):
-                    content = content[4:]
-                content = content.strip()
-            
-            try:
-                data = json.loads(content)
-                return {
-                    'success': True,
-                    'data': data
-                }
-            except json.JSONDecodeError as e:
-                return {
-                    'success': False,
-                    'error': f'Invalid JSON: {str(e)}'
-                }
+            data = parse_json_object_response(response.text)
+            return {
+                'success': True,
+                'data': data,
+            }
         except Exception as e:
             return {
                 'success': False,
@@ -415,30 +442,18 @@ IMPORTANT:
         )
         
         try:
-            import json
             response = self.client.models.generate_content(
                 model=self.model_name,
-                contents=prompt
+                contents=prompt,
             )
-            
-            content = response.text.strip()
-            if content.startswith('```'):
-                content = content.split('```')[1]
-                if content.startswith('json'):
-                    content = content[4:]
-                content = content.strip()
-            
-            try:
-                data = json.loads(content)
-                return {
-                    'success': True,
-                    'recommendations': data.get('recommendations', [])
-                }
-            except json.JSONDecodeError:
-                return {
-                    'success': False,
-                    'error': 'Invalid AI response'
-                }
+            data = parse_json_object_response(response.text)
+            recommendations = data.get('recommendations', [])
+            if not isinstance(recommendations, list):
+                raise ValueError("AI recommendations must be a list.")
+            return {
+                'success': True,
+                'recommendations': recommendations,
+            }
         except Exception as e:
             return {
                 'success': False,
@@ -520,9 +535,8 @@ IMPORTANT:
             )
             
             markdown_content = response.text
-            html_content = md.markdown(
-                markdown_content,
-                extensions=['fenced_code', 'tables', 'nl2br']
+            html_content = render_ai_markdown(
+                markdown_content
             )
             
             return {

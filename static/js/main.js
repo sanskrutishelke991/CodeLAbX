@@ -64,7 +64,7 @@ function copyToClipboard(text) {
                 <div class="toast-body">
                     Copied to clipboard!
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close notification"></button>
             </div>
         `;
         document.body.appendChild(toast);

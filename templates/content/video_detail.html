@@ -1,148 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ video.title }} - CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: #0A0A0A; color: #e0e0e0; }
-    
-    .breadcrumb-custom {
-        color: #a0a0a0;
-        margin-bottom: 15px;
-    }
-    
-    .breadcrumb-custom a { color: #14B8A6; text-decoration: none; }
-    
-    .video-player-container {
-        background: #000;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 20px;
-        aspect-ratio: 16 / 9;
-    }
-    
-    .video-player-container iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-    }
-    
-    .video-info-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 25px;
-        margin-bottom: 20px;
-    }
-    
-    .video-title-big {
-        color: white;
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 15px;
-    }
-    
-    .video-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin: 15px 0;
-    }
-    
-    .action-btn {
-        background: rgba(20, 184, 166, 0.15);
-        border: 1px solid rgba(20, 184, 166, 0.3);
-        color: #e0e0e0;
-        padding: 8px 16px;
-        border-radius: 10px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: all 0.2s;
-        text-decoration: none;
-    }
-    
-    .action-btn:hover {
-        background: rgba(20, 184, 166, 0.3);
-        color: white;
-    }
-    
-    .action-btn.active {
-        background: rgba(0, 212, 170, 0.2);
-        border-color: #00D4AA;
-        color: #00D4AA;
-    }
-    
-    .action-btn.watched {
-        background: rgba(0, 212, 170, 0.2);
-        border-color: #00D4AA;
-        color: #00D4AA;
-    }
-    
-    .action-btn.favorited {
-        background: rgba(255, 107, 107, 0.2);
-        border-color: #FF6B6B;
-        color: #FF6B6B;
-    }
-    
-    .related-video {
-        display: flex;
-        gap: 12px;
-        padding: 10px;
-        border-radius: 10px;
-        text-decoration: none;
-        color: inherit;
-        margin-bottom: 10px;
-        transition: all 0.2s;
-    }
-    
-    .related-video:hover {
-        background: rgba(20, 184, 166, 0.1);
-        color: inherit;
-    }
-    
-    .related-thumbnail {
-        width: 120px;
-        aspect-ratio: 16 / 9;
-        object-fit: cover;
-        border-radius: 8px;
-        background: #0A0A0A;
-    }
-    
-    .related-info {
-        flex-grow: 1;
-    }
-    
-    .related-title {
-        color: white;
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 5px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .related-channel {
-        color: #a0a0a0;
-        font-size: 0.8rem;
-    }
-    
-    .tag-pill {
-        background: rgba(20, 184, 166, 0.15);
-        color: #14B8A6;
-        padding: 3px 10px;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        margin-right: 5px;
-        display: inline-block;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/content-video_detail.css' %}">
 {% endblock %}
 
 {% block content %}
+<div class="mb-3">{% include 'partials/bookmark_button.html' with bookmark_title=video.title bookmark_type='other' %}</div>
 <div class="breadcrumb-custom">
     <a href="{% url 'content:library' %}"><i class="bi bi-arrow-left"></i> Library</a> / 
     <a href="?category={{ video.category.slug }}">{{ video.category.name }}</a> / 
@@ -185,13 +51,13 @@
             <!-- Action Buttons -->
             <div class="video-actions">
                 <button class="action-btn {% if progress.is_watched %}watched{% endif %}" 
-                        id="watchedBtn" onclick="markWatched()">
+                        id="watchedBtn" data-endpoint="{% url 'content:mark_watched' video.id %}">
                     <i class="bi bi-check-circle{% if progress.is_watched %}-fill{% endif %}"></i>
                     <span>{% if progress.is_watched %}Watched{% else %}Mark Watched{% endif %}</span>
                 </button>
                 
                 <button class="action-btn {% if progress.is_favorited %}favorited{% endif %}" 
-                        id="favoriteBtn" onclick="toggleFavorite()">
+                        id="favoriteBtn" data-endpoint="{% url 'content:toggle_favorite' video.id %}">
                     <i class="bi bi-heart{% if progress.is_favorited %}-fill{% endif %}"></i>
                     <span>{% if progress.is_favorited %}Favorited{% else %}Favorite{% endif %}</span>
                 </button>
@@ -247,74 +113,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function getCookie(name) {
-    let value = null;
-    if (document.cookie) {
-        for (let c of document.cookie.split(';')) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) {
-                value = decodeURIComponent(c.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return value;
-}
-
-async function markWatched() {
-    const btn = document.getElementById('watchedBtn');
-    
-    try {
-        const response = await fetch('/content/video/{{ video.id }}/watched/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            btn.classList.add('watched');
-            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> <span>Watched</span>';
-            
-            if (typeof showToast === 'function') {
-                showToast('xp', '+10 XP', 'Video marked as watched!', '⚡');
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function toggleFavorite() {
-    const btn = document.getElementById('favoriteBtn');
-    
-    try {
-        const response = await fetch('/content/video/{{ video.id }}/favorite/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            if (data.is_favorited) {
-                btn.classList.add('favorited');
-                btn.innerHTML = '<i class="bi bi-heart-fill"></i> <span>Favorited</span>';
-            } else {
-                btn.classList.remove('favorited');
-                btn.innerHTML = '<i class="bi bi-heart"></i> <span>Favorite</span>';
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-</script>
+<script src="{% static 'js/pages/content-video_detail.js' %}"></script>
 {% endblock %}

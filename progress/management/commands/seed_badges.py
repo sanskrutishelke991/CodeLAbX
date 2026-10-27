@@ -275,9 +275,9 @@ class Command(BaseCommand):
         updated_count = 0
         
         for badge_data in badges_data:
-            badge, created = Badge.objects.get_or_create(
+            badge, created = Badge.objects.update_or_create(
                 name=badge_data['name'],
-                defaults=badge_data
+                defaults=badge_data,
             )
             
             if created:
@@ -288,11 +288,11 @@ class Command(BaseCommand):
             else:
                 updated_count += 1
                 self.stdout.write(
-                    self.style.WARNING(f'Badge already exists: {badge.icon} {badge.name}')
+                    self.style.WARNING(f'Updated badge: {badge.icon} {badge.name}')
                 )
         
         self.stdout.write(
             self.style.SUCCESS(
-                f'\nSummary: {created_count} badges created, {updated_count} already exist. Total: {Badge.objects.count()}'
+                f'\nSummary: {created_count} badges created, {updated_count} updated. Total: {Badge.objects.count()}'
             )
         )

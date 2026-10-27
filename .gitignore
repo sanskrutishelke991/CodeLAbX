@@ -53,3 +53,9 @@ htmlcov/
 
 # Debug
 django-debug-toolbar/
+
+# Repository hygiene
+*.backup
+*.old
+*.before_*
+*.pre_*

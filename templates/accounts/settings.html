@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Account Settings — CodeLabX{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/accounts-settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <section class="settings-hero">
+        <div>
+            <span class="settings-kicker">
+                <i class="bi bi-sliders"></i>
+                Account preferences
+            </span>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-copy">
+                Review your profile, privacy, and account information.
+            </p>
+        </div>
+
+        <a class="settings-btn primary"
+           href="{% url 'accounts:profile_edit' %}">
+            <i class="bi bi-pencil-square"></i>
+            Edit profile
+        </a>
+    </section>
+
+    <div class="settings-grid">
+        <section class="settings-card">
+            <div class="settings-heading">
+                <span class="settings-icon">
+                    <i class="bi bi-person-fill"></i>
+                </span>
+                <h2>Account</h2>
+            </div>
+
+            <div class="settings-row">
+                <span class="settings-label">Username</span>
+                <span class="settings-value">
+                    @{{ user.username }}
+                </span>
+            </div>
+
+            <div class="settings-row">
+                <span class="settings-label">Email</span>
+                <span class="settings-value">
+                    {{ user.email|default:"Not provided" }}
+                </span>
+            </div>
+
+            <div class="settings-row">
+                <span class="settings-label">Member since</span>
+                <span class="settings-value">
+                    {{ user.date_joined|date:"M d, Y" }}
+                </span>
+            </div>
+
+            <div class="settings-actions">
+                <a class="settings-btn"
+                   href="{% url 'accounts:profile' %}">
+                    <i class="bi bi-person-circle"></i>
+                    View profile
+                </a>
+            </div>
+        </section>
+
+        <section class="settings-card">
+            <div class="settings-heading">
+                <span class="settings-icon">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </span>
+                <h2>Privacy</h2>
+            </div>
+
+            <div class="settings-row">
+                <span class="settings-label">
+                    Profile visibility
+                </span>
+                <span class="settings-value">
+                    <span class="status-pill">
+                        {% if user.profile.is_public %}
+                            <i class="bi bi-globe2"></i>
+                            Public
+                        {% else %}
+                            <i class="bi bi-lock-fill"></i>
+                            Private
+                        {% endif %}
+                    </span>
+                </span>
+            </div>
+
+            <div class="settings-row">
+                <span class="settings-label">
+                    Authentication
+                </span>
+                <span class="settings-value">
+                    Django session
+                </span>
+            </div>
+
+            <div class="settings-actions">
+                <a class="settings-btn"
+                   href="{% url 'accounts:profile_edit' %}">
+                    <i class="bi bi-shield-check"></i>
+                    Change visibility
+                </a>
+            </div>
+        </section>
+
+        <section class="settings-card full">
+            <div class="settings-heading">
+                <span class="settings-icon">
+                    <i class="bi bi-key-fill"></i>
+                </span>
+                <h2>Security and account controls</h2>
+            </div>
+
+            <div class="settings-actions">
+                <a class="settings-btn" href="{% url 'accounts:password_reset' %}"><i class="bi bi-key"></i>Reset password</a>
+                <form method="post" action="{% url 'accounts:export_account_data' %}">{% csrf_token %}<button class="settings-btn" type="submit"><i class="bi bi-download"></i>Export my data</button></form>
+            </div>
+            <hr style="border-color:var(--border-subtle);margin:20px 0;">
+            <h3 style="font-size:.9rem;color:var(--error);">Delete account</h3>
+            <p>Deletion permanently removes your account, learning data, chats, and uploaded media.</p>
+            <form method="post" action="{% url 'accounts:delete_account' %}" data-confirm="Permanently delete this account?">
+                {% csrf_token %}
+                <input class="form-control mb-2" name="confirmation" required placeholder="Type your username">
+                <input class="form-control mb-2" name="password" type="password" required placeholder="Current password">
+                <button class="settings-btn" type="submit" style="color:var(--error);border-color:var(--error);"><i class="bi bi-trash"></i>Delete permanently</button>
+            </form>
+        </section>
+    </div>
+</div>
+{% endblock %}

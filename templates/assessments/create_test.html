@@ -4,664 +4,7 @@
 {% block title %}Create Test - CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: var(--bg-primary); }
-    
-    .ct-container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 24px;
-    }
-    
-    /* HERO - Beautiful gradient */
-    .ct-hero {
-        position: relative;
-        background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-        border: 1px solid var(--border-default);
-        border-radius: 16px;
-        padding: 28px 32px;
-        margin-bottom: 24px;
-        overflow: hidden;
-    }
-    
-    .ct-hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(236, 72, 153, 0.2), transparent 60%);
-        filter: blur(60px);
-        animation: heroGlow 6s ease-in-out infinite;
-    }
-    
-    .ct-hero::after {
-        content: '';
-        position: absolute;
-        bottom: -50%;
-        left: -5%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(168, 85, 247, 0.15), transparent 60%);
-        filter: blur(60px);
-        animation: heroGlow 8s ease-in-out infinite reverse;
-    }
-    
-    @keyframes heroGlow {
-        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
-        50% { transform: translate(30px, 20px) scale(1.1); opacity: 1; }
-    }
-    
-    .ct-hero-content {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-        justify-content: space-between;
-    }
-    
-    .ct-hero-left {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    
-    .ct-hero-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.5rem;
-        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.35);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .ct-hero-icon::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3));
-        animation: iconShine 3s ease-in-out infinite;
-    }
-    
-    @keyframes iconShine {
-        0%, 100% { transform: translateX(-100%); }
-        50% { transform: translateX(100%); }
-    }
-    
-    .ct-hero-eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        background: rgba(236, 72, 153, 0.15);
-        border: 1px solid rgba(236, 72, 153, 0.3);
-        border-radius: 999px;
-        color: #F472B6;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 4px;
-    }
-    
-    .ct-hero h1 {
-        font-family: 'Inter Tight', sans-serif;
-        font-size: 1.75rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        margin: 0 0 4px 0;
-        letter-spacing: -0.02em;
-        line-height: 1.1;
-    }
-    
-    .ct-hero h1 span {
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
-    .ct-hero p {
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        margin: 0;
-    }
-    
-    .btn-back {
-        padding: 10px 20px;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-default);
-        border-radius: 10px;
-        color: var(--text-primary);
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-    
-    .btn-back:hover {
-        background: var(--bg-tertiary);
-        border-color: #EC4899;
-        color: #EC4899;
-    }
-    
-    /* FORM CONTAINER */
-    .form-wrapper {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-default);
-        border-radius: 16px;
-        overflow: hidden;
-    }
-    
-    /* FORM SECTION */
-    .form-section {
-        padding: 24px;
-        border-bottom: 1px solid var(--border-subtle);
-    }
-    
-    .form-section:last-of-type {
-        border-bottom: none;
-    }
-    
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 16px;
-    }
-    
-    .section-number {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Inter Tight', sans-serif;
-        font-weight: 800;
-        font-size: 0.85rem;
-        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
-    }
-    
-    .section-title {
-        font-family: 'Inter Tight', sans-serif;
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        letter-spacing: -0.01em;
-        margin: 0;
-    }
-    
-    .section-subtitle {
-        color: var(--text-tertiary);
-        font-size: 0.8rem;
-        margin: 0 0 16px 0;
-    }
-    
-    /* TOPIC INPUT */
-    .topic-input-wrapper {
-        position: relative;
-        margin-bottom: 16px;
-    }
-    
-    .topic-input {
-        width: 100%;
-        padding: 14px 16px 14px 44px;
-        background: var(--bg-tertiary);
-        border: 2px solid var(--border-default);
-        border-radius: 10px;
-        color: var(--text-primary);
-        font-size: 1rem;
-        font-family: 'Inter', sans-serif;
-        transition: all 0.2s;
-    }
-    
-    .topic-input:focus {
-        outline: none;
-        border-color: #EC4899;
-        background: var(--bg-elevated);
-        box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
-    }
-    
-    .topic-input::placeholder {
-        color: var(--text-tertiary);
-    }
-    
-    .topic-input-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-tertiary);
-        font-size: 1.1rem;
-    }
-    
-    /* SUGGESTED TOPICS */
-    .suggested-topics {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    
-    .topic-chip {
-        padding: 6px 12px;
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-default);
-        border-radius: 999px;
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .topic-chip:hover {
-        background: rgba(236, 72, 153, 0.15);
-        border-color: #EC4899;
-        color: #EC4899;
-        transform: translateY(-1px);
-    }
-    
-    .topic-chip.trending::before {
-        content: '🔥';
-        font-size: 0.8rem;
-    }
-    
-    /* DIFFICULTY CARDS */
-    .difficulty-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-    }
-    
-    .difficulty-card {
-        padding: 20px 16px;
-        background: var(--bg-tertiary);
-        border: 2px solid var(--border-default);
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s;
-        position: relative;
-        overflow: hidden;
-        text-align: center;
-    }
-    
-    .difficulty-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 150px;
-        height: 150px;
-        background: radial-gradient(circle, var(--diff-color), transparent 60%);
-        filter: blur(40px);
-        opacity: 0;
-        transition: opacity 0.3s;
-        pointer-events: none;
-    }
-    
-    .difficulty-card:hover::before {
-        opacity: 0.3;
-    }
-    
-    .difficulty-card.easy { --diff-color: #10B981; }
-    .difficulty-card.medium { --diff-color: #F59E0B; }
-    .difficulty-card.hard { --diff-color: #EF4444; }
-    
-    .difficulty-card:hover {
-        border-color: var(--diff-color);
-        transform: translateY(-3px);
-    }
-    
-    .difficulty-card.selected {
-        border-color: var(--diff-color);
-        background: linear-gradient(135deg, var(--bg-tertiary), rgba(0,0,0,0.1));
-    }
-    
-    .difficulty-card.selected::before {
-        opacity: 0.4;
-    }
-    
-    .diff-emoji {
-        font-size: 2rem;
-        margin-bottom: 8px;
-        display: block;
-        position: relative;
-        z-index: 1;
-        transition: transform 0.3s;
-    }
-    
-    .difficulty-card:hover .diff-emoji {
-        transform: scale(1.15) rotate(-5deg);
-    }
-    
-    .diff-name {
-        font-family: 'Inter Tight', sans-serif;
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 4px;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .diff-desc {
-        color: var(--text-tertiary);
-        font-size: 0.7rem;
-        margin: 0;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .diff-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        padding: 3px 8px;
-        background: var(--diff-color);
-        color: white;
-        border-radius: 6px;
-        font-size: 0.65rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 8px;
-        position: relative;
-        z-index: 1;
-    }
-    
-    /* SETTINGS ROW */
-    .settings-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    
-    .setting-group {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    /* QUESTION COUNT */
-    .count-slider-wrapper {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-default);
-        border-radius: 10px;
-        padding: 16px;
-    }
-    
-    .count-display {
-        text-align: center;
-        margin-bottom: 12px;
-    }
-    
-    .count-value {
-        font-family: 'Inter Tight', sans-serif;
-        font-size: 2.25rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        line-height: 1;
-        margin-bottom: 4px;
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
-    .count-label {
-        font-size: 0.7rem;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 700;
-    }
-    
-    .count-slider {
-        width: 100%;
-        height: 6px;
-        background: var(--bg-elevated);
-        border-radius: 3px;
-        outline: none;
-        -webkit-appearance: none;
-        margin: 8px 0;
-    }
-    
-    .count-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 20px;
-        height: 20px;
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
-        transition: transform 0.2s;
-    }
-    
-    .count-slider::-webkit-slider-thumb:hover {
-        transform: scale(1.2);
-    }
-    
-    .count-slider::-moz-range-thumb {
-        width: 20px;
-        height: 20px;
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        border-radius: 50%;
-        cursor: pointer;
-        border: none;
-    }
-    
-    .count-range {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.7rem;
-        color: var(--text-tertiary);
-        font-weight: 600;
-    }
-    
-    /* TIME PRESETS */
-    .time-presets {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-    }
-    
-    .time-preset {
-        padding: 12px 10px;
-        background: var(--bg-tertiary);
-        border: 2px solid var(--border-default);
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-align: center;
-    }
-    
-    .time-preset:hover {
-        border-color: #A855F7;
-        transform: translateY(-2px);
-    }
-    
-    .time-preset.selected {
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15));
-        border-color: #A855F7;
-    }
-    
-    .time-preset-icon {
-        font-size: 1.25rem;
-        margin-bottom: 4px;
-    }
-    
-    .time-preset-value {
-        font-family: 'Inter Tight', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        line-height: 1;
-    }
-    
-    .time-preset-label {
-        font-size: 0.65rem;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 700;
-        margin-top: 2px;
-    }
-    
-    /* AI PREVIEW */
-    .ai-preview {
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(168, 85, 247, 0.08));
-        border: 1px solid rgba(236, 72, 153, 0.2);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .preview-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-    
-    .preview-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-    }
-    
-    .preview-title {
-        font-family: 'Inter Tight', sans-serif;
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-    
-    .preview-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-    }
-    
-    .preview-stat {
-        text-align: center;
-        padding: 10px;
-        background: var(--bg-tertiary);
-        border-radius: 8px;
-    }
-    
-    .preview-stat-value {
-        font-family: 'Inter Tight', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        line-height: 1;
-    }
-    
-    .preview-stat-label {
-        font-size: 0.65rem;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-top: 3px;
-        font-weight: 600;
-    }
-    
-    /* SUBMIT SECTION */
-    .submit-section {
-        padding: 24px;
-        background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
-        border-top: 1px solid var(--border-default);
-    }
-    
-    .btn-generate {
-        width: 100%;
-        padding: 16px 24px;
-        background: linear-gradient(135deg, #EC4899, #A855F7);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-family: 'Inter', sans-serif;
-        font-weight: 700;
-        font-size: 1rem;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        transition: all 0.3s;
-        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.35);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .btn-generate::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 60%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        transition: left 0.6s;
-    }
-    
-    .btn-generate:hover::before { left: 150%; }
-    
-    .btn-generate:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 32px rgba(236, 72, 153, 0.45);
-    }
-    
-    .btn-generate:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-    }
-    
-    .generate-info {
-        text-align: center;
-        margin-top: 12px;
-        font-size: 0.75rem;
-        color: var(--text-tertiary);
-    }
-    
-    .generate-info i {
-        color: #EC4899;
-    }
-    
-    /* Responsive */
-    @media (max-width: 640px) {
-        .ct-container { padding: 16px; }
-        .ct-hero { padding: 20px; }
-        .difficulty-grid { grid-template-columns: 1fr; }
-        .settings-row { grid-template-columns: 1fr; }
-        .time-presets { grid-template-columns: 1fr; }
-        .ct-hero-content { flex-direction: column; align-items: flex-start; }
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/assessments-create_test.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -691,7 +34,7 @@
     </div>
     
     <!-- FORM -->
-    <form method="post" class="form-wrapper" id="testForm">
+    <form method="post" class="form-wrapper" id="testForm" data-generate-endpoint="{% url 'assessments:generate' %}">
         {% csrf_token %}
         
         <!-- Section 1: Topic -->
@@ -711,14 +54,14 @@
             
             <p class="section-subtitle" style="margin-top: 12px;">💡 Popular topics right now:</p>
             <div class="suggested-topics">
-                <span class="topic-chip trending" onclick="setTopic('Python Basics')">Python Basics</span>
-                <span class="topic-chip trending" onclick="setTopic('Machine Learning')">Machine Learning</span>
-                <span class="topic-chip trending" onclick="setTopic('JavaScript ES6')">JavaScript ES6</span>
-                <span class="topic-chip" onclick="setTopic('Data Structures')">Data Structures</span>
-                <span class="topic-chip" onclick="setTopic('React Hooks')">React Hooks</span>
-                <span class="topic-chip" onclick="setTopic('SQL Queries')">SQL Queries</span>
-                <span class="topic-chip" onclick="setTopic('Docker Basics')">Docker Basics</span>
-                <span class="topic-chip" onclick="setTopic('Git Commands')">Git Commands</span>
+                <button type="button" class="topic-chip trending" data-test-topic="Python Basics">Python Basics</button>
+                <button type="button" class="topic-chip trending" data-test-topic="Machine Learning">Machine Learning</button>
+                <button type="button" class="topic-chip trending" data-test-topic="JavaScript ES6">JavaScript ES6</button>
+                <button type="button" class="topic-chip" data-test-topic="Data Structures">Data Structures</button>
+                <button type="button" class="topic-chip" data-test-topic="React Hooks">React Hooks</button>
+                <button type="button" class="topic-chip" data-test-topic="SQL Queries">SQL Queries</button>
+                <button type="button" class="topic-chip" data-test-topic="Docker Basics">Docker Basics</button>
+                <button type="button" class="topic-chip" data-test-topic="Git Commands">Git Commands</button>
             </div>
         </div>
         
@@ -731,21 +74,21 @@
             <p class="section-subtitle">How challenging should it be?</p>
             
             <div class="difficulty-grid">
-                <div class="difficulty-card easy selected" onclick="selectDifficulty('easy', this)">
+                <div class="difficulty-card easy selected" role="button" tabindex="0" data-test-difficulty="easy">
                     <span class="diff-emoji">🌱</span>
                     <div class="diff-name">Easy</div>
                     <p class="diff-desc">Perfect for beginners</p>
                     <div class="diff-badge">Beginner</div>
                 </div>
                 
-                <div class="difficulty-card medium" onclick="selectDifficulty('medium', this)">
+                <div class="difficulty-card medium" role="button" tabindex="0" data-test-difficulty="medium">
                     <span class="diff-emoji">⚡</span>
                     <div class="diff-name">Medium</div>
                     <p class="diff-desc">Balanced challenge</p>
                     <div class="diff-badge">Intermediate</div>
                 </div>
                 
-                <div class="difficulty-card hard" onclick="selectDifficulty('hard', this)">
+                <div class="difficulty-card hard" role="button" tabindex="0" data-test-difficulty="hard">
                     <span class="diff-emoji">🔥</span>
                     <div class="diff-name">Hard</div>
                     <p class="diff-desc">Test your expertise</p>
@@ -777,7 +120,7 @@
                         </div>
                         <input type="range" name="num_questions" id="countSlider" 
                                class="count-slider" min="5" max="30" value="10" step="5"
-                               oninput="updateCount(this.value)">
+                               data-question-count>
                         <div class="count-range">
                             <span>5</span>
                             <span>15</span>
@@ -792,17 +135,17 @@
                         Time Limit
                     </label>
                     <div class="time-presets">
-                        <div class="time-preset" onclick="selectTime(5, this)">
+                        <div class="time-preset" role="button" tabindex="0" data-test-time="5">
                             <div class="time-preset-icon">⚡</div>
                             <div class="time-preset-value">5</div>
                             <div class="time-preset-label">Quick</div>
                         </div>
-                        <div class="time-preset selected" onclick="selectTime(10, this)">
+                        <div class="time-preset selected" role="button" tabindex="0" data-test-time="10">
                             <div class="time-preset-icon">⏱️</div>
                             <div class="time-preset-value">10</div>
                             <div class="time-preset-label">Standard</div>
                         </div>
-                        <div class="time-preset" onclick="selectTime(20, this)">
+                        <div class="time-preset" role="button" tabindex="0" data-test-time="20">
                             <div class="time-preset-icon">🏃</div>
                             <div class="time-preset-value">20</div>
                             <div class="time-preset-label">Extended</div>
@@ -855,57 +198,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Set topic from chip
-    function setTopic(topic) {
-        document.getElementById('topicInput').value = topic;
-        document.getElementById('topicInput').focus();
-    }
-    
-    // Select difficulty
-    function selectDifficulty(diff, elem) {
-        document.querySelectorAll('.difficulty-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        elem.classList.add('selected');
-        document.getElementById('difficultyInput').value = diff;
-        updateXPPreview();
-    }
-    
-    // Select time preset
-    function selectTime(minutes, elem) {
-        document.querySelectorAll('.time-preset').forEach(p => {
-            p.classList.remove('selected');
-        });
-        elem.classList.add('selected');
-        document.getElementById('timeInput').value = minutes;
-        document.getElementById('previewTime').textContent = minutes + ' min';
-    }
-    
-    // Update question count
-    function updateCount(value) {
-        document.getElementById('countDisplay').textContent = value;
-        document.getElementById('previewQuestions').textContent = value;
-        updateXPPreview();
-    }
-    
-    // Update XP preview
-    function updateXPPreview() {
-        const questions = parseInt(document.getElementById('countSlider').value);
-        const difficulty = document.getElementById('difficultyInput').value;
-        const multiplier = { easy: 5, medium: 8, hard: 12 };
-        const xp = questions * (multiplier[difficulty] || 5);
-        document.getElementById('previewXP').textContent = '+' + xp + ' XP';
-    }
-    
-    // Form submit with loading
-    document.getElementById('testForm').addEventListener('submit', function(e) {
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split"></i><span>Generating with AI...</span>';
-    });
-    
-    // Initialize
-    updateXPPreview();
-</script>
+<script src="{% static 'js/pages/assessments-create_test.js' %}"></script>
 {% endblock %}

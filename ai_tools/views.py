@@ -1,12 +1,32 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
+from django.utils.html import escape
+from django.urls import reverse
+from django.core.paginator import Paginator
+from django.db.models import Count
 import json
+import logging
+from .api import (
+    choice_field,
+    integer_field,
+    json_error,
+    parse_json_object,
+    provider_error_response,
+    safe_api_errors,
+    text_field,
+)
+from .rendering import render_ai_markdown
+from .security import guard_ai_request, protect_ai_endpoint
 from .services import GeminiService
+from .uploads import normalize_uploaded_image
 from .models import ChatSession, ChatMessage
 from django.shortcuts import get_object_or_404
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -19,79 +39,98 @@ def ai_home(request):
 @login_required
 @require_POST
 @csrf_protect
+@protect_ai_endpoint(
+    "chat",
+    "AI_CHAT_BURST_LIMIT",
+)
+@safe_api_errors
 def chat_send(request):
-    """Send a message to AI Study Buddy"""
-    try:
-        data = json.loads(request.body)
-        message = data.get('message', '').strip()
-        session_id = data.get('session_id')
-        
-        if not message:
-            return JsonResponse({
-                'success': False,
-                'error': 'Message cannot be empty'
-            }, status=400)
-        
-        # Get or create session
-        if session_id:
-            try:
-                session = ChatSession.objects.get(id=session_id, user=request.user)
-            except ChatSession.DoesNotExist:
-                session = ChatSession.objects.create(user=request.user)
-        else:
-            session = ChatSession.objects.create(
+    """Validate and send one AI chat message."""
+    data = parse_json_object(request)
+
+    message = text_field(
+        data,
+        "message",
+        required=True,
+        min_length=1,
+        max_length=settings.AI_CHAT_MAX_CHARS,
+    )
+
+    session_id = integer_field(
+        data,
+        "session_id",
+        default=None,
+        minimum=1,
+    )
+
+    if session_id is not None:
+        try:
+            session = ChatSession.objects.get(
+                id=session_id,
                 user=request.user,
-                title=message[:50]  # Use first message as title
             )
-        
-        # Save user message
-        ChatMessage.objects.create(
-            session=session,
-            role='user',
-            content=message
-        )
-        
-        # Get chat history for context
-        history = list(session.messages.all().values('role', 'content'))
-        
-        # Get AI response
-        gemini = GeminiService()
-        result = gemini.chat(
-            message=message,
-            chat_history=history[:-1],  # Exclude current message
-            user_context=f"Username: {request.user.username}"
-        )
-        
-        if result['success']:
-            # Save AI response
-            ai_message = ChatMessage.objects.create(
-                session=session,
-                role='assistant',
-                content=result['response_text']
+        except ChatSession.DoesNotExist:
+            return json_error(
+                "SESSION_NOT_FOUND",
+                (
+                    "The requested chat session "
+                    "was not found."
+                ),
+                404,
             )
-            
-            return JsonResponse({
-                'success': True,
-                'session_id': session.id,
-                'response': result['response_html'],
-                'message_id': ai_message.id
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': result.get('error', 'Failed to get response')
-            }, status=500)
-    
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid request'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+    else:
+        session = ChatSession.objects.create(
+            user=request.user,
+            title=message[:50],
+        )
+
+    ChatMessage.objects.create(
+        session=session,
+        role="user",
+        content=message,
+    )
+
+    history = list(
+        session.messages
+        .order_by("-created_at")
+        .values(
+            "role",
+            "content",
+        )[:10]
+    )
+
+    history.reverse()
+
+    result = GeminiService().chat(
+        message=message,
+        chat_history=history[:-1],
+        user_context=(
+            f"Username: "
+            f"{request.user.username}"
+        ),
+    )
+
+    if not result.get("success"):
+        return provider_error_response(
+            logger,
+            "chat",
+            result.get("error"),
+        )
+
+    ai_message = ChatMessage.objects.create(
+        session=session,
+        role="assistant",
+        content=result["response_text"],
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "session_id": session.id,
+            "response": result["response_html"],
+            "message_id": ai_message.id,
+        }
+    )
 
 
 @login_required
@@ -123,15 +162,13 @@ def chat_get_session(request, session_id):
         session = ChatSession.objects.get(id=session_id, user=request.user)
         messages = session.messages.all()
         
-        import markdown as md
-        
         data = []
         for msg in messages:
-            content_html = msg.content
+            content_html = escape(msg.content)
+
             if msg.role == 'assistant':
-                content_html = md.markdown(
-                    msg.content,
-                    extensions=['fenced_code', 'tables', 'nl2br']
+                content_html = render_ai_markdown(
+                    msg.content
                 )
             data.append({
                 'id': msg.id,
@@ -185,76 +222,167 @@ def chat_new_session(request):
     })
 @login_required
 def image_analyzer(request):
-    """Image analyzer page - upload and analyze"""
-    from .models import ImageAnalysis
-    
-    if request.method == 'POST':
-        image_file = request.FILES.get('image')
-        analysis_type = request.POST.get('analysis_type', 'general')
-        user_question = request.POST.get('user_question', '').strip()
-        
-        if not image_file:
-            return JsonResponse({
-                'success': False,
-                'error': 'Please upload an image'
-            }, status=400)
-        
-        # Validate file size (5MB max)
-        if image_file.size > 5 * 1024 * 1024:
-            return JsonResponse({
-                'success': False,
-                'error': 'Image size must be less than 5MB'
-            }, status=400)
-        
-        # Save the analysis record
-        analysis = ImageAnalysis.objects.create(
-            user=request.user,
-            image=image_file,
-            analysis_type=analysis_type,
-            user_question=user_question
+    """Render or securely process image analysis."""
+    if request.method == "POST":
+        return _process_image_analysis(
+            request
         )
-        
-        # Analyze with AI
-        try:
-            gemini = GeminiService()
-            result = gemini.analyze_image(
+
+    return render(
+        request,
+        "ai_tools/image_analyzer.html",
+    )
+
+
+@safe_api_errors
+def _process_image_analysis(request):
+    from .models import ImageAnalysis
+
+    blocked = guard_ai_request(
+        request,
+        "image-analysis",
+        "AI_IMAGE_BURST_LIMIT",
+        feature_flag=(
+            "IMAGE_ANALYSIS_ENABLED"
+        ),
+    )
+
+    if blocked is not None:
+        return blocked
+
+    values = {
+        "analysis_type": request.POST.get(
+            "analysis_type",
+            "general",
+        ),
+        "user_question": request.POST.get(
+            "user_question",
+            "",
+        ),
+    }
+
+    analysis_type = choice_field(
+        values,
+        "analysis_type",
+        choices={
+            "general",
+            "code",
+            "math",
+            "handwritten",
+            "diagram",
+        },
+        default="general",
+    )
+
+    user_question = text_field(
+        values,
+        "user_question",
+        default="",
+        max_length=(
+            settings.AI_IMAGE_QUESTION_MAX_CHARS
+        ),
+    )
+
+    image_file = request.FILES.get(
+        "image"
+    )
+
+    if image_file is None:
+        return json_error(
+            "IMAGE_REQUIRED",
+            "Please upload an image.",
+            400,
+        )
+
+    normalized_image = normalize_uploaded_image(
+        image_file
+    )
+
+    analysis = ImageAnalysis.objects.create(
+        user=request.user,
+        image=normalized_image,
+        analysis_type=analysis_type,
+        user_question=user_question,
+    )
+
+    try:
+        result = (
+            GeminiService()
+            .analyze_image(
                 image_path=analysis.image.path,
                 analysis_type=analysis_type,
-                user_question=user_question
+                user_question=user_question,
             )
-            
-            if result['success']:
-                analysis.ai_analysis = result['analysis_html']
-                analysis.save()
-                
-                # Award XP
-                try:
-                    from progress.services import BadgeManager
-                    BadgeManager.add_xp(request.user, 15, "Image analyzed")
-                except:
-                    pass
-                
-                return JsonResponse({
-                    'success': True,
-                    'analysis_id': analysis.id,
-                    'analysis_html': result['analysis_html'],
-                    'redirect_url': f'/ai-tools/image/{analysis.id}/'
-                })
-            else:
-                analysis.delete()
-                return JsonResponse({
-                    'success': False,
-                    'error': result.get('error', 'AI analysis failed')
-                }, status=500)
-        
-        except Exception as e:
-            analysis.delete()
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            }, status=500)
-    
-    return render(request, 'ai_tools/image_analyzer.html')
+        )
+
+    except Exception:
+        analysis.image.delete(
+            save=False
+        )
+
+        analysis.delete()
+        raise
+
+    if not result.get("success"):
+        detail = result.get("error")
+
+        analysis.image.delete(
+            save=False
+        )
+
+        analysis.delete()
+
+        return provider_error_response(
+            logger,
+            "image-analysis",
+            detail,
+        )
+
+    analysis.ai_analysis = (
+        result["analysis_html"]
+    )
+
+    analysis.save(
+        update_fields=[
+            "ai_analysis"
+        ]
+    )
+
+    try:
+        from progress.services import BadgeManager
+
+        BadgeManager.add_xp(
+            request.user,
+            15,
+            "Image analyzed",
+            idempotency_key=f"image-analysis:{analysis.id}",
+            event_type="image-analysis",
+            source_object_type="image-analysis",
+            source_object_id=analysis.id,
+        )
+
+    except Exception:
+        logger.warning(
+            (
+                "XP update failed after "
+                "image analysis"
+            ),
+            exc_info=True,
+        )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "analysis_id": analysis.id,
+            "analysis_html": (
+                result["analysis_html"]
+            ),
+            "redirect_url": reverse(
+                "ai_tools:image_result",
+                args=[analysis.id],
+            ),
+        }
+    )
 
 
 @login_required
@@ -276,9 +404,12 @@ def image_history(request):
     
     analyses = ImageAnalysis.objects.filter(user=request.user).order_by('-created_at')
     
+    total_count = analyses.count()
+    page_obj = Paginator(analyses, 12).get_page(request.GET.get("page"))
     context = {
-        'analyses': analyses,
-        'total_count': analyses.count(),
+        "analyses": page_obj,
+        "page_obj": page_obj,
+        "total_count": total_count,
     }
     
     return render(request, 'ai_tools/image_history.html', context)
@@ -295,3 +426,18 @@ def image_delete(request, analysis_id):
     analysis.delete()
     
     return JsonResponse({'success': True})
+
+@login_required
+def chat_sessions_page(request):
+    """Render an owner-scoped UI for saved chat sessions."""
+    sessions = (
+        ChatSession.objects.filter(user=request.user)
+        .annotate(message_count=Count("messages"))
+        .order_by("-updated_at")
+    )
+    page_obj = Paginator(sessions, 20).get_page(request.GET.get("page"))
+    return render(
+        request,
+        "ai_tools/chat_sessions.html",
+        {"sessions": page_obj, "page_obj": page_obj},
+    )

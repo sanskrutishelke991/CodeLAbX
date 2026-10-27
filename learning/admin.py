@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Day, Roadmap
+
+admin.site.register(Roadmap)
+admin.site.register(Day)

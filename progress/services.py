@@ -2,10 +2,20 @@
 Progress tracking services
 """
 
-from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.models import User
-from .models import DailyActivity, UserStreak, Badge, UserBadge, UserLevel
+
+from django.db import transaction
+from django.db.models import Count, Q, Sum
+from django.utils import timezone
+
+from .models import (
+    Badge,
+    DailyActivity,
+    UserBadge,
+    UserLevel,
+    UserStreak,
+    XPTransaction,
+)
 
 
 class ActivityLogger:
@@ -14,7 +24,7 @@ class ActivityLogger:
     @staticmethod
     def log_day_completion(user, day):
         """Log when a user completes a day"""
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         # Get or create today's activity
         activity, created = DailyActivity.objects.get_or_create(
@@ -40,9 +50,15 @@ class ActivityLogger:
     
     @staticmethod
     def get_heatmap_data(user, days=365):
-        """Get heatmap data for last N days"""
-        today = timezone.now().date()
-        start_date = today - timedelta(days=days)
+        """Get heatmap data for a positive bounded day window."""
+        if (
+            isinstance(days, bool)
+            or not isinstance(days, int)
+            or not 1 <= days <= 3660
+        ):
+            raise ValueError("days must be an integer between 1 and 3660.")
+        today = timezone.localdate()
+        start_date = today - timedelta(days=days - 1)
         
         activities = DailyActivity.objects.filter(
             user=user,
@@ -71,8 +87,11 @@ class ActivityLogger:
         """Get comprehensive user statistics"""
         streak, _ = UserStreak.objects.get_or_create(user=user)
         
-        total_minutes = sum(
-            a.minutes_studied for a in DailyActivity.objects.filter(user=user)
+        total_minutes = (
+            DailyActivity.objects.filter(user=user).aggregate(
+                total=Sum("minutes_studied")
+            )["total"]
+            or 0
         )
         
         total_hours = round(total_minutes / 60, 1)
@@ -96,22 +115,63 @@ class BadgeManager:
         return level
     
     @staticmethod
-    def add_xp(user, amount, reason):
-        """Add XP to user and check for level up."""
-        level = BadgeManager.get_or_create_user_level(user)
+    @transaction.atomic
+    def add_xp(
+        user,
+        amount,
+        reason,
+        *,
+        idempotency_key,
+        event_type="activity",
+        source_object_type="",
+        source_object_id="",
+        metadata=None,
+    ):
+        """Atomically award XP once for a deterministic event key."""
+        if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+            raise ValueError("XP amount must be a positive integer.")
+        if not idempotency_key or len(idempotency_key) > 255:
+            raise ValueError("A valid XP idempotency key is required.")
+
+        xp_event, created = XPTransaction.objects.get_or_create(
+            user=user,
+            idempotency_key=idempotency_key,
+            defaults={
+                "amount": amount,
+                "reason": reason[:200],
+                "event_type": event_type[:50],
+                "source_object_type": source_object_type[:50],
+                "source_object_id": str(source_object_id)[:100],
+                "metadata": metadata or {},
+            },
+        )
+
+        level, _ = UserLevel.objects.get_or_create(user=user)
+        level = UserLevel.objects.select_for_update().get(pk=level.pk)
         old_level = level.current_level
+
+        if not created:
+            return {
+                "xp_added": 0,
+                "old_level": old_level,
+                "new_level": old_level,
+                "leveled_up": False,
+                "reason": reason,
+                "duplicate": True,
+                "transaction_id": xp_event.id,
+            }
+
         new_level = level.add_xp(amount)
-        
-        result = {
-            'xp_added': amount,
-            'old_level': old_level,
-            'new_level': new_level,
-            'leveled_up': new_level > old_level,
-            'reason': reason
+        return {
+            "xp_added": amount,
+            "old_level": old_level,
+            "new_level": new_level,
+            "leveled_up": new_level > old_level,
+            "reason": reason,
+            "duplicate": False,
+            "transaction_id": xp_event.id,
         }
-        
-        return result
-    
+
     @staticmethod
     def award_badge(user, badge_name):
         """Manually award a badge to a user."""
@@ -124,7 +184,15 @@ class BadgeManager:
             
             if created:
                 # Award XP for earning badge
-                BadgeManager.add_xp(user, badge.xp_reward, f"Earned badge: {badge.name}")
+                BadgeManager.add_xp(
+                    user,
+                    badge.xp_reward,
+                    f"Earned badge: {badge.name}",
+                    idempotency_key=f"badge:{badge.id}",
+                    event_type="badge-earned",
+                    source_object_type="badge",
+                    source_object_id=badge.id,
+                )
                 return {'success': True, 'badge': badge, 'new': True}
             else:
                 return {'success': True, 'badge': badge, 'new': False}
@@ -318,7 +386,6 @@ class BadgeManager:
     def get_badge_progress(user, badge):
         """Calculate progress percentage for a locked badge."""
         from learning.models import Roadmap, Day
-        from practice.models import CodeReview
         from assessments.models import TestAttempt
         
         requirement_type = badge.requirement_type
@@ -338,7 +405,17 @@ class BadgeManager:
         elif requirement_type == 'roadmaps_completed':
             current_value = Roadmap.objects.filter(user=user, status='completed').count()
         elif requirement_type == 'code_reviews':
-            current_value = CodeReview.objects.filter(user=user).count()
+            # CodeReview is introduced with the trusted
+            # activity ledger in Phase 3. Until then,
+            # safely report zero instead of crashing.
+            try:
+                from practice.models import CodeReview
+            except ImportError:
+                current_value = 0
+            else:
+                current_value = CodeReview.objects.filter(
+                    user=user
+                ).count()
         elif requirement_type == 'tests_taken':
             current_value = TestAttempt.objects.filter(user=user).count()
         elif requirement_type == 'tests_completed':
@@ -389,8 +466,8 @@ class AnalyticsService:
         from datetime import timedelta
         from django.utils import timezone
         
-        today = timezone.now().date()
-        start_date = today - timedelta(weeks=weeks)
+        today = timezone.localdate()
+        start_date = today - timedelta(days=(weeks * 7) - 1)
         
         activities = DailyActivity.objects.filter(
             user=user,
@@ -420,8 +497,13 @@ class AnalyticsService:
         """Get time spent per topic"""
         from learning.models import Roadmap
         
-        roadmaps = Roadmap.objects.filter(user=user)
-        
+        roadmaps = Roadmap.objects.filter(user=user).annotate(
+            completed_days_count=Count(
+                "days",
+                filter=Q(days__is_completed=True),
+            )
+        )
+
         topic_data = {}
         for roadmap in roadmaps:
             topic_name = roadmap.get_topic_display()
@@ -439,38 +521,29 @@ class AnalyticsService:
     
     @staticmethod
     def get_test_performance(user):
-        """Get test scores over time"""
-        try:
-            from assessments.models import Test
-            
-            tests = Test.objects.filter(
+        """Return the latest twenty completed, scoreable tests in time order."""
+        from assessments.models import Test
+
+        tests = list(
+            Test.objects.filter(
                 user=user,
-                status='completed'
-            ).order_by('completed_at')[:20]  # Last 20 tests
-            
-            labels = []
-            scores = []
-            for test in tests:
-                labels.append(test.completed_at.strftime('%b %d'))
-                if test.total_marks > 0:
-                    percentage = (test.score / test.total_marks) * 100
-                    scores.append(round(percentage, 1))
-                else:
-                    scores.append(0)
-            
-            return {
-                'labels': labels,
-                'data': scores
-            }
-        except Exception:
-            return {'labels': [], 'data': []}
+                status="completed",
+                completed_at__isnull=False,
+                score__isnull=False,
+            ).order_by("-completed_at")[:20]
+        )
+        tests.reverse()
+        return {
+            "labels": [test.completed_at.strftime("%b %d") for test in tests],
+            "data": [test.percentage for test in tests],
+        }
     
     @staticmethod
     def get_learning_stats(user):
         """Get comprehensive learning statistics"""
-        from learning.models import Roadmap, Day
-        from django.db.models import Sum, Count, Avg
-        
+        from assessments.models import Test
+        from learning.models import Day, Roadmap
+
         # Roadmaps
         total_roadmaps = Roadmap.objects.filter(user=user).count()
         active_roadmaps = Roadmap.objects.filter(user=user, status='active').count()
@@ -489,25 +562,23 @@ class AnalyticsService:
         # Streak
         streak, _ = UserStreak.objects.get_or_create(user=user)
         
-        # Tests
-        try:
-            from assessments.models import Test
-            total_tests = Test.objects.filter(user=user, status='completed').count()
-            avg_score = Test.objects.filter(user=user, status='completed').aggregate(
-                avg=Avg('score')
-            )['avg'] or 0
-        except:
-            total_tests = 0
-            avg_score = 0
-        
-        # Predictions
+        completed_tests = list(
+            Test.objects.filter(
+                user=user,
+                status="completed",
+                completed_at__isnull=False,
+                score__isnull=False,
+            )
+        )
+        percentages = [test.percentage for test in completed_tests]
+        total_tests = len(completed_tests)
+        avg_score = (
+            sum(percentages) / len(percentages)
+            if percentages
+            else 0
+        )
+
         avg_daily_minutes = total_minutes / max(total_activity_days, 1)
-        remaining_days = total_days - completed_days
-        estimated_days_to_finish = 0
-        if avg_daily_minutes > 0 and remaining_days > 0:
-            avg_daily_hours = avg_daily_minutes / 60
-            days_per_completion = 2  # Assume 2 hours per day
-            estimated_days_to_finish = int(remaining_days * (days_per_completion / max(avg_daily_hours, 1)))
         
         return {
             'total_roadmaps': total_roadmaps,
@@ -524,17 +595,20 @@ class AnalyticsService:
             'longest_streak': streak.longest_streak,
             'total_tests': total_tests,
             'avg_test_score': round(avg_score, 1),
-            'estimated_days_to_finish': estimated_days_to_finish,
         }
     
     @staticmethod
     def get_study_consistency(user, days=30):
-        """Calculate study consistency percentage"""
-        from datetime import timedelta
-        from django.utils import timezone
-        
-        today = timezone.now().date()
-        start_date = today - timedelta(days=days)
+        """Calculate bounded study consistency for a positive day window."""
+        if (
+            isinstance(days, bool)
+            or not isinstance(days, int)
+            or not 1 <= days <= 3660
+        ):
+            raise ValueError("days must be an integer between 1 and 3660.")
+
+        today = timezone.localdate()
+        start_date = today - timedelta(days=days - 1)
         
         active_days = DailyActivity.objects.filter(
             user=user,

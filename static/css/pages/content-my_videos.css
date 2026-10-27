@@ -1,0 +1,68 @@
+/* Extracted page styles: content-my_videos.css */
+body { background: #0A0A0A; color: #e0e0e0; }
+
+    .header-card {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 30px;
+        color: white;
+        margin-bottom: 25px;
+    }
+
+    .tab-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: 1px solid var(--border-default);
+        color: #e0e0e0;
+        padding: 10px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+        background: rgba(20, 184, 166, 0.2);
+        border-color: #14B8A6;
+        color: white;
+    }
+
+    .video-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.3s;
+    }
+
+    .video-card:hover {
+        transform: translateY(-3px);
+        border-color: #14B8A6;
+        color: inherit;
+    }
+
+    .video-thumbnail {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+    }
+
+    .video-body { padding: 15px; }
+    .video-title { color: white; font-weight: 600; margin-bottom: 8px; }
+    .video-meta { color: #a0a0a0; font-size: 0.85rem; }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #a0a0a0;
+    }
+
+    .empty-state i { font-size: 5rem; color: #14B8A6; opacity: 0.4; }

@@ -1,510 +1,379 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{{ profile_user.username }} - Profile - CodeLabX{% endblock %}
+{% block title %}{{ profile_user.username }} — Profile | CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: #0A0A0A; color: #e0e0e0; }
-    
-    .profile-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 30px;
-        margin-bottom: 20px;
-    }
-    
-    .avatar-large {
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        margin: 0 auto 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 5rem;
-        font-weight: 700;
-        color: white;
-        background: var(--accent);
-        overflow: hidden;
-        border: 4px solid rgba(20, 184, 166, 0.3);
-        box-shadow: 0 10px 40px rgba(20, 184, 166, 0.3);
-    }
-    
-    .avatar-large img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .profile-name {
-        color: white;
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-    
-    .profile-username {
-        color: #a0a0a0;
-        margin-bottom: 15px;
-    }
-    
-    .profile-location {
-        color: #14B8A6;
-        margin-bottom: 15px;
-    }
-    
-    .profile-bio {
-        color: #e0e0e0;
-        line-height: 1.6;
-        margin-bottom: 20px;
-    }
-    
-    .social-links {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-    
-    .social-link {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(20, 184, 166, 0.15);
-        color: #14B8A6;
-        text-decoration: none;
-        font-size: 1.2rem;
-        transition: all 0.3s;
-    }
-    
-    .social-link:hover {
-        background: #14B8A6;
-        color: white;
-        transform: translateY(-3px);
-    }
-    
-    .btn-edit-profile {
-        background: var(--accent);
-        border: none;
-        color: white;
-        padding: 12px 30px;
-        border-radius: 10px;
-        font-weight: 600;
-        width: 100%;
-        text-decoration: none;
-        display: inline-block;
-        text-align: center;
-        margin-bottom: 15px;
-    }
-    
-    .btn-edit-profile:hover {
-        transform: translateY(-2px);
-        color: white;
-        box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
-    }
-    
-    .share-link-box {
-        background: rgba(0, 212, 170, 0.1);
-        border: 1px solid rgba(0, 212, 170, 0.3);
-        border-radius: 8px;
-        padding: 10px;
-        text-align: center;
-        margin-top: 15px;
-    }
-    
-    .share-link-box small {
-        color: #a0a0a0;
-        display: block;
-        margin-bottom: 5px;
-    }
-    
-    .share-link-box code {
-        color: #00D4AA;
-        font-size: 0.85rem;
-        cursor: pointer;
-    }
-    
-    /* Stats Grid */
-    .stat-mini {
-        background: var(--bg-secondary);
-        border: 1px solid rgba(20, 184, 166, 0.15);
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        transition: all 0.3s;
-    }
-    
-    .stat-mini:hover {
-        border-color: #14B8A6;
-        transform: translateY(-3px);
-    }
-    
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 5px;
-    }
-    
-    .stat-label {
-        color: #a0a0a0;
-        font-size: 0.85rem;
-    }
-    
-    .stat-icon {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-        display: block;
-    }
-    
-    /* Section */
-    .section-title {
-        color: white;
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-    }
-    
-    /* Skills */
-    .skills-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .skill-tag {
-        padding: 8px 18px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        font-size: 0.9rem;
-        display: inline-block;
-    }
-    
-    /* Badges */
-    .badge-mini {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-default);
-        border-radius: 12px;
-        padding: 15px;
-        text-align: center;
-        transition: all 0.3s;
-    }
-    
-    .badge-mini:hover {
-        transform: translateY(-3px);
-        border-color: #14B8A6;
-        box-shadow: 0 10px 25px rgba(20, 184, 166, 0.3);
-    }
-    
-    .badge-mini-icon {
-        font-size: 2.5rem;
-        margin-bottom: 8px;
-    }
-    
-    .badge-mini-name {
-        color: white;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    
-    /* Roadmap Cards */
-    .roadmap-mini {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 12px;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        transition: all 0.3s;
-    }
-    
-    .roadmap-mini:hover {
-        border-color: #14B8A6;
-        transform: translateX(5px);
-        color: inherit;
-    }
-    
-    .progress-mini {
-        height: 6px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-        overflow: hidden;
-        margin-top: 8px;
-    }
-    
-    .progress-mini-bar {
-        height: 100%;
-        background: linear-gradient(90deg, #14B8A6, #00D4AA);
-        border-radius: 3px;
-    }
-    
-    /* Level Progress */
-    .level-display {
-        text-align: center;
-    }
-    
-    .level-number {
-        font-size: 3rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #14B8A6, #00D4AA);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
-    .xp-bar {
-        height: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 5px;
-        overflow: hidden;
-        margin-top: 10px;
-    }
-    
-    .xp-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #14B8A6, #00D4AA);
-        border-radius: 5px;
-    }
-    
-    .empty-mini {
-        text-align: center;
-        padding: 20px;
-        color: #a0a0a0;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/accounts-profile.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- LEFT SIDEBAR -->
-    <div class="col-lg-4 mb-4">
-        <div class="profile-card text-center">
-            <div class="avatar-large">
-                {% if profile.avatar_url %}
-                    <img src="{{ profile.avatar_url }}" alt="{{ profile_user.username }}">
+<div class="profile-page">
+    <section class="profile-hero" aria-labelledby="profileName">
+        <div class="profile-cover">
+            <span class="cover-kicker">
+                <i class="bi bi-code-square"></i>
+                CodeLabX learner profile
+            </span>
+            <span class="privacy-pill">
+                {% if profile.is_public %}
+                    <i class="bi bi-globe2"></i> Public profile
                 {% else %}
-                    {{ profile.initials }}
+                    <i class="bi bi-lock-fill"></i> Private profile
                 {% endif %}
-            </div>
-            
-            <h3 class="profile-name">{{ profile_user.username }}</h3>
-            <p class="profile-username">@{{ profile_user.username }}</p>
-            
-            {% if profile.location %}
-            <p class="profile-location">
-                <i class="bi bi-geo-alt-fill me-1"></i>{{ profile.location }}
-            </p>
-            {% endif %}
-            
-            {% if profile.bio %}
-            <p class="profile-bio">{{ profile.bio }}</p>
-            {% endif %}
-            
-            <!-- Social Links -->
-            {% if profile.github_url or profile.linkedin_url or profile.twitter_url or profile.website_url %}
-            <div class="social-links">
-                {% if profile.github_url %}
-                <a href="{{ profile.github_url }}" target="_blank" class="social-link" title="GitHub">
-                    <i class="bi bi-github"></i>
-                </a>
-                {% endif %}
-                {% if profile.linkedin_url %}
-                <a href="{{ profile.linkedin_url }}" target="_blank" class="social-link" title="LinkedIn">
-                    <i class="bi bi-linkedin"></i>
-                </a>
-                {% endif %}
-                {% if profile.twitter_url %}
-                <a href="{{ profile.twitter_url }}" target="_blank" class="social-link" title="Twitter">
-                    <i class="bi bi-twitter"></i>
-                </a>
-                {% endif %}
-                {% if profile.website_url %}
-                <a href="{{ profile.website_url }}" target="_blank" class="social-link" title="Website">
-                    <i class="bi bi-globe"></i>
-                </a>
-                {% endif %}
-            </div>
-            {% endif %}
-            
-            {% if is_own_profile %}
-                <a href="{% url 'accounts:profile_edit' %}" class="btn-edit-profile">
-                    <i class="bi bi-pencil me-2"></i>Edit Profile
-                </a>
-                
-                <div class="share-link-box">
-                    <small>Share your profile:</small>
-                    <code onclick="copyLink()" id="shareLink">/user/{{ profile_user.username }}/</code>
-                </div>
-            {% endif %}
+            </span>
         </div>
-    </div>
-    
-    <!-- MAIN CONTENT -->
-    <div class="col-lg-8">
-        
-        <!-- Stats Grid -->
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-md-3">
-                <div class="stat-mini">
-                    <span class="stat-icon">⚡</span>
-                    <div class="stat-value">{{ level.current_level|default:1 }}</div>
-                    <div class="stat-label">Level</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-mini">
-                    <span class="stat-icon">🎯</span>
-                    <div class="stat-value">{{ level.total_xp_earned|default:0 }}</div>
-                    <div class="stat-label">Total XP</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-mini">
-                    <span class="stat-icon">🏆</span>
-                    <div class="stat-value">{{ total_badges|default:0 }}</div>
-                    <div class="stat-label">Badges</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-mini">
-                    <span class="stat-icon">🔥</span>
-                    <div class="stat-value">{{ streak.current_streak|default:0 }}</div>
-                    <div class="stat-label">Streak</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Level Card -->
-        {% if level %}
-        <div class="profile-card">
-            <div class="level-display">
-                <div style="color: #a0a0a0; font-size: 0.9rem;">CURRENT LEVEL</div>
-                <div class="level-number">{{ level.current_level }}</div>
-                <div style="color: white; font-weight: 600;">{{ level.current_xp }} / {{ level.xp_for_next_level }} XP</div>
-                <div class="xp-bar">
-                    <div class="xp-bar-fill" style="width: {{ level.level_progress_percentage }}%"></div>
-                </div>
-                <small style="color: #a0a0a0;">{{ level.xp_for_next_level|add:"-"|add:level.current_xp }} XP to next level</small>
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Skills -->
-        {% if profile.skills %}
-        <div class="profile-card">
-            <h4 class="section-title">
-                <i class="bi bi-tools me-2" style="color: #14B8A6;"></i>Skills & Technologies
-            </h4>
-            <div class="skills-grid">
-                {% for skill in profile.skills %}
-                    <span class="skill-tag" style="background: {{ profile.get_skill_color|default:'#14B8A6' }};">
-                        {{ skill }}
-                    </span>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Learning Goals -->
-        {% if profile.learning_goals %}
-        <div class="profile-card">
-            <h4 class="section-title">
-                <i class="bi bi-bullseye me-2" style="color: #00D4AA;"></i>Learning Goals
-            </h4>
-            <p style="color: #e0e0e0; line-height: 1.7;">{{ profile.learning_goals|linebreaks }}</p>
-        </div>
-        {% endif %}
-        
-        <!-- Active Roadmaps -->
-        <div class="profile-card">
-            <h4 class="section-title">
-                <i class="bi bi-map me-2" style="color: #14B8A6;"></i>Current Learning Paths
-            </h4>
-            {% if active_roadmaps %}
-                {% for roadmap in active_roadmaps %}
-                <a href="{% url 'learning:roadmap_detail' roadmap.id %}" class="roadmap-mini">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <strong style="color: white;">
-                                {% if roadmap.topic == 'ML' %}🤖{% else %}💻{% endif %}
-                                {{ roadmap.title }}
-                            </strong>
-                            <br>
-                            <small style="color: #a0a0a0;">
-                                Day {{ roadmap.completed_days }}/{{ roadmap.total_days }} • {{ roadmap.get_level_display }}
-                            </small>
-                        </div>
-                        <span style="color: #00D4AA; font-weight: 600;">{{ roadmap.progress_percentage }}%</span>
-                    </div>
-                    <div class="progress-mini">
-                        <div class="progress-mini-bar" style="width: {{ roadmap.progress_percentage }}%"></div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                <div class="empty-mini">
-                    <i class="bi bi-map" style="font-size: 3rem; color: #14B8A6; opacity: 0.5;"></i>
-                    <p>No active roadmaps yet</p>
-                    {% if is_own_profile %}
-                        <a href="{% url 'learning:roadmap_create' %}" class="btn btn-sm btn-outline-light">Create One</a>
+
+        <div class="profile-hero-body">
+            <div class="profile-avatar-wrap">
+                <div class="profile-avatar">
+                    {% if profile.avatar_url %}
+                        <img src="{{ profile.avatar_url }}"
+                             alt="{{ profile_user.username }}'s profile picture">
+                    {% else %}
+                        <span aria-hidden="true">{{ profile.initials }}</span>
                     {% endif %}
                 </div>
-            {% endif %}
-        </div>
-        
-        <!-- Recent Badges -->
-        <div class="profile-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="section-title mb-0">
-                    <i class="bi bi-trophy me-2" style="color: #f59e0b;"></i>Latest Achievements
-                </h4>
-                {% if is_own_profile %}
-                <a href="{% url 'progress:achievements' %}" class="btn btn-sm btn-outline-light">View All</a>
+                <span class="profile-presence" title="Active learner"></span>
+            </div>
+
+            <div class="profile-identity">
+                <div class="profile-name-row">
+                    <h1 class="profile-name" id="profileName">
+                        {{ profile_user.get_full_name|default:profile_user.username }}
+                    </h1>
+                    <span class="level-chip">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                        Level {{ level_number }}
+                    </span>
+                </div>
+                <div class="profile-handle">@{{ profile_user.username }}</div>
+
+                {% if profile.bio %}
+                    <p class="profile-bio">{{ profile.bio }}</p>
+                {% elif is_own_profile %}
+                    <p class="profile-bio">Add a short bio to tell other learners what you are building and learning.</p>
+                {% endif %}
+
+                <div class="profile-meta">
+                    {% if profile.location %}
+                        <span><i class="bi bi-geo-alt-fill"></i>{{ profile.location }}</span>
+                    {% endif %}
+                    <span><i class="bi bi-calendar3"></i>Joined {{ profile_user.date_joined|date:"M Y" }}</span>
+                    <span><i class="bi bi-diagram-3-fill"></i>{{ stats.active_roadmaps }} active path{{ stats.active_roadmaps|pluralize }}</span>
+                </div>
+
+                {% if profile.github_url or profile.linkedin_url or profile.twitter_url or profile.website_url %}
+                    <div class="profile-socials" aria-label="Social links">
+                        {% if profile.github_url %}
+                            <a class="social-link" href="{{ profile.github_url }}" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile">
+                                <i class="bi bi-github"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.linkedin_url %}
+                            <a class="social-link" href="{{ profile.linkedin_url }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.twitter_url %}
+                            <a class="social-link" href="{{ profile.twitter_url }}" target="_blank" rel="noopener noreferrer" aria-label="Twitter profile">
+                                <i class="bi bi-twitter-x"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.website_url %}
+                            <a class="social-link" href="{{ profile.website_url }}" target="_blank" rel="noopener noreferrer" aria-label="Personal website">
+                                <i class="bi bi-link-45deg"></i>
+                            </a>
+                        {% endif %}
+                    </div>
                 {% endif %}
             </div>
-            
-            {% if recent_badges %}
-                <div class="row g-3">
-                    {% for user_badge in recent_badges %}
-                    <div class="col-6 col-md-4">
-                        <div class="badge-mini">
-                            <div class="badge-mini-icon">{{ user_badge.badge.icon }}</div>
-                            <div class="badge-mini-name">{{ user_badge.badge.name }}</div>
+
+            <div>
+                <div class="profile-actions">
+                    {% if is_own_profile %}
+                        <a class="profile-action primary" href="{% url 'accounts:profile_edit' %}">
+                            <i class="bi bi-pencil-square"></i>
+                            Edit profile
+                        </a>
+                    {% endif %}
+                    <button class="profile-action"
+                            type="button"
+                            id="shareProfileButton"
+                            data-profile-url="{{ profile_url }}"
+                            data-share-title="{{ profile_user.username }} on CodeLabX">
+                        <i class="bi bi-share"></i>
+                        <span id="shareButtonLabel">Share</span>
+                    </button>
+                </div>
+                <div class="copy-feedback" id="copyFeedback" role="status" aria-live="polite"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="profile-metrics" aria-label="Profile statistics">
+        <article class="metric-card">
+            <div class="metric-icon"><i class="bi bi-layers-fill"></i></div>
+            <div>
+                <div class="metric-value">{{ level_number }}</div>
+                <div class="metric-label">Current level</div>
+            </div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div>
+                <div class="metric-value">{{ total_xp }}</div>
+                <div class="metric-label">Total XP</div>
+            </div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon"><i class="bi bi-award-fill"></i></div>
+            <div>
+                <div class="metric-value">{{ total_badges }}</div>
+                <div class="metric-label">Badges earned</div>
+            </div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-icon"><i class="bi bi-fire"></i></div>
+            <div>
+                <div class="metric-value">{{ current_streak }}</div>
+                <div class="metric-label">Day streak</div>
+            </div>
+        </article>
+    </section>
+
+    <div class="profile-layout">
+        <main class="profile-column">
+            <section class="profile-panel level-panel" aria-labelledby="levelProgressTitle">
+                <div class="level-summary">
+                    <div class="level-number" aria-hidden="true">{{ level_number }}</div>
+                    <div>
+                        <div class="level-name" id="levelProgressTitle">Level {{ level_number }} progress</div>
+                        <div class="level-copy">Keep learning to unlock your next level.</div>
+                    </div>
+                    <div class="level-xp">{{ current_xp }} / {{ next_level_xp }} XP</div>
+                </div>
+                <div class="progress-track"
+                     role="progressbar"
+                     aria-label="Level progress"
+                     aria-valuemin="0"
+                     aria-valuemax="100"
+                     aria-valuenow="{{ level_progress }}">
+                    <div class="progress-fill" style="--progress: {{ level_progress }}%"></div>
+                </div>
+                <div class="progress-meta">
+                    <span>{{ level_progress }}% complete</span>
+                    <span>{{ xp_to_next_level }} XP needed</span>
+                </div>
+            </section>
+
+            <section class="profile-panel" aria-labelledby="learningTitle">
+                <div class="panel-heading">
+                    <div class="panel-title-wrap">
+                        <span class="panel-title-icon"><i class="bi bi-map-fill"></i></span>
+                        <div>
+                            <h2 class="panel-title" id="learningTitle">Current learning</h2>
+                            <div class="panel-subtitle">Active paths and recent progress</div>
                         </div>
                     </div>
-                    {% endfor %}
+                    {% if is_own_profile %}
+                        <a class="panel-link" href="{% url 'learning:roadmaps' %}">View all <i class="bi bi-arrow-right"></i></a>
+                    {% endif %}
                 </div>
-            {% else %}
-                <div class="empty-mini">
-                    <i class="bi bi-trophy" style="font-size: 3rem; color: #f59e0b; opacity: 0.5;"></i>
-                    <p>No badges earned yet</p>
+
+                {% if active_roadmaps %}
+                    <div class="roadmap-list">
+                        {% for roadmap in active_roadmaps %}
+                            <a class="roadmap-item" href="{% url 'learning:roadmap_detail' roadmap.id %}">
+                                <span class="roadmap-icon">
+                                    {% if roadmap.topic == 'ML' %}
+                                        <i class="bi bi-cpu-fill"></i>
+                                    {% elif roadmap.topic == 'DSA' %}
+                                        <i class="bi bi-diagram-3-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-code-slash"></i>
+                                    {% endif %}
+                                </span>
+                                <span class="roadmap-main">
+                                    <span class="roadmap-topline">
+                                        <span class="roadmap-title">{{ roadmap.title }}</span>
+                                        <span class="roadmap-percent">{{ roadmap.profile_progress }}%</span>
+                                    </span>
+                                    <span class="roadmap-meta">
+                                        <span>{{ roadmap.get_level_display }}</span>
+                                        <span>{{ roadmap.profile_completed_days }}/{{ roadmap.total_days }} days</span>
+                                        <span>{{ roadmap.profile_remaining_days }} remaining</span>
+                                    </span>
+                                    <span class="roadmap-progress" aria-hidden="true">
+                                        <span style="--progress: {{ roadmap.profile_progress }}%"></span>
+                                    </span>
+                                </span>
+                                <span class="roadmap-open"><i class="bi bi-arrow-up-right"></i></span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="profile-empty">
+                        <i class="bi bi-map"></i>
+                        <strong>No active learning path yet</strong>
+                        <span>A focused roadmap will appear here once learning begins.</span>
+                        {% if is_own_profile %}
+                            <a class="empty-cta" href="{% url 'learning:roadmap_create' %}">
+                                Create a learning path <i class="bi bi-arrow-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="profile-panel" aria-labelledby="achievementsTitle">
+                <div class="panel-heading">
+                    <div class="panel-title-wrap">
+                        <span class="panel-title-icon"><i class="bi bi-trophy-fill"></i></span>
+                        <div>
+                            <h2 class="panel-title" id="achievementsTitle">Recent achievements</h2>
+                            <div class="panel-subtitle">Latest milestones unlocked</div>
+                        </div>
+                    </div>
+                    {% if is_own_profile %}
+                        <a class="panel-link" href="{% url 'progress:achievements' %}">All badges <i class="bi bi-arrow-right"></i></a>
+                    {% endif %}
                 </div>
+
+                {% if recent_badges %}
+                    <div class="badge-grid">
+                        {% for user_badge in recent_badges %}
+                            <article class="achievement-item" title="{{ user_badge.badge.description }}">
+                                <div class="achievement-icon" aria-hidden="true">{{ user_badge.badge.icon }}</div>
+                                <div class="achievement-name">{{ user_badge.badge.name }}</div>
+                                <div class="achievement-date">{{ user_badge.earned_at|date:"M d, Y" }}</div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="profile-empty">
+                        <i class="bi bi-award"></i>
+                        <strong>No badges earned yet</strong>
+                        <span>Complete learning activities to unlock achievements.</span>
+                    </div>
+                {% endif %}
+            </section>
+        </main>
+
+        <aside class="profile-column">
+            {% if is_own_profile %}
+                <section class="profile-panel" aria-labelledby="completionTitle">
+                    <div class="panel-heading">
+                        <div class="panel-title-wrap">
+                            <span class="panel-title-icon"><i class="bi bi-person-check-fill"></i></span>
+                            <div>
+                                <h2 class="panel-title" id="completionTitle">Profile strength</h2>
+                                <div class="panel-subtitle">Make your learner identity complete</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="completion-ring-row">
+                        <div class="completion-ring" style="--value: {{ profile_completion }}">
+                            <strong>{{ profile_completion }}%</strong>
+                        </div>
+                        <div>
+                            <div class="completion-title">
+                                {% if profile_completion == 100 %}Profile complete{% else %}Keep building your profile{% endif %}
+                            </div>
+                            <div class="completion-copy">Add a bio, location, skills, goals, avatar, and a social link.</div>
+                        </div>
+                    </div>
+                </section>
             {% endif %}
-        </div>
-        
+
+            <section class="profile-panel" aria-labelledby="skillsTitle">
+                <div class="panel-heading">
+                    <div class="panel-title-wrap">
+                        <span class="panel-title-icon"><i class="bi bi-braces"></i></span>
+                        <div>
+                            <h2 class="panel-title" id="skillsTitle">Skills & technologies</h2>
+                            <div class="panel-subtitle">Current toolkit</div>
+                        </div>
+                    </div>
+                </div>
+                {% if profile.skills %}
+                    <div class="skill-list">
+                        {% for skill in profile.skills %}
+                            <span class="skill-pill"><span class="skill-dot"></span>{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="profile-empty">
+                        <i class="bi bi-terminal"></i>
+                        <strong>No skills added</strong>
+                        {% if is_own_profile %}<span>Add technologies from Edit profile.</span>{% endif %}
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="profile-panel" aria-labelledby="goalsTitle">
+                <div class="panel-heading">
+                    <div class="panel-title-wrap">
+                        <span class="panel-title-icon"><i class="bi bi-bullseye"></i></span>
+                        <div>
+                            <h2 class="panel-title" id="goalsTitle">Learning goals</h2>
+                            <div class="panel-subtitle">What comes next</div>
+                        </div>
+                    </div>
+                </div>
+                {% if profile.learning_goals %}
+                    <p class="goals-copy">{{ profile.learning_goals }}</p>
+                {% else %}
+                    <div class="profile-empty">
+                        <i class="bi bi-flag"></i>
+                        <strong>No goal shared yet</strong>
+                        {% if is_own_profile %}<span>Add a goal to stay focused.</span>{% endif %}
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="profile-panel" aria-labelledby="activityTitle">
+                <div class="panel-heading">
+                    <div class="panel-title-wrap">
+                        <span class="panel-title-icon"><i class="bi bi-activity"></i></span>
+                        <div>
+                            <h2 class="panel-title" id="activityTitle">Activity snapshot</h2>
+                            <div class="panel-subtitle">Real learning totals</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity-grid">
+                    <div class="activity-cell">
+                        <div class="activity-value">{{ stats.days_completed }}</div>
+                        <div class="activity-label">Days completed</div>
+                    </div>
+                    <div class="activity-cell">
+                        <div class="activity-value">{{ stats.hours_studied }}h</div>
+                        <div class="activity-label">Study time</div>
+                    </div>
+                    <div class="activity-cell">
+                        <div class="activity-value">{{ stats.tests_completed }}</div>
+                        <div class="activity-label">Tests finished</div>
+                    </div>
+                    <div class="activity-cell">
+                        <div class="activity-value">{{ stats.challenges_completed }}</div>
+                        <div class="activity-label">Challenges</div>
+                    </div>
+                    <div class="activity-cell">
+                        <div class="activity-value">{{ stats.videos_watched }}</div>
+                        <div class="activity-label">Videos watched</div>
+                    </div>
+                    <div class="activity-cell">
+                        <div class="activity-value">{{ longest_streak }}</div>
+                        <div class="activity-label">Best streak</div>
+                    </div>
+                </div>
+            </section>
+        </aside>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function copyLink() {
-    const link = window.location.origin + '/accounts/user/{{ profile_user.username }}/';
-    navigator.clipboard.writeText(link).then(() => {
-        const codeEl = document.getElementById('shareLink');
-        const original = codeEl.textContent;
-        codeEl.textContent = '✓ Copied!';
-        setTimeout(() => codeEl.textContent = original, 2000);
-    });
-}
-</script>
+<script src="{% static 'js/pages/accounts-profile.js' %}"></script>
 {% endblock %}

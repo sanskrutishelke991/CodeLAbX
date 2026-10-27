@@ -1,3 +1,5 @@
+from datetime import timedelta
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -5,9 +7,26 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.utils import timezone
+from django.db import transaction
+from django.core.paginator import Paginator
+from django.urls import reverse
 import json
+import logging
 from .models import Test, TestAttempt
+from ai_tools.api import (
+    APIRequestError,
+    choice_field,
+    integer_field,
+    json_error,
+    parse_json_object,
+    provider_error_response,
+    safe_api_errors,
+    text_field,
+)
+from ai_tools.security import protect_ai_endpoint
 from ai_tools.services import GeminiService
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -90,8 +109,11 @@ def quiz_list(request):
     
     total_hours = round(total_time_seconds / 3600, 1)
     
+    page_obj = Paginator(tests, 12).get_page(request.GET.get('page'))
+
     context = {
-        'tests': tests,
+        'tests': page_obj,
+        'page_obj': page_obj,
         'total_tests': total_tests,
         'completed_tests': completed_tests,
         'in_progress': in_progress,
@@ -120,173 +142,489 @@ def create_test(request):
     return render(request, 'assessments/create_test.html')
 
 
+
+def _validate_generated_questions(value):
+    if (
+        not isinstance(value, list)
+        or not value
+        or len(value) > 30
+    ):
+        raise APIRequestError(
+            "AI_INVALID_RESPONSE",
+            (
+                "The AI returned an invalid "
+                "question set."
+            ),
+            502,
+        )
+
+    validated = []
+
+    for item in value:
+        if not isinstance(item, dict):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "question set."
+                ),
+                502,
+            )
+
+        question = item.get("question")
+        options = item.get("options")
+        correct = item.get("correct")
+        explanation = item.get(
+            "explanation",
+            "",
+        )
+
+        if (
+            not isinstance(question, str)
+            or not question.strip()
+            or len(question) > 1000
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "question."
+                ),
+                502,
+            )
+
+        if (
+            not isinstance(options, list)
+            or not 2 <= len(options) <= 6
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned invalid "
+                    "answer options."
+                ),
+                502,
+            )
+
+        if any(
+            not isinstance(option, str)
+            or not option.strip()
+            or len(option) > 500
+            for option in options
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned invalid "
+                    "answer options."
+                ),
+                502,
+            )
+
+        if (
+            isinstance(correct, bool)
+            or not isinstance(correct, int)
+            or not 0 <= correct < len(options)
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "answer key."
+                ),
+                502,
+            )
+
+        if (
+            not isinstance(explanation, str)
+            or len(explanation) > 2000
+        ):
+            raise APIRequestError(
+                "AI_INVALID_RESPONSE",
+                (
+                    "The AI returned an invalid "
+                    "explanation."
+                ),
+                502,
+            )
+
+        validated.append(
+            {
+                "question": question.strip(),
+                "options": [
+                    option.strip()
+                    for option in options
+                ],
+                "correct": correct,
+                "explanation": (
+                    explanation.strip()
+                ),
+            }
+        )
+
+    return validated
+
+
 @login_required
 @require_POST
 @csrf_protect
+@protect_ai_endpoint(
+    "test-generation",
+    "AI_GENERATION_BURST_LIMIT",
+    feature_flag="ASSESSMENTS_ENABLED",
+)
+@safe_api_errors
 def generate_test_questions(request):
-    """API endpoint to generate test questions using AI."""
+    data = parse_json_object(request)
+
+    topic = text_field(
+        data,
+        "topic",
+        required=True,
+        min_length=1,
+        max_length=min(
+            settings.AI_TOPIC_MAX_CHARS,
+            150,
+        ),
+    )
+
+    difficulty = choice_field(
+        data,
+        "difficulty",
+        choices={
+            "easy",
+            "medium",
+            "hard",
+        },
+        default="medium",
+    )
+
+    num_questions = integer_field(
+        data,
+        "num_questions",
+        default=10,
+        minimum=1,
+        maximum=30,
+    )
+
+    time_key = (
+        "time_limit_minutes"
+        if "time_limit_minutes" in data
+        else "time_limit"
+    )
+
+    time_limit = integer_field(
+        data,
+        time_key,
+        default=10,
+        minimum=1,
+        maximum=180,
+    )
+
+    result = (
+        GeminiService()
+        .generate_test_questions(
+            topic,
+            difficulty,
+            num_questions,
+        )
+    )
+
+    if not result.get("success"):
+        return provider_error_response(
+            logger,
+            "test-generation",
+            result.get("error"),
+        )
+
     try:
-        data = json.loads(request.body)
-        topic = data.get('topic', '').strip()
-        difficulty = data.get('difficulty', 'medium')
-        num_questions = data.get('num_questions', 10)
-        
-        if not topic:
-            return JsonResponse({
-                'success': False,
-                'error': 'Please provide a topic'
-            }, status=400)
-        
-        # Generate questions using Gemini
-        gemini = GeminiService()
-        result = gemini.generate_test_questions(topic, difficulty, num_questions)
-        
-        if result['success']:
-            try:
-                questions = json.loads(result['content'])
-                
-                # Create test with generated questions
-                test = Test.objects.create(
-                    user=request.user,
-                    title=f"{topic} Quiz ({difficulty})",
-                    topic=topic,
-                    difficulty=difficulty,
-                    num_questions=len(questions),
-                    time_limit_minutes=data.get('time_limit', 10),
-                    questions=questions,
-                    status='created'
-                )
-                
-                return JsonResponse({
-                    'success': True,
-                    'test_id': test.id,
-                    'questions': questions
-                })
-            except json.JSONDecodeError:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'AI returned invalid format. Please try again.'
-                }, status=500)
-        else:
-            return JsonResponse({
-                'success': False,
-                'error': result.get('error', 'Failed to generate questions')
-            }, status=500)
-    
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid request format'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        generated = json.loads(
+            result.get("content", "")
+        )
+
+    except json.JSONDecodeError as exc:
+        raise APIRequestError(
+            "AI_INVALID_RESPONSE",
+            (
+                "The AI returned an invalid "
+                "question set."
+            ),
+            502,
+        ) from exc
+
+    questions = (
+        _validate_generated_questions(
+            generated
+        )
+    )
+
+    with transaction.atomic():
+        test = Test.objects.create(
+            user=request.user,
+            title=(
+                f"{topic} Quiz ({difficulty})"
+            )[:200],
+            topic=topic,
+            difficulty=difficulty,
+            num_questions=len(questions),
+            time_limit_minutes=time_limit,
+            questions=questions,
+            status="created",
+        )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "test_id": test.id,
+            "redirect_url": reverse(
+                "assessments:take",
+                args=[test.id],
+            ),
+        }
+    )
 
 
 @login_required
 def take_test(request, test_id):
-    """Display test interface with timer and questions."""
+    """Start or resume one server-timed assessment attempt."""
     test = get_object_or_404(Test, id=test_id, user=request.user)
-    
-    # Check if test is already completed
-    if test.status == 'completed':
-        return redirect('assessments:result', test_id=test.id)
-    
-    # Update status to in_progress
-    if test.status == 'created':
-        test.status = 'in_progress'
-        test.save()
-    
-    return render(request, 'assessments/take_test.html', {
-        'test': test
-    })
+
+    attempt = (
+        TestAttempt.objects.filter(test=test, user=request.user)
+        .order_by("-created_at")
+        .first()
+    )
+
+    if attempt and (attempt.is_finalized or attempt.completed_at):
+        if not attempt.is_finalized:
+            attempt.is_finalized = True
+            attempt.save(update_fields=["is_finalized"])
+        return redirect("assessments:result", test_id=test.id)
+
+    if attempt is None:
+        attempt = TestAttempt.objects.create(
+            test=test,
+            user=request.user,
+            deadline_at=timezone.now()
+            + timedelta(minutes=test.time_limit_minutes),
+        )
+    elif attempt.deadline_at is None:
+        attempt.deadline_at = attempt.created_at + timedelta(
+            minutes=test.time_limit_minutes
+        )
+        attempt.save(update_fields=["deadline_at"])
+
+    if test.status == "created":
+        test.status = "in_progress"
+        test.save(update_fields=["status"])
+
+    public_questions = []
+    for question in test.questions:
+        if not isinstance(question, dict):
+            continue
+        options = question.get("options", [])
+        if not isinstance(options, list):
+            options = []
+        public_questions.append(
+            {
+                "question": str(question.get("question", "")),
+                "options": [str(option) for option in options],
+            }
+        )
+
+    remaining = max(
+        0,
+        int((attempt.deadline_at - timezone.now()).total_seconds()),
+    )
+
+    return render(
+        request,
+        "assessments/take_test.html",
+        {
+            "test": test,
+            "attempt": attempt,
+            "seconds_remaining": remaining,
+            "public_questions": public_questions,
+        },
+    )
 
 
 @login_required
 @require_POST
 @csrf_protect
+@safe_api_errors
+@transaction.atomic
 def submit_test(request, test_id):
-    """API endpoint to submit test and calculate score."""
-    try:
-        test = get_object_or_404(Test, id=test_id, user=request.user)
-        
-        data = json.loads(request.body)
-        answers = data.get('answers', {})
-        time_taken = data.get('time_taken', 0)
-        
-        # Calculate score
-        correct_count = 0
-        total_questions = len(test.questions)
-        marks_per_question = test.total_marks / total_questions if total_questions > 0 else 0
-        
-        for idx, question in enumerate(test.questions):
-            user_answer = answers.get(str(idx))
-            correct_index = question.get('correct', 0)
-            
-            if user_answer == correct_index:
-                correct_count += 1
-        
-        score = int(correct_count * marks_per_question)
-        
-        # Create test attempt
-        attempt = TestAttempt.objects.create(
-            test=test,
-            user=request.user,
-            answers=answers,
-            score=score,
-            time_taken_seconds=time_taken,
-            completed_at=timezone.now()
+    """Finalize one assessment attempt using server-controlled timing."""
+    test = get_object_or_404(
+        Test.objects.select_for_update(),
+        id=test_id,
+        user=request.user,
+    )
+    data = parse_json_object(request)
+    attempt_id = integer_field(
+        data,
+        "attempt_id",
+        required=True,
+        minimum=1,
+    )
+    answers = data.get("answers", {})
+    if not isinstance(answers, dict):
+        raise APIRequestError(
+            "VALIDATION_ERROR",
+            "answers must be an object.",
+            400,
         )
-        
-        # Update test status and score
-        test.status = 'completed'
-        test.score = score
-        test.completed_at = timezone.now()
-        test.save()
-        
-        return JsonResponse({
-            'success': True,
-            'score': score,
-            'total_marks': test.total_marks,
-            'percentage': test.percentage,
-            'grade': test.grade,
-            'attempt_id': attempt.id
-        })
-    
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid request format'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
-        # Award XP and check badges
-try:
+
+    attempt = get_object_or_404(
+        TestAttempt.objects.select_for_update(),
+        id=attempt_id,
+        test=test,
+        user=request.user,
+    )
+
+    if attempt.is_finalized or attempt.completed_at:
+        return JsonResponse(
+            {
+                "success": True,
+                "already_finalized": True,
+                "score": attempt.score or 0,
+                "total_marks": test.total_marks,
+                "percentage": attempt.percentage,
+                "attempt_id": attempt.id,
+                "xp_earned": 0,
+            }
+        )
+
+    now = timezone.now()
+    if attempt.deadline_at and now > attempt.deadline_at + timedelta(seconds=30):
+        attempt.answers = {}
+        attempt.score = 0
+        attempt.time_taken_seconds = test.time_limit_minutes * 60
+        attempt.completed_at = now
+        attempt.is_finalized = True
+        attempt.save(
+            update_fields=[
+                "answers",
+                "score",
+                "time_taken_seconds",
+                "completed_at",
+                "is_finalized",
+            ]
+        )
+        test.status = "completed"
+        test.score = 0
+        test.completed_at = now
+        test.save(update_fields=["status", "score", "completed_at"])
+        return json_error(
+            "TEST_EXPIRED",
+            "The assessment deadline has passed.",
+            410,
+        )
+
+    validated_answers = {}
+    for raw_index, raw_answer in answers.items():
+        try:
+            index = int(raw_index)
+        except (TypeError, ValueError) as exc:
+            raise APIRequestError(
+                "VALIDATION_ERROR",
+                "An answer index is invalid.",
+                400,
+            ) from exc
+        if index < 0 or index >= len(test.questions):
+            raise APIRequestError(
+                "VALIDATION_ERROR",
+                "An answer index is out of range.",
+                400,
+            )
+        if isinstance(raw_answer, bool) or not isinstance(raw_answer, int):
+            raise APIRequestError(
+                "VALIDATION_ERROR",
+                "An answer value is invalid.",
+                400,
+            )
+        options = test.questions[index].get("options", [])
+        if raw_answer < 0 or raw_answer >= len(options):
+            raise APIRequestError(
+                "VALIDATION_ERROR",
+                "An answer value is out of range.",
+                400,
+            )
+        validated_answers[str(index)] = raw_answer
+
+    correct_count = 0
+    for index, question in enumerate(test.questions):
+        if validated_answers.get(str(index)) == question.get("correct"):
+            correct_count += 1
+
+    total_questions = len(test.questions)
+    score = (
+        round(correct_count * test.total_marks / total_questions)
+        if total_questions
+        else 0
+    )
+    elapsed = max(0, int((now - attempt.created_at).total_seconds()))
+    elapsed = min(elapsed, test.time_limit_minutes * 60)
+
+    attempt.answers = validated_answers
+    attempt.score = score
+    attempt.time_taken_seconds = elapsed
+    attempt.completed_at = now
+    attempt.is_finalized = True
+    attempt.save(
+        update_fields=[
+            "answers",
+            "score",
+            "time_taken_seconds",
+            "completed_at",
+            "is_finalized",
+        ]
+    )
+
+    test.status = "completed"
+    test.score = score
+    test.completed_at = now
+    test.save(update_fields=["status", "score", "completed_at"])
+
     from progress.services import BadgeManager
-    
-    # XP based on score percentage
-    xp_amount = int(percentage * 2)  # 100% = 200 XP
-    xp_result = BadgeManager.add_xp(request.user, xp_amount, "Test completed")
-    
-    # Check for new badges
+
+    percentage = attempt.percentage
+    xp_amount = max(10, round(percentage))
+    xp_result = BadgeManager.add_xp(
+        request.user,
+        xp_amount,
+        "Assessment completed",
+        idempotency_key=f"assessment-attempt:{attempt.id}",
+        event_type="assessment-completed",
+        source_object_type="test-attempt",
+        source_object_id=attempt.id,
+        metadata={"score": score, "percentage": percentage},
+    )
     new_badges = BadgeManager.check_and_award_badges(request.user)
-    
-    # Add to response
-    response_data['xp_earned'] = xp_amount
-    response_data['xp_reason'] = f'Test scored {percentage}%'
-    response_data['leveled_up'] = xp_result.get('leveled_up', False)
-    response_data['new_level'] = xp_result.get('new_level')
-    response_data['new_badges'] = [
-        {'name': b.badge.name, 'icon': b.badge.icon} 
-        for b in new_badges
-    ]
-except Exception as e:
-    print(f"Badge/XP error: {e}")
+
+    return JsonResponse(
+        {
+            "success": True,
+            "already_finalized": False,
+            "score": score,
+            "total_marks": test.total_marks,
+            "percentage": percentage,
+            "grade": test.grade,
+            "attempt_id": attempt.id,
+            "xp_earned": xp_result["xp_added"],
+            "leveled_up": xp_result["leveled_up"],
+            "new_level": xp_result["new_level"],
+            "new_badges": [
+                {
+                    "name": getattr(item, "badge", item).name,
+                    "icon": getattr(item, "badge", item).icon,
+                }
+                for item in new_badges
+            ],
+        }
+    )
+
 
 @login_required
 def test_result(request, test_id):

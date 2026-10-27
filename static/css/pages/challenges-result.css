@@ -1,0 +1,42 @@
+/* Extracted page styles: challenges-result.css */
+body { background: #0A0A0A; color: #e0e0e0; }
+
+    .result-hero {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .result-hero.is-correct {
+        background: linear-gradient(135deg, #00D4AA 0%, #00a685 100%);
+    }
+
+    .result-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+    }
+
+    .stat-box {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    .content-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }

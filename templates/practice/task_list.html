@@ -1,71 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Practice Arena - CodeLabX{% endblock %}
 
 {% block extra_css %}
-<style>
-    body { background: #0A0A0A; color: #e0e0e0; }
-    
-    .practice-header {
-        background: var(--accent);
-        border-radius: 8px;
-        padding: 40px;
-        margin-bottom: 30px;
-        color: white;
-        text-align: center;
-    }
-    
-    .feature-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 30px;
-        text-align: center;
-        transition: all 0.3s;
-        height: 100%;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-5px);
-        border-color: #14B8A6;
-        box-shadow: 0 15px 40px rgba(20, 184, 166, 0.3);
-        color: inherit;
-        text-decoration: none;
-    }
-    
-    .feature-icon {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        margin: 0 auto 20px;
-    }
-    
-    .icon-purple { background: rgba(20, 184, 166, 0.2); color: #14B8A6; }
-    .icon-green { background: rgba(0, 212, 170, 0.2); color: #00D4AA; }
-    .icon-red { background: rgba(255, 107, 107, 0.2); color: #FF6B6B; }
-    .icon-orange { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
-    
-    .feature-card h4 { color: white; margin-bottom: 10px; }
-    .feature-card p { color: #a0a0a0; }
-    
-    .badge-new {
-        display: inline-block;
-        background: #FF6B6B;
-        color: white;
-        padding: 4px 10px;
-        border-radius: 10px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-left: 8px;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/practice-task_list.css' %}">
 {% endblock %}
 
 {% block content %}

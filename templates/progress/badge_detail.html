@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ badge.name }} — CodeLabX{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/progress-badge_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="badge-page">
+    <a class="badge-back"
+       href="{% url 'progress:achievements' %}">
+        <i class="bi bi-arrow-left"></i>
+        Back to achievements
+    </a>
+
+    <article class="badge-detail-card">
+        <div class="badge-detail-icon"
+             aria-hidden="true">
+            {{ badge.icon }}
+        </div>
+
+        <h1 class="badge-detail-title">
+            {{ badge.name }}
+        </h1>
+
+        <p class="badge-detail-description">
+            {{ badge.description }}
+        </p>
+
+        <div class="badge-tags">
+            <span class="badge-tag">
+                {{ badge.get_category_display }}
+            </span>
+            <span class="badge-tag">
+                {{ badge.get_rarity_display }}
+            </span>
+        </div>
+
+        {% if user_badge %}
+            <div class="badge-earned">
+                <i class="bi bi-check-circle-fill"></i>
+                Earned {{ user_badge.earned_at|date:"M d, Y" }}
+            </div>
+        {% else %}
+            <div class="badge-progress">
+                <div class="badge-progress-head">
+                    <span>Progress</span>
+                    <strong>
+                        {{ progress.percentage|default:0 }}%
+                    </strong>
+                </div>
+
+                <div class="badge-progress-track"
+                     role="progressbar"
+                     aria-valuemin="0"
+                     aria-valuemax="100"
+                     aria-valuenow="{{ progress.percentage|default:0 }}">
+                    <div class="badge-progress-fill"
+                         style="--progress: {{ progress.percentage|default:0 }}%">
+                    </div>
+                </div>
+
+                <div class="badge-progress-copy">
+                    {{ progress.current|default:0 }}
+                    of
+                    {{ progress.required|default:badge.requirement_value }}
+                    completed
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="badge-reward">
+            <i class="bi bi-lightning-charge-fill"></i>
+            {{ badge.xp_reward }} XP reward
+        </div>
+    </article>
+</div>
+{% endblock %}

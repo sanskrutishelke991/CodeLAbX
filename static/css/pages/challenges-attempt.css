@@ -1,0 +1,91 @@
+/* Extracted page styles: challenges-attempt.css */
+body { background: #0A0A0A; color: #e0e0e0; }
+
+    .challenge-header {
+        background: var(--accent);
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 25px;
+        color: white;
+    }
+
+    .timer-display {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .content-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+
+    .code-editor {
+        background: #0A0A0A;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+        border-radius: 10px;
+        color: #00D4AA;
+        font-family: monospace;
+        font-size: 14px;
+        min-height: 300px;
+        padding: 20px;
+        width: 100%;
+        resize: vertical;
+    }
+
+    .option-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        color: #e0e0e0;
+        padding: 15px 20px;
+        border-radius: 12px;
+        width: 100%;
+        text-align: left;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .option-btn:hover {
+        border-color: #14B8A6;
+        background: rgba(20, 184, 166, 0.1);
+    }
+
+    .option-btn.selected {
+        border-color: #14B8A6;
+        background: rgba(20, 184, 166, 0.15);
+        color: white;
+    }
+
+    .hint-card {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #00D4AA 0%, #00a685 100%);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.5;
+    }

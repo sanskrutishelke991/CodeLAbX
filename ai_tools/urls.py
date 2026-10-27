@@ -4,6 +4,7 @@ from . import views
 app_name = 'ai_tools'
 
 urlpatterns = [
+    path('chat/sessions/', views.chat_sessions_page, name='chat_sessions_page'),
     path('', views.ai_home, name='home'),
     
     # Chat

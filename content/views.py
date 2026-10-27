@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Count
+from django.db import transaction
+from django.core.paginator import Paginator
+from django.utils import timezone
 from .models import VideoCategory, Video, UserVideoProgress
 
 
@@ -13,7 +16,7 @@ def library(request):
     category_slug = request.GET.get('category', '')
     difficulty = request.GET.get('difficulty', '')
     
-    videos = Video.objects.filter(is_active=True)
+    videos = Video.objects.filter(is_active=True).select_related('category')
     
     if query:
         videos = videos.filter(
@@ -27,7 +30,7 @@ def library(request):
         videos = videos.filter(difficulty=difficulty)
     
     # Get featured videos separately
-    featured_videos = Video.objects.filter(is_active=True, is_featured=True)[:6]
+    featured_videos = Video.objects.filter(is_active=True, is_featured=True).select_related('category')[:6]
     
     # Categories with count
     categories = VideoCategory.objects.annotate(
@@ -40,8 +43,11 @@ def library(request):
         is_watched=True
     ).values_list('video_id', flat=True))
     
+    page_obj = Paginator(videos, 12).get_page(request.GET.get('page'))
+
     context = {
-        'videos': videos,
+        'videos': page_obj,
+        'page_obj': page_obj,
         'featured_videos': featured_videos,
         'categories': categories,
         'query': query,
@@ -87,32 +93,50 @@ def video_detail(request, video_id):
 
 @login_required
 @require_POST
+@transaction.atomic
 def video_mark_watched(request, video_id):
-    """Mark video as watched"""
-    from django.utils import timezone
-    
-    video = get_object_or_404(Video, id=video_id)
+    """Mark a video watched and award XP once."""
+    from progress.services import BadgeManager
+
+    video = get_object_or_404(Video, id=video_id, is_active=True)
     progress, _ = UserVideoProgress.objects.get_or_create(
         user=request.user,
-        video=video
+        video=video,
     )
-    
+    progress = UserVideoProgress.objects.select_for_update().get(pk=progress.pk)
+
+    if progress.is_watched:
+        return JsonResponse(
+            {
+                "success": True,
+                "already_watched": True,
+                "xp_earned": 0,
+                "message": "Video was already marked as watched.",
+            }
+        )
+
     progress.is_watched = True
-    if not progress.completed_at:
-        progress.completed_at = timezone.now()
-    progress.save()
-    
-    # Award XP
-    try:
-        from progress.services import BadgeManager
-        BadgeManager.add_xp(request.user, 10, "Watched video")
-    except:
-        pass
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Video marked as watched!'
-    })
+    progress.completed_at = progress.completed_at or timezone.now()
+    progress.save(update_fields=["is_watched", "completed_at", "last_watched_at"])
+
+    xp_result = BadgeManager.add_xp(
+        request.user,
+        10,
+        "Watched video",
+        idempotency_key=f"video-watched:{video.id}",
+        event_type="video-watched",
+        source_object_type="video",
+        source_object_id=video.id,
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "already_watched": False,
+            "xp_earned": xp_result["xp_added"],
+            "message": "Video marked as watched!",
+        }
+    )
 
 
 @login_required
