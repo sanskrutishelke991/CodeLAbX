@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ group.name }} — Study Group{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/community.css' %}">{% endblock %}
+{% block content %}
+<section class="community-shell" aria-labelledby="group-title">
+    <nav class="community-tabs"><a href="{% url 'community:groups' %}">My groups</a>{% if can_moderate %}<a href="{% url 'community:moderation_reports' group.id %}">Moderation</a>{% endif %}</nav>
+    <header class="community-hero"><div><span>{{ membership.get_role_display }} · invite-only</span><h1 id="group-title">{{ group.name }}</h1><p>{{ group.description|default:"No description." }}</p></div><a class="community-btn primary" href="{% url 'community:thread_create' group.id %}">Start discussion</a></header>
+    <div class="community-safety">No public discovery · no direct messages · report and block controls available</div>
+
+    <div class="community-layout">
+        <main>
+            <section class="community-section-head"><h2>Discussions</h2><span>{{ threads|length }} recent</span></section>
+            <div class="thread-list">
+                {% for thread in threads %}
+                <a class="community-card thread-card {% if thread.is_hidden %}hidden-content{% endif %}" href="{% url 'community:thread_detail' group.id thread.id %}">
+                    <div><span>{% if thread.is_pinned %}Pinned · {% endif %}@{{ thread.author.username }}</span><h3>{{ thread.title }}</h3></div>
+                    <p>{{ thread.body|truncatechars:180 }}</p><strong>{{ thread.post_count }} replies</strong>
+                </a>
+                {% empty %}<div class="community-card empty">No discussions yet.</div>{% endfor %}
+            </div>
+
+            <section class="community-section-head"><h2>Shared roadmaps</h2></section>
+            <div class="community-grid compact">
+                {% for share in roadmap_shares %}
+                <article class="community-card roadmap-share-card">
+                    <div><span>Shared by @{{ share.shared_by.username }}</span><h3>{{ share.roadmap.title }}</h3></div>
+                    <a class="community-btn" href="{% url 'community:shared_roadmap' group.id share.roadmap.id %}">Open shared roadmap</a>
+                    {% if can_moderate or share.shared_by == user %}<form method="post" action="{% url 'community:roadmap_unshare' group.id share.id %}" data-confirm="Remove this roadmap from the group?">{% csrf_token %}<button class="community-btn danger" type="submit">Unshare</button></form>{% endif %}
+                </article>
+                {% empty %}<div class="community-card empty">No roadmaps shared.</div>{% endfor %}
+            </div>
+            <form method="post" action="{% url 'community:roadmap_share' group.id %}" class="community-card inline-form">
+                {% csrf_token %}<label for="{{ roadmap_form.roadmap.id_for_label }}">Share one of your roadmaps privately</label>{{ roadmap_form.roadmap }}<button class="community-btn" type="submit">Share</button>
+            </form>
+        </main>
+
+        <aside>
+            <section class="community-card members-card"><h2>Members</h2>
+                {% for item in members %}<div class="member-row"><span>@{{ item.user.username }}<small>{{ item.get_role_display }}</small></span>{% if item.user != user %}<div class="member-actions">
+                    <form method="post" action="{% url 'community:user_block_action' item.user.id 'block' %}">{% csrf_token %}<button type="submit">Block</button></form>
+                    {% if membership.role == 'owner' and item.role == 'member' %}<form method="post" action="{% url 'community:member_action' group.id item.id 'moderator' %}">{% csrf_token %}<button type="submit">Make moderator</button></form>{% elif membership.role == 'owner' and item.role == 'moderator' %}<form method="post" action="{% url 'community:member_action' group.id item.id 'member' %}">{% csrf_token %}<button type="submit">Make member</button></form>{% endif %}
+                    {% if can_moderate and item.role != 'owner' %}<form method="post" action="{% url 'community:member_action' group.id item.id 'remove' %}" data-confirm="Remove this member?">{% csrf_token %}<button type="submit">Remove</button></form>{% endif %}
+                </div>{% endif %}</div>{% endfor %}
+            </section>
+
+            {% if can_moderate %}<section class="community-card invite-card"><h2>Invite links</h2><form method="post" action="{% url 'community:invite_create' group.id %}">{% csrf_token %}{{ invite_form.as_p }}<button class="community-btn" type="submit">Create invite</button></form>{% for invite in active_invites %}<div class="invite-link"><a href="{{ invite.join_url }}">{{ invite.join_url }}</a><small>{{ invite.use_count }}/{{ invite.max_uses }} uses · expires {{ invite.expires_at|date:"d M H:i" }}</small></div>{% empty %}<p>No active invites.</p>{% endfor %}</section>{% endif %}
+
+            {% if membership.role != 'owner' %}<form method="post" action="{% url 'community:group_leave' group.id %}" data-confirm="Leave this study group?">{% csrf_token %}<button class="community-btn danger" type="submit">Leave group</button></form>{% else %}<form method="post" action="{% url 'community:group_archive' group.id %}" data-confirm="Archive this group and disable all invite links?">{% csrf_token %}<button class="community-btn danger" type="submit">Archive group</button></form>{% endif %}
+        </aside>
+    </div>
+</section>
+{% endblock %}

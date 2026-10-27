@@ -1,0 +1,37 @@
+<nav class="dock" id="dock" aria-label="Primary">
+  <a class="dock-i" href="{% url 'dashboard:home' %}" title="Home"{% if request.resolver_match.namespace == 'dashboard' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 11 L12 4 L20 11 V20 H15 V14 H9 V20 H4 Z"/></svg>
+    <span class="dock-cap">Home</span>
+  </a>
+  <a class="dock-i" href="{% url 'content:library' %}" title="Learn"{% if request.resolver_match.namespace == 'content' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M5 5 H14 A3 3 0 0 1 17 8 V20 H8 A3 3 0 0 0 5 17 Z M14 5 V17 A3 3 0 0 0 17 20"/></svg>
+    <span class="dock-cap">Learn</span>
+  </a>
+  <button type="button" class="dock-i" id="open-dial" title="Path Dial" aria-haspopup="dialog" aria-controls="dial">
+    <svg viewBox="0 0 128 128" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="round" d="M81 87.44 L47 87.44 L30 58 L47 28.56 L81 28.56"/>
+      <rect x="44" y="102" width="40" height="6" rx="3" fill="#35C99A"/>
+    </svg>
+    <span class="dock-cap">Path</span>
+  </button>
+  <a class="dock-i desk" href="{% url 'learning:roadmaps' %}" title="Roadmaps"{% if request.resolver_match.namespace == 'learning' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M3 19 L9 8 L12 13 L15 9 L21 19 Z"/></svg>
+    <span class="dock-cap">Roadmaps</span>
+  </a>
+  <a class="dock-i desk" href="{% url 'practice:task_list' %}" title="Practice"{% if request.resolver_match.namespace == 'practice' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M8 6 L3 12 L8 18 M16 6 L21 12 L16 18"/></svg>
+    <span class="dock-cap">Practice</span>
+  </a>
+  <a class="dock-i desk" href="{% url 'accounts:settings' %}" title="Settings"{% if request.resolver_match.url_name == 'settings' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path fill="none" stroke="currentColor" stroke-width="1.6" d="M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5 5 L7.2 7.2 M16.8 16.8 L19 19 M19 5 L16.8 7.2 M7.2 16.8 L5 19"/></svg>
+    <span class="dock-cap">Settings</span>
+  </a>
+  <a class="dock-i mob" href="{% url 'progress:analytics' %}" title="Progress"{% if request.resolver_match.namespace == 'progress' %} aria-current="page"{% endif %}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 16 L10 10 L14 13 L20 6 M4 19 H20"/></svg>
+    <span class="dock-cap">Progress</span>
+  </a>
+  <a class="dock-i mob" href="{% url 'accounts:settings' %}" title="More">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M5 7 H19 M5 12 H19 M5 17 H19"/></svg>
+    <span class="dock-cap">More</span>
+  </a>
+</nav>

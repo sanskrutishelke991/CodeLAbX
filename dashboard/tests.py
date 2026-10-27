@@ -45,10 +45,15 @@ class RouteSmokeTests(TestCase):
             'accounts:profile',
             'accounts:profile_edit',
             'accounts:settings',
+            'accounts:email_preferences',
+            'accounts:weekly_report_preview',
+            'accounts:github_portfolio',
             'learning:roadmaps',
             'learning:roadmap_create',
             'content:library',
             'content:my_videos',
+            'community:groups',
+            'community:group_create',
             'practice:task_list',
             'practice:examiner',
             'assessments:quiz_list',
@@ -62,6 +67,8 @@ class RouteSmokeTests(TestCase):
             'notes:list',
             'notes:create',
             'notes:bookmarks',
+            'intelligence:onboarding',
+            'intelligence:tutor_preferences',
         ]
 
         for name in routes:
@@ -411,12 +418,12 @@ class FrontendExtractionBudgetTests(TestCase):
         self.assertEqual(style_blocks, 0)
         self.assertEqual(inline_scripts, 0)
         self.assertEqual(event_handlers, 0)
-        self.assertLessEqual(style_attributes, 201)
+        self.assertLessEqual(style_attributes, 199)
         self.assertEqual(affected_templates, 0)
 
         page_css = list((repository / "static" / "css" / "pages").glob("*.css"))
         page_js = list((repository / "static" / "js" / "pages").glob("*.js"))
-        self.assertEqual(len(page_css), 37)
+        self.assertEqual(len(page_css), 39)
         self.assertEqual(len(page_js), 20)
         for asset in page_css + page_js:
             source = asset.read_text(encoding="utf-8")
@@ -430,6 +437,7 @@ class FrontendExtractionBudgetTests(TestCase):
             "templates/learning/roadmap_detail.html",
             "templates/notes/bookmarks_list.html",
             "templates/notes/notes_list.html",
+            "templates/intelligence/tutor_memory.html",
         ]
         for relative_path in paths:
             source = (repository / relative_path).read_text(encoding="utf-8")

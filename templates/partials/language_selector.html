@@ -1,0 +1,22 @@
+{% load i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
+{% get_available_languages as AVAILABLE_LANGUAGES %}
+{% get_language_info_list for AVAILABLE_LANGUAGES as language_info_list %}
+<form class="language-selector"
+      method="post"
+      action="{% url 'set_language' %}"
+      data-tts-ignore>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <label class="visually-hidden" for="languageSelect">{% translate "Interface language" %}</label>
+    <select id="languageSelect" name="language" aria-label="{% translate 'Interface language' %}">
+        {% for language in language_info_list %}
+        <option value="{{ language.code }}"{% if language.code == CURRENT_LANGUAGE %} selected{% endif %}>
+            {{ language.name_local }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit" title="{% translate 'Apply language' %}" aria-label="{% translate 'Apply language' %}">
+        <i class="bi bi-translate"></i>
+    </button>
+</form>

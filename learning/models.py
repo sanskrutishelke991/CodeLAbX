@@ -8,6 +8,7 @@ class Roadmap(models.Model):
     TOPIC_CHOICES = [
         ('ML', 'Machine Learning'),
         ('DSA', 'Data Structures & Algorithms'),
+        ('FULLSTACK', 'Django & Full-Stack'),
     ]
     
     STATUS_CHOICES = [

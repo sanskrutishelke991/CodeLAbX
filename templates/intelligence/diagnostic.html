@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ diagnostic.title }} — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell" aria-labelledby="diagnostic-title">
+    <header class="intel-hero">
+        <div class="intel-kicker">
+            {% if attempt.stage == 'routing' %}Step 1 of 2{% else %}Step 2 of 2{% endif %}
+        </div>
+        <h1 id="diagnostic-title">{{ diagnostic.title }}</h1>
+        <p>
+            Answer every question. Correct answers stay server-side and each
+            response becomes versioned evidence for the mapped skill.
+        </p>
+    </header>
+
+    <form method="post" action="{% url 'intelligence:diagnostic_submit' %}" class="intel-diagnostic">
+        {% csrf_token %}
+        <input type="hidden" name="attempt_id" value="{{ attempt.id }}">
+        {% for question in questions %}
+        <fieldset class="intel-card intel-question">
+            <legend>
+                <span>{{ forloop.counter }}</span>
+                {{ question.prompt }}
+            </legend>
+            <div class="intel-options">
+                {% for option in question.options %}
+                <label>
+                    <input type="radio"
+                           name="answer_{{ question.id }}"
+                           value="{{ forloop.counter0 }}"
+                           required>
+                    <span>{{ option }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+        {% endfor %}
+        <button type="submit" class="intel-primary">Submit diagnostic</button>
+    </form>
+</section>
+{% endblock %}

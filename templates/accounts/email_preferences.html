@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Reports — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/accounts-settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-page email-settings-page">
+    <section class="settings-hero">
+        <div>
+            <span class="settings-kicker"><i class="bi bi-envelope-check-fill"></i> Explicit opt-in</span>
+            <h1 class="settings-title">Email reports</h1>
+            <p class="settings-copy">
+                Receive one deterministic weekly summary built from your recorded
+                CodeLabX activity. Reports are off until you enable them.
+            </p>
+        </div>
+        <a class="settings-btn" href="{% url 'accounts:settings' %}">Back to settings</a>
+    </section>
+
+    <div class="email-status-banner {% if external_delivery_configured %}is-configured{% else %}is-development{% endif %}">
+        {% if external_delivery_configured %}
+        <strong>External email backend configured</strong>
+        <span>Delivery still depends on the configured provider and external daily scheduler.</span>
+        {% else %}
+        <strong>Development email backend</strong>
+        <span>Preview messages are written to the configured local backend; external inbox delivery is not currently claimed.</span>
+        {% endif %}
+    </div>
+
+    <div class="email-settings-grid">
+        <form method="post" class="settings-card email-preference-form">
+            {% csrf_token %}
+            <div class="settings-heading">
+                <span class="settings-icon"><i class="bi bi-calendar-week-fill"></i></span>
+                <h2>Weekly report preference</h2>
+            </div>
+            {% if form.non_field_errors %}<div class="email-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+            <label class="email-check-row">
+                {{ form.weekly_report_enabled }}
+                <span><strong>{{ form.weekly_report_enabled.label }}</strong><small>Recipient: {{ user.email|default:"No valid account email" }}</small></span>
+            </label>
+            {{ form.weekly_report_enabled.errors }}
+
+            <div class="email-field">
+                <label for="{{ form.report_weekday.id_for_label }}">Preferred send day</label>
+                {{ form.report_weekday }}
+                {{ form.report_weekday.errors }}
+            </div>
+
+            <fieldset class="email-section-choices">
+                <legend>Include these sections</legend>
+                <label>{{ form.include_activity }} {{ form.include_activity.label }}</label>
+                <label>{{ form.include_skill_progress }} {{ form.include_skill_progress.label }}</label>
+                <label>{{ form.include_next_steps }} {{ form.include_next_steps.label }}</label>
+            </fieldset>
+
+            <div class="email-truth-note">
+                Reports use database records only. They do not invent study time,
+                mastery, certificates, or AI-generated progress claims. Account
+                email ownership is not separately verified in this development version.
+            </div>
+            <button class="settings-btn primary" type="submit">Save email preference</button>
+        </form>
+
+        <section class="settings-card">
+            <div class="settings-heading">
+                <span class="settings-icon"><i class="bi bi-eye-fill"></i></span>
+                <h2>Preview before sending</h2>
+            </div>
+            <p>
+                Inspect the exact current report first. Sending a preview is a
+                separate explicit action and does not mark a scheduled report sent.
+            </p>
+            <div class="settings-actions">
+                <a class="settings-btn" href="{% url 'accounts:weekly_report_preview' %}">Open report preview</a>
+            </div>
+            <div class="email-scheduler-note">
+                <strong>No hidden scheduler:</strong>
+                automatic weekly delivery requires an external scheduler to invoke
+                the provided management command or task worker.
+            </div>
+        </section>
+    </div>
+
+    <section class="settings-card full email-delivery-history">
+        <div class="settings-heading">
+            <span class="settings-icon"><i class="bi bi-clock-history"></i></span>
+            <h2>Scheduled-delivery ledger</h2>
+        </div>
+        {% for delivery in deliveries %}
+        <div class="settings-row">
+            <span class="settings-label">{{ delivery.period_start|date:"d M" }}–{{ delivery.period_end|date:"d M Y" }}</span>
+            <span class="settings-value">{{ delivery.get_status_display }} · {{ delivery.attempt_count }} attempt{{ delivery.attempt_count|pluralize }}</span>
+        </div>
+        {% empty %}
+        <p>No scheduled weekly report delivery has been attempted.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

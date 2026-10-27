@@ -1,82 +1,35 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}{{ roadmap.title }} - CodeLabX{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/learning-roadmap_detail.css' %}">
-{% endblock %}
-
+{% extends "v2/base.html" %}
+{% block title %}{{ roadmap.title }} — CodeLabX{% endblock %}
+{% block dial_index %}3{% endblock %}
 {% block content %}
-<div class="roadmap-header">
-    <div class="d-flex justify-content-between align-items-start flex-wrap">
-        <div>
-            <h1>{% if roadmap.topic == 'ML' %}🤖{% else %}💻{% endif %} {{ roadmap.title }}</h1>
-            <p class="mb-0 opacity-75">{{ roadmap.description }}</p>
-        </div>
-        <a href="{% url 'learning:roadmaps' %}" class="btn btn-light btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Back
-        </a>
-    </div>
-    
-    <div class="stats-grid">
-        <div class="stat-box">
-            <div class="value">{{ roadmap.total_days }}</div>
-            <div class="label">Total Days</div>
-        </div>
-        <div class="stat-box">
-            <div class="value">{{ roadmap.completed_days }}</div>
-            <div class="label">Completed</div>
-        </div>
-        <div class="stat-box">
-            <div class="value">{{ roadmap.daily_hours }}h</div>
-            <div class="label">Daily Hours</div>
-        </div>
-        <div class="stat-box">
-            <div class="value">{{ roadmap.progress_percentage }}%</div>
-            <div class="label">Progress</div>
-        </div>
-    </div>
-    
-    <div class="progress-custom">
-        <div class="progress-bar-custom" style="width: {{ roadmap.progress_percentage }}%"></div>
-    </div>
+<p class="crumb"><a href="{% url 'learning:roadmaps' %}">Paths</a> / {{ roadmap.title }}</p>
+<p class="kicker">{{ roadmap.get_topic_display }} · {{ roadmap.get_level_display }} · {{ roadmap.daily_hours }} h</p>
+<h1>{{ roadmap.title }}</h1>
+<p class="evidence">{{ roadmap.total_days }} days · {{ roadmap.completed_days }} complete</p>
+<div class="hair" aria-hidden="true"><i data-p="{{ roadmap.progress_percentage|default:0|floatformat:0 }}"></i></div>
+
+<div class="actions">
+  {% if current_day %}
+  <a class="btn" href="{% url 'learning:day_detail' roadmap.id current_day.day_number %}">Continue Day {{ current_day.day_number }}</a>
+  {% else %}
+  <a class="btn" href="{% url 'learning:roadmaps' %}">Back to paths</a>
+  {% endif %}
 </div>
 
-
-<div class="d-flex flex-wrap gap-2 mb-4">
-    {% if roadmap.status == 'active' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'pause' %}">{% csrf_token %}<button class="btn btn-outline-warning btn-sm" type="submit"><i class="bi bi-pause"></i> Pause</button></form>{% endif %}
-    {% if roadmap.status == 'paused' or roadmap.status == 'archived' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'resume' %}">{% csrf_token %}<button class="btn btn-outline-success btn-sm" type="submit"><i class="bi bi-play"></i> Resume</button></form>{% endif %}
-    {% if roadmap.status != 'archived' %}<form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'archive' %}">{% csrf_token %}<button class="btn btn-outline-light btn-sm" type="submit"><i class="bi bi-archive"></i> Archive</button></form>{% endif %}
-    <form method="post" action="{% url 'learning:roadmap_action' roadmap.id 'delete' %}" data-confirm="Delete this roadmap and all its days?">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-trash"></i> Delete</button></form>
-</div>
-<h3 class="mb-3" style="color: white;">
-    <i class="bi bi-list-check me-2" style="color: #14B8A6;"></i>Learning Timeline
-</h3>
-
+<p class="kicker timeline-k">Timeline</p>
 {% for day in days %}
-<a href="{% url 'learning:day_detail' roadmap.id day.day_number %}" class="day-card {% if day.is_completed %}completed{% else %}pending{% endif %}">
-    <div class="day-number">{{ day.day_number }}</div>
-    <div class="day-info">
-        <h5>{{ day.title }}</h5>
-        <div class="day-meta">
-            <i class="bi bi-clock me-1"></i>{{ day.estimated_hours }} hours
-            {% if day.is_completed %}
-                <span class="ms-3"><i class="bi bi-check-circle-fill me-1" style="color: #00D4AA;"></i>Completed</span>
-            {% endif %}
-        </div>
-    </div>
-    <div class="day-status">
-        {% if day.is_completed %}
-            <i class="bi bi-check-circle-fill"></i>
-        {% else %}
-            <i class="bi bi-circle"></i>
-        {% endif %}
-    </div>
-</a>
+  <a class="trow{% if current_day and day.id == current_day.id %} now{% elif day.is_completed %} done{% else %} locked{% endif %}"
+     href="{% url 'learning:day_detail' roadmap.id day.day_number %}">
+    <span class="trow-n">Day {{ day.day_number }}</span>
+    <span class="trow-title">{{ day.title }}</span>
+    <span class="trow-h">{{ day.estimated_hours }} h</span>
+    {% if current_day and day.id == current_day.id %}
+      <span class="now-tag">Now</span>
+    {% elif day.is_completed %}
+      <span class="tick">Done</span>
+    {% endif %}
+  </a>
 {% empty %}
-<div class="text-center py-5">
-    <p class="text-muted">No days generated yet.</p>
-</div>
+<p class="evidence">No days generated yet.</p>
 {% endfor %}
 {% endblock %}

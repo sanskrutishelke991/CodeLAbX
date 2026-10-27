@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Learning Intelligence Setup — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell" aria-labelledby="intel-title">
+    <header class="intel-hero">
+        <div class="intel-kicker">🧬 Learning Intelligence</div>
+        <h1 id="intel-title">Choose your starting goal</h1>
+        <p>
+            CodeLabX will use reviewed diagnostics and learning evidence—not XP or
+            an AI guess—to build your initial skill baseline.
+        </p>
+    </header>
+
+    <form method="post" class="intel-card intel-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="intel-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="intel-field">
+            <label for="{{ form.primary_goal.id_for_label }}">{{ form.primary_goal.label }}</label>
+            {{ form.primary_goal }}
+            {{ form.primary_goal.errors }}
+        </div>
+        <div class="intel-field">
+            <label for="{{ form.selected_pack.id_for_label }}">{{ form.selected_pack.label }}</label>
+            {{ form.selected_pack }}
+            <small>You can add other Skill Packs later; this selects the first deep diagnostic.</small>
+            {{ form.selected_pack.errors }}
+        </div>
+        <div class="intel-field">
+            <label for="{{ form.custom_goal.id_for_label }}">Custom goal</label>
+            {{ form.custom_goal }}
+            {{ form.custom_goal.errors }}
+        </div>
+
+        <div class="intel-notice">
+            <strong>Private by default.</strong>
+            Your Learning DNA is not added to leaderboards or public profiles.
+            You can revise these choices later.
+        </div>
+        <button type="submit" class="intel-primary">Save and start diagnostic</button>
+    </form>
+</section>
+{% endblock %}

@@ -1,274 +1,67 @@
-{% extends 'base.html' %}
+{% extends "v2/base.html" %}
 {% load static %}
-
-{% block title %}Assessments - CodeLabX{% endblock %}
-
+{% block title %}CodeLabX — Assessments{% endblock %}
+{% block dial_index %}4{% endblock %}
+{% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/assessments-quiz_list.css' %}">
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=3">
 {% endblock %}
-
 {% block content %}
-<div class="as-container">
-    
-    <!-- HERO -->
-    <div class="as-hero">
-        <div class="as-hero-content">
-            <div>
-                <div class="as-hero-eyebrow">
-                    <i class="bi bi-clipboard-check-fill"></i>
-                    <span>Test Your Knowledge</span>
-                </div>
-                <h1>Your <span>Assessments</span></h1>
-                <p>Challenge yourself with AI-generated tests. Track your progress and identify areas for improvement.</p>
-            </div>
-            <a href="{% url 'assessments:create' %}" class="btn-create-test">
-                <i class="bi bi-plus-lg"></i>
-                Create New Test
-            </a>
-        </div>
-    </div>
-    
-    <!-- STATS GRID -->
-    <div class="stats-grid">
-        <div class="stat-card total">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="bi bi-clipboard-check-fill"></i></div>
-                <div class="stat-label">Total Tests</div>
-            </div>
-            <div class="stat-value">{{ total_tests }}</div>
-        </div>
-        
-        <div class="stat-card done">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
-                <div class="stat-label">Completed</div>
-            </div>
-            <div class="stat-value">{{ completed_tests }}</div>
-        </div>
-        
-        <div class="stat-card avg">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
-                <div class="stat-label">Avg Score</div>
-            </div>
-            <div class="stat-value">{{ avg_score }}<span class="stat-suffix">%</span></div>
-        </div>
-        
-        <div class="stat-card best">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="bi bi-trophy-fill"></i></div>
-                <div class="stat-label">Best Score</div>
-            </div>
-            <div class="stat-value">{{ best_score }}<span class="stat-suffix">%</span></div>
-        </div>
-        
-        <div class="stat-card time">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
-                <div class="stat-label">Time Total</div>
-            </div>
-            <div class="stat-value">{{ total_hours }}<span class="stat-suffix">h</span></div>
-        </div>
-    </div>
-    
-    <!-- DIFFICULTY DISTRIBUTION -->
-    {% if total_tests > 0 %}
-    <div class="difficulty-bar">
-        <div class="difficulty-header">
-            <div class="difficulty-title">
-                <i class="bi bi-bar-chart-line-fill"></i>
-                Difficulty Distribution
-            </div>
-            <div class="difficulty-total">{{ total_tests }} tests total</div>
-        </div>
-        <div class="difficulty-bars">
-            {% if easy_count > 0 %}
-            <div class="diff-bar easy" style="width: {% widthratio easy_count total_tests 100 %}%;" title="{{ easy_count }} easy tests"></div>
-            {% endif %}
-            {% if medium_count > 0 %}
-            <div class="diff-bar medium" style="width: {% widthratio medium_count total_tests 100 %}%;" title="{{ medium_count }} medium tests"></div>
-            {% endif %}
-            {% if hard_count > 0 %}
-            <div class="diff-bar hard" style="width: {% widthratio hard_count total_tests 100 %}%;" title="{{ hard_count }} hard tests"></div>
-            {% endif %}
-        </div>
-        <div class="difficulty-legend">
-            <div class="diff-legend-item">
-                <div class="diff-legend-dot easy"></div>
-                <span><strong>{{ easy_count }}</strong> Easy</span>
-            </div>
-            <div class="diff-legend-item">
-                <div class="diff-legend-dot medium"></div>
-                <span><strong>{{ medium_count }}</strong> Medium</span>
-            </div>
-            <div class="diff-legend-item">
-                <div class="diff-legend-dot hard"></div>
-                <span><strong>{{ hard_count }}</strong> Hard</span>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- FILTERS -->
-    <div class="as-filters">
-        <div class="filter-tabs">
-            <a href="?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">
-                All <span class="count">{{ total_tests }}</span>
-            </a>
-            <a href="?status=created" class="filter-tab {% if status_filter == 'created' %}active{% endif %}">
-                <i class="bi bi-plus-circle"></i> Created <span class="count">{{ created_tests }}</span>
-            </a>
-            <a href="?status=in_progress" class="filter-tab {% if status_filter == 'in_progress' %}active{% endif %}">
-                <i class="bi bi-play-circle"></i> In Progress <span class="count">{{ in_progress }}</span>
-            </a>
-            <a href="?status=completed" class="filter-tab {% if status_filter == 'completed' %}active{% endif %}">
-                <i class="bi bi-check-circle"></i> Completed <span class="count">{{ completed_tests }}</span>
-            </a>
-        </div>
-        
-        <div class="filter-right">
-            <div class="search-box">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="search-input" data-assessment-search placeholder="Search tests..." value="{{ search_query }}">
-            </div>
-            <select class="sort-select" data-assessment-sort>
-                <option value="recent" {% if sort_by == 'recent' %}selected{% endif %}>Recent</option>
-                <option value="score" {% if sort_by == 'score' %}selected{% endif %}>Best Score</option>
-                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
-                <option value="difficulty" {% if sort_by == 'difficulty' %}selected{% endif %}>Difficulty</option>
-            </select>
-        </div>
-    </div>
-    
-    <!-- TESTS GRID -->
-    {% if tests %}
-    <div class="tests-grid">
-        {% for test in tests %}
-        <div class="test-card {{ test.difficulty }}">
-            <div class="test-card-header">
-                <div class="test-badges">
-                    <span class="badge-difficulty {{ test.difficulty }}">
-                        {% if test.difficulty == 'easy' %}<i class="bi bi-lightning"></i>
-                        {% elif test.difficulty == 'medium' %}<i class="bi bi-fire"></i>
-                        {% elif test.difficulty == 'hard' %}<i class="bi bi-lightning-charge-fill"></i>{% endif %}
-                        {{ test.difficulty }}
-                    </span>
-                    <span class="badge-status {{ test.status }}">
-                        {{ test.get_status_display }}
-                    </span>
-                </div>
-            </div>
-            
-            <div class="test-card-body">
-                <div class="test-topic">{{ test.topic|default:"General Knowledge" }}</div>
-                <h3 class="test-title">{{ test.title }}</h3>
-                
-                {% if test.status == 'completed' and test.total_marks > 0 %}
-                <div class="score-display">
-                    <div class="score-ring">
-                        <svg viewBox="0 0 80 80">
-                            <circle class="score-ring-bg" cx="40" cy="40" r="35"></circle>
-                            <circle class="score-ring-fill" cx="40" cy="40" r="35"
-                                    style="stroke-dasharray: 220; stroke-dashoffset: calc(220 - (220 * {{ test.score }} / {{ test.total_marks }}));"></circle>
-                        </svg>
-                        <div class="score-ring-text">
-                            <div class="score-value">{% widthratio test.score test.total_marks 100 %}%</div>
-                            <div class="score-label">Score</div>
-                        </div>
-                    </div>
-                    <div class="score-info">
-                        <div class="score-marks">{{ test.score }}<span class="score-total">/{{ test.total_marks }}</span></div>
-                        <div class="score-grade">
-                            {% if test.score >= 90 %}Excellent!
-                            {% elif test.score >= 75 %}Great job!
-                            {% elif test.score >= 60 %}Good effort
-                            {% else %}Keep practicing{% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <div class="test-placeholder">
-                    <div class="placeholder-icon">
-                        {% if test.status == 'in_progress' %}<i class="bi bi-play-fill"></i>
-                        {% else %}<i class="bi bi-clock-history"></i>{% endif %}
-                    </div>
-                    <div class="placeholder-text">
-                        <h4>{% if test.status == 'in_progress' %}Resume Test{% else %}Ready to Start{% endif %}</h4>
-                        <p>{% if test.status == 'in_progress' %}Continue where you left off{% else %}Take this test now{% endif %}</p>
-                    </div>
-                </div>
-                {% endif %}
-                
-                <div class="test-meta">
-                    <div class="meta-item">
-                        <i class="bi bi-question-circle-fill"></i>
-                        <span>{{ test.total_questions|default:0 }} questions</span>
-                    </div>
-                    {% if test.time_limit_minutes %}
-                    <div class="meta-item">
-                        <i class="bi bi-clock"></i>
-                        <span>{{ test.time_limit_minutes }} min</span>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="test-actions">
-                {% if test.status == 'completed' %}
-                <a href="{% url 'assessments:result' test.id %}" class="btn-test-primary">
-                    <i class="bi bi-eye-fill"></i> View Results
-                </a>
-                <a href="{% url 'assessments:take' test.id %}" class="btn-test-secondary" title="Retake">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </a>
-                {% elif test.status == 'in_progress' %}
-                <a href="{% url 'assessments:take' test.id %}" class="btn-test-primary">
-                    <i class="bi bi-play-fill"></i> Resume Test
-                </a>
-                {% else %}
-                <a href="{% url 'assessments:take' test.id %}" class="btn-test-primary">
-                    <i class="bi bi-play-fill"></i> Start Test
-                </a>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-        
-        <!-- Create New Card -->
-        <a href="{% url 'assessments:create' %}" class="create-test-card">
-            <div class="create-icon">
-                <i class="bi bi-plus-lg"></i>
-            </div>
-            <div class="create-title">Create Custom Test</div>
-            <div class="create-desc">Generate AI-powered tests on any topic</div>
-            <div class="test-templates">
-                <span class="template-chip">Python</span>
-                <span class="template-chip">ML</span>
-                <span class="template-chip">DSA</span>
-                <span class="template-chip">Web Dev</span>
-            </div>
-        </a>
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon"><i class="bi bi-clipboard-plus"></i></div>
-        <h2 class="empty-title">
-            {% if search_query or status_filter != 'all' %}No tests match your filters
-            {% else %}Ready to test your knowledge?{% endif %}
-        </h2>
-        <p class="empty-desc">
-            {% if search_query or status_filter != 'all' %}Try adjusting your search or filters.
-            {% else %}Create your first AI-generated test. Choose a topic, set difficulty, and challenge yourself!{% endif %}
-        </p>
-        <a href="{% url 'assessments:create' %}" class="btn-create-test">
-            <i class="bi bi-plus-lg"></i> Create Your First Test
-        </a>
-    </div>
-    {% endif %}
+<div class="as-head">
+  <div>
+    <p class="kicker">Assessments</p>
+    <h1>Mark book</h1>
+    <i class="as-rule" aria-hidden="true"></i>
+  </div>
+  <a class="btn" href="{% url 'assessments:create' %}">Create a test</a>
 </div>
-{% include 'partials/pagination.html' with page_obj=page_obj %}
-{% endblock %}
+<div class="as-stats" aria-label="Totals">
+  <div class="as-stat glass"><b>{{ total_tests }}</b><span>Papers</span></div>
+  <div class="as-stat glass"><b>{{ in_progress }}</b><span>In progress</span></div>
+  <div class="as-stat glass"><b>{{ completed_tests }}</b><span>Complete</span></div>
+  <div class="as-stat glass best"><b>{% if completed_tests %}{{ best_score }}%{% endif %}{% if not completed_tests %}—{% endif %}</b><span>Best</span></div>
+</div>
+<nav class="filters" aria-label="Status">
+  <a href="?status=all" class="{% if status_filter == 'all' %}on{% endif %}">All</a>
+  <a href="?status=created" class="{% if status_filter == 'created' %}on{% endif %}">Ready</a>
+  <a href="?status=in_progress" class="{% if status_filter == 'in_progress' %}on{% endif %}">In progress</a>
+  <a href="?status=completed" class="{% if status_filter == 'completed' %}on{% endif %}">Completed</a>
+</nav>
 
-{% block extra_js %}
-<script src="{% static 'js/pages/assessments-quiz_list.js' %}"></script>
+{% if tests %}
+<div class="as-bento">
+  {% for test in tests %}
+  <a class="as-tile glass" href="{% if test.status == 'completed' %}{% url 'assessments:result' test.id %}{% else %}{% url 'assessments:take' test.id %}{% endif %}">
+    <div class="as-tile-top">
+      <span class="as-ix">{% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}</span>
+      <span class="btn-sm">
+        {% if test.status == 'completed' %}Result{% elif test.status == 'in_progress' %}Resume{% else %}Sit{% endif %}
+      </span>
+    </div>
+    <p class="as-k">{{ test.topic }} · {{ test.get_difficulty_display }}</p>
+    <h2>{{ test.title }}</h2>
+    <div class="as-tile-foot">
+      <p class="as-meta">{{ test.num_questions }} q · {{ test.time_limit_minutes }} min</p>
+      {% if test.status == 'completed' %}
+      <p class="as-score">{{ test.percentage }}%</p>
+      {% else %}
+      <p class="as-score as-wait">—</p>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% elif total_tests %}
+<div class="empty glass">
+  <h1>None here</h1>
+  <p>Nothing matches this filter.</p>
+  <a class="btn-ghost" href="{% url 'assessments:quiz_list' %}">All tests</a>
+</div>
+{% else %}
+<div class="empty glass">
+  <h1>Begin</h1>
+  <p>Generate a test on a topic you choose. Questions are assistance and can be wrong.</p>
+  <a class="btn" href="{% url 'assessments:create' %}">Create a test</a>
+</div>
+{% endif %}
 {% endblock %}

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import EmailPreference, GitHubConnection, UserProfile
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -103,3 +103,80 @@ class RegistrationForm(UserCreationForm):
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("An account already uses this email address.")
         return email
+
+
+class EmailPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = EmailPreference
+        fields = [
+            "weekly_report_enabled",
+            "report_weekday",
+            "include_activity",
+            "include_skill_progress",
+            "include_next_steps",
+        ]
+        widgets = {
+            "weekly_report_enabled": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "report_weekday": forms.Select(attrs={"class": "form-select"}),
+            "include_activity": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "include_skill_progress": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "include_next_steps": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+        }
+
+    def __init__(self, *args, user, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        self.instance.user = user
+        self.fields["weekly_report_enabled"].label = (
+            "Email me one weekly learning report"
+        )
+        self.fields["include_activity"].label = "Recorded activity"
+        self.fields["include_skill_progress"].label = (
+            "Learning DNA and Skill Passport summary"
+        )
+        self.fields["include_next_steps"].label = (
+            "Current mission and retention next steps"
+        )
+
+    def save(self, commit=True):
+        preference = super().save(commit=False)
+        preference.user = self.user
+        if commit:
+            preference.save()
+        return preference
+
+
+class GitHubConnectionForm(forms.ModelForm):
+    class Meta:
+        model = GitHubConnection
+        fields = ["username"]
+        widgets = {
+            "username": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "maxlength": 39,
+                    "autocomplete": "off",
+                    "placeholder": "public-github-username",
+                }
+            )
+        }
+
+    def __init__(self, *args, user, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        self.instance.user = user
+
+    def save(self, commit=True):
+        connection = super().save(commit=False)
+        connection.user = self.user
+        if commit:
+            connection.save()
+        return connection

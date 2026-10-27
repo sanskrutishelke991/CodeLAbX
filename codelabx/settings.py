@@ -240,6 +240,8 @@ INSTALLED_APPS = [
     'progress',
     'notes',
     'challenges',
+    'intelligence',
+    'community',
 ]
 
 MIDDLEWARE = [
@@ -251,6 +253,7 @@ MIDDLEWARE = [
     ),
     'codelabx.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -332,7 +335,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('en', 'English'),
+    ('hi', 'हिन्दी'),
+    ('mr', 'मराठी'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 TIME_ZONE = os.getenv(
     'DJANGO_TIME_ZONE',
@@ -374,10 +383,44 @@ EMAIL_BACKEND = os.getenv(
     'DJANGO_EMAIL_BACKEND',
     'django.core.mail.backends.console.EmailBackend',
 )
+EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost').strip()
+EMAIL_PORT = env_int('DJANGO_EMAIL_PORT', 25)
+EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = env_bool('DJANGO_EMAIL_USE_TLS', False)
+EMAIL_USE_SSL = env_bool('DJANGO_EMAIL_USE_SSL', False)
+EMAIL_TIMEOUT = env_int('DJANGO_EMAIL_TIMEOUT_SECONDS', 20)
+if EMAIL_USE_TLS and EMAIL_USE_SSL:
+    raise ImproperlyConfigured(
+        'DJANGO_EMAIL_USE_TLS and DJANGO_EMAIL_USE_SSL cannot both be enabled.'
+    )
 DEFAULT_FROM_EMAIL = os.getenv(
     'DJANGO_DEFAULT_FROM_EMAIL',
     'CodeLabX <noreply@localhost>',
 )
+EMAIL_PREVIEW_ATTEMPTS = env_int('EMAIL_PREVIEW_ATTEMPTS', 3)
+EMAIL_PREVIEW_WINDOW_SECONDS = env_int(
+    'EMAIL_PREVIEW_WINDOW_SECONDS',
+    3600,
+)
+
+GITHUB_PUBLIC_INTEGRATION_ENABLED = env_bool(
+    'GITHUB_PUBLIC_INTEGRATION_ENABLED',
+    True,
+)
+GITHUB_API_TIMEOUT_SECONDS = env_int('GITHUB_API_TIMEOUT_SECONDS', 8)
+GITHUB_MAX_REPOSITORIES = env_int('GITHUB_MAX_REPOSITORIES', 30)
+GITHUB_REFRESH_ATTEMPTS = env_int('GITHUB_REFRESH_ATTEMPTS', 5)
+GITHUB_REFRESH_WINDOW_SECONDS = env_int(
+    'GITHUB_REFRESH_WINDOW_SECONDS',
+    3600,
+)
+if not 1 <= GITHUB_API_TIMEOUT_SECONDS <= 30:
+    raise ImproperlyConfigured('GITHUB_API_TIMEOUT_SECONDS must be between 1 and 30.')
+if not 1 <= GITHUB_MAX_REPOSITORIES <= 50:
+    raise ImproperlyConfigured('GITHUB_MAX_REPOSITORIES must be between 1 and 50.')
+if GITHUB_REFRESH_ATTEMPTS < 1 or GITHUB_REFRESH_WINDOW_SECONDS < 1:
+    raise ImproperlyConfigured('GitHub refresh throttling values must be positive.')
 
 LOGIN_URL = 'accounts:login'
 
@@ -403,6 +446,9 @@ CSRF_COOKIE_SECURE = env_bool(
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
+LANGUAGE_COOKIE_HTTPONLY = True
+LANGUAGE_COOKIE_SECURE = SESSION_COOKIE_SECURE
+LANGUAGE_COOKIE_SAMESITE = 'Lax'
 
 SECURE_HSTS_SECONDS = env_int(
     'DJANGO_HSTS_SECONDS',

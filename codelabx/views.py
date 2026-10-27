@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import secrets
+from pathlib import Path
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_GET
 
 
@@ -58,3 +61,24 @@ def health(request):
     return _no_store(
         JsonResponse(payload, status=200 if ready else 503)
     )
+
+
+@require_GET
+def service_worker(request):
+    """Serve the versioned worker at root scope without caching user pages."""
+    worker_path = Path(settings.BASE_DIR) / "static" / "js" / "service-worker.js"
+    response = HttpResponse(
+        worker_path.read_text(encoding="utf-8"),
+        content_type="application/javascript; charset=utf-8",
+    )
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Service-Worker-Allowed"] = "/"
+    return response
+
+
+@require_GET
+def offline(request):
+    """Render a generic cache-safe offline fallback with no account data."""
+    response = render(request, "pwa/offline.html")
+    response["Cache-Control"] = "public, max-age=300"
+    return response

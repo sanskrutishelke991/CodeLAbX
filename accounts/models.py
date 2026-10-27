@@ -1,6 +1,9 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator, validate_email
 from django.db import models
 from django.contrib.auth.models import User
 import os
+import re
 
 
 def user_avatar_path(instance, filename):
@@ -76,3 +79,244 @@ class UserProfile(models.Model):
         
         # Deterministic color based on skill name
         return default_colors[hash(skill_lower) % len(default_colors)]
+
+class EmailPreference(models.Model):
+    WEEKDAY_CHOICES = [
+        (0, "Monday"),
+        (1, "Tuesday"),
+        (2, "Wednesday"),
+        (3, "Thursday"),
+        (4, "Friday"),
+        (5, "Saturday"),
+        (6, "Sunday"),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="email_preference",
+    )
+    weekly_report_enabled = models.BooleanField(default=False)
+    report_weekday = models.PositiveSmallIntegerField(
+        choices=WEEKDAY_CHOICES,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(6)],
+    )
+    include_activity = models.BooleanField(default=True)
+    include_skill_progress = models.BooleanField(default=True)
+    include_next_steps = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(report_weekday__gte=0)
+                & models.Q(report_weekday__lte=6),
+                name="email_report_weekday_range",
+            )
+        ]
+
+    def clean(self):
+        super().clean()
+        email = (self.user.email or "").strip()
+        if self.weekly_report_enabled:
+            try:
+                validate_email(email)
+            except ValidationError as exc:
+                raise ValidationError(
+                    {
+                        "weekly_report_enabled": (
+                            "A valid account email is required before weekly "
+                            "reports can be enabled."
+                        )
+                    }
+                ) from exc
+        if self.weekly_report_enabled and not any(
+            (
+                self.include_activity,
+                self.include_skill_progress,
+                self.include_next_steps,
+            )
+        ):
+            raise ValidationError(
+                "Select at least one weekly report section."
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}: weekly reports {'on' if self.weekly_report_enabled else 'off'}"
+
+
+class WeeklyReportDelivery(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("sent", "Sent"),
+        ("failed", "Failed"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="weekly_report_deliveries",
+    )
+    period_start = models.DateField()
+    period_end = models.DateField()
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+    )
+    subject = models.CharField(max_length=200, blank=True)
+    content_hash = models.CharField(max_length=64, blank=True)
+    attempt_count = models.PositiveIntegerField(default=0)
+    last_attempt_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    error_code = models.CharField(max_length=60, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-period_end", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "period_start", "period_end"],
+                name="unique_user_weekly_report_period",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "status", "period_end"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.period_start and self.period_end:
+            if self.period_end < self.period_start:
+                raise ValidationError(
+                    {"period_end": "Report period end must follow its start."}
+                )
+            if (self.period_end - self.period_start).days != 6:
+                raise ValidationError(
+                    {"period_end": "A weekly report must cover exactly seven days."}
+                )
+        if self.status == "sent" and (
+            self.sent_at is None or len(self.content_hash) != 64
+        ):
+            raise ValidationError(
+                "A sent report requires its sent time and content hash."
+            )
+        if self.status == "failed" and not self.error_code:
+            raise ValidationError(
+                {"error_code": "A failed report requires a generic error code."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.period_start}:{self.status}"
+
+
+GITHUB_USERNAME_RE = re.compile(
+    r"^(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"
+)
+
+
+class GitHubConnection(models.Model):
+    STATUS_CHOICES = [
+        ("never", "Not synchronized"),
+        ("synced", "Synchronized"),
+        ("error", "Refresh failed"),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="github_connection",
+    )
+    username = models.CharField(max_length=39)
+    github_user_id = models.PositiveBigIntegerField(null=True, blank=True)
+    profile_url = models.URLField(blank=True)
+    display_name = models.CharField(max_length=100, blank=True)
+    bio = models.CharField(max_length=300, blank=True)
+    public_repos = models.PositiveIntegerField(default=0)
+    followers = models.PositiveIntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="never",
+    )
+    last_error_code = models.CharField(max_length=60, blank=True)
+    fetched_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        super().clean()
+        self.username = self.username.strip()
+        if not GITHUB_USERNAME_RE.fullmatch(self.username):
+            raise ValidationError(
+                {
+                    "username": (
+                        "Enter a valid public GitHub username using letters, "
+                        "numbers, or single hyphens."
+                    )
+                }
+            )
+        if self.status == "synced" and (
+            self.github_user_id is None
+            or not self.profile_url
+            or self.fetched_at is None
+        ):
+            raise ValidationError(
+                "A synchronized GitHub connection requires public profile metadata."
+            )
+        if self.status == "error" and not self.last_error_code:
+            raise ValidationError(
+                {"last_error_code": "A failed refresh needs a generic error code."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user_id}: github/{self.username}"
+
+
+class GitHubRepository(models.Model):
+    connection = models.ForeignKey(
+        GitHubConnection,
+        on_delete=models.CASCADE,
+        related_name="repositories",
+    )
+    github_id = models.PositiveBigIntegerField()
+    name = models.CharField(max_length=100)
+    full_name = models.CharField(max_length=200)
+    html_url = models.URLField()
+    description = models.CharField(max_length=500, blank=True)
+    language = models.CharField(max_length=100, blank=True)
+    stargazers_count = models.PositiveIntegerField(default=0)
+    forks_count = models.PositiveIntegerField(default=0)
+    is_fork = models.BooleanField(default=False)
+    pushed_at = models.DateTimeField(null=True, blank=True)
+    fetched_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["-pushed_at", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["connection", "github_id"],
+                name="unique_github_repo_snapshot",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["connection", "-pushed_at"]),
+        ]
+
+    def __str__(self):
+        return self.full_name

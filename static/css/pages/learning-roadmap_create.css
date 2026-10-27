@@ -56,6 +56,7 @@ body { background: #0A0A0A; color: #e0e0e0; }
     }
 
     .topic-option i { font-size: 2.5rem; margin-bottom: 10px; color: #14B8A6; }
+    .topic-option h5 { color: white; }
 
     .level-radio {
         display: flex;

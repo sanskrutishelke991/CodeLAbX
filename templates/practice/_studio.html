@@ -1,0 +1,48 @@
+{% csrf_token %}
+<div class="studio-bar">
+  <div>
+    <p class="kicker">Practice</p>
+    <h1>Examiner</h1>
+  </div>
+  <div class="studio-tools">
+    <label class="sr" for="language">Language</label>
+    <select id="language">
+      <option value="python">Python</option>
+      <option value="javascript">JavaScript</option>
+      <option value="java">Java</option>
+      <option value="cpp">C++</option>
+      <option value="typescript">TypeScript</option>
+      <option value="go">Go</option>
+      <option value="rust">Rust</option>
+      <option value="ruby">Ruby</option>
+    </select>
+    <label class="sr" for="template">Template</label>
+    <select id="template">
+      <option value="">Template</option>
+      <option value="two_sum">Two sum</option>
+      <option value="fibonacci">Fibonacci</option>
+      <option value="palindrome">Palindrome</option>
+      <option value="binary_search">Binary search</option>
+      <option value="reverse_string">Reverse string</option>
+    </select>
+    <div class="studio-actions">
+      <button type="button" class="btn" id="check-btn">Review code</button>
+      <button type="button" class="btn-ghost" id="clear-btn">Clear</button>
+    </div>
+  </div>
+</div>
+<label class="sr" for="problem">Problem (optional)</label>
+<textarea class="problem" id="problem" placeholder="Optional problem statement"></textarea>
+<p class="note">Assistance only. It can be wrong. It does not run your code.</p>
+<div class="exam">
+  <section class="pane">
+    <div class="pane-h"><span>Code</span></div>
+    <textarea id="code" spellcheck="false" aria-label="Code"></textarea>
+  </section>
+  <section class="pane">
+    <div class="pane-h"><span>Review</span></div>
+    <div class="fb" id="fb-empty">Write code on the left, then review. Python, JavaScript, and the other listed languages are sent as-is.</div>
+    <div class="fb" id="fb-load" hidden>Reading the code…</div>
+    <div class="fb" id="fb-out" hidden></div>
+  </section>
+</div>

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Study Groups — CodeLabX{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/community.css' %}">{% endblock %}
+{% block content %}
+<section class="community-shell" aria-labelledby="groups-title">
+    <header class="community-hero">
+        <div><span>Private · invite-only</span><h1 id="groups-title">Study groups</h1><p>Collaborate inside bounded groups. There is no public discovery and no direct messaging.</p></div>
+        <a class="community-btn primary" href="{% url 'community:group_create' %}">Create private group</a>
+    </header>
+    <div class="community-grid">
+        {% for group in groups %}
+        <a class="community-card group-card" href="{% url 'community:group_detail' group.id %}">
+            <div><span>Invite-only</span><h2>{{ group.name }}</h2></div>
+            <p>{{ group.description|default:"No group description." }}</p>
+            <strong>{{ group.member_count }}/{{ group.max_members }} members</strong>
+        </a>
+        {% empty %}<div class="community-card empty">You have not joined a study group.</div>{% endfor %}
+    </div>
+    {% include 'partials/pagination.html' with page_obj=page_obj %}
+    {% if blocks %}<section class="community-card blocked-users"><h2>Blocked users</h2>{% for block in blocks %}<div><span>@{{ block.blocked.username }}</span><form method="post" action="{% url 'community:user_block_action' block.blocked.id 'unblock' %}">{% csrf_token %}<button class="community-btn" type="submit">Unblock</button></form></div>{% endfor %}</section>{% endif %}
+</section>
+{% endblock %}

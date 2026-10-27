@@ -24,6 +24,27 @@ One-to-one with `User`. Stores biography, avatar, location, learning preferences
 and public/private profile visibility. Avatar media is deleted during confirmed
 account deletion.
 
+### `accounts.EmailPreference`
+
+Optional one-to-one account preference for explicit weekly-report opt-in, send
+day, and included report sections. It does not exist merely because a settings page
+was opened. Enabling delivery requires a valid account email.
+
+### `accounts.WeeklyReportDelivery`
+
+Owner-scoped idempotency ledger for scheduled seven-day report periods. It stores
+status, attempts, timestamps, subject, and a content hash—not the report body or
+provider secrets. The unique user/period constraint prevents duplicate scheduled
+email for the same week; explicit previews do not create ledger rows.
+
+### `accounts.GitHubConnection` and `GitHubRepository`
+
+Owner-scoped cache of bounded public GitHub profile and repository metadata. The
+connection stores no OAuth/access token and cannot access private repositories.
+Refresh uses a fixed GitHub API origin, strict response validation, timeouts, and
+throttling. Disconnecting or deleting the account cascades through cached rows. A
+username is public metadata, not proof of account ownership.
+
 ## Learning
 
 ### `learning.Roadmap`
@@ -136,6 +157,117 @@ One-to-one general learning streak summary.
 ### `progress.Badge` and `progress.UserBadge`
 
 Badge definition plus unique earned user/badge relation.
+
+## Learning Intelligence
+
+### `intelligence.SkillPack`, `Skill`, and `SkillPackMembership`
+
+Versioned reviewed curriculum packs reference globally canonical skills, allowing
+shared foundations to appear in Programming/DSA, ML, and Django paths without
+duplicating skill identity.
+
+### `intelligence.SkillPrerequisite`
+
+Directed prerequisite edge with bounded mastery/confidence thresholds. The Skill
+Pack validator rejects unknown skills, self-dependencies, duplicates, and cycles
+before database writes.
+
+### `intelligence.LearningEvent`
+
+Immutable, owner-scoped evidence event with a per-user idempotency key, bounded
+numeric outcome/difficulty/weight, hints/retries/duration, source identity,
+algorithm schema version, and small JSON metadata object.
+
+### `intelligence.SkillState`
+
+Rebuildable `(user, skill)` snapshot containing deterministic mastery,
+confidence, freshness, evidence count/weight, latest evidence, misconception
+codes, and algorithm version. It is derived from LearningEvent and is not an AI
+opinion or XP score.
+
+### `intelligence.LearnerIntelligenceProfile`
+
+Owner one-to-one goal and selected Skill Pack plus routing/goal diagnostic
+completion timestamps. Intelligence data remains private by default.
+
+### `intelligence.DiagnosticAttempt` and `DiagnosticResponse`
+
+Owner-scoped authoritative attempt records for versioned curated question sets.
+Responses reference canonical skills; answer keys remain only in reviewed server
+JSON definitions and are never included in browser question objects.
+
+### `intelligence.Mission`
+
+Owner-scoped, explainable next-step proposal tied to a primary skill and optional
+supporting skills. It stores a deterministic recommendation key, bounded rationale
+and success-criteria objects, expected time, evidence-policy version, and lifecycle
+status. Recalculating an unchanged evidence snapshot is idempotent; a changed
+snapshot expires the superseded proposal. Retention missions use a separate
+freshness-review key and cannot displace an undecided or active mission. A proposal
+does not mutate a roadmap.
+
+### `intelligence.RoadmapRevision` and `RoadmapNode`
+
+Versioned adaptive skill-route sidecars attached to an owned `learning.Roadmap`.
+A roadmap has at most one active and one proposed revision. Nodes store ordered
+skills, prerequisite readiness, optional mission association, expected time, and
+a learner-controlled position pin. Accept/reject/postpone decisions are recorded;
+restoration copies a superseded snapshot into a new revision instead of rewriting
+history. These tables never replace or mutate legacy `learning.Day` rows.
+
+### `intelligence.TutorPreference`
+
+One-to-one explicit teaching choices for explanation depth, tutor mode, code
+density, answer language, pace, study-block length, bounded accessibility flags,
+explicit learning-record context permission, and opt-in feedback adaptation.
+Opening AI chat never creates this profile silently.
+
+### `intelligence.TutorMemory`
+
+Owner-scoped, bounded, visible context with category, content, storage reason,
+source, active/paused state, and learner-confirmation state. Session summaries
+reference an owned chat session and are deleted with that session. Likely
+credentials and secret assignments are rejected. Learners can edit, pause, delete,
+or permanently forget every item.
+
+### `intelligence.TutorFeedback`
+
+One owner-scoped feedback choice per assistant message. Repeated signals can create
+one visible, editable memory suggestion only when observed adaptation is explicitly
+enabled. Feedback and suggestions are not skill evidence or model fine-tuning.
+
+### `intelligence.PublicShare`
+
+Explicit owner-created Passport or Roadmap snapshot with a random public UUID,
+generic display-name default, bounded JSON, SHA-256 content hash, version, refresh
+time, and revocation state. Conditional constraints permit at most one active
+Passport share and one active share per roadmap. Public snapshots are frozen until
+refreshed and omit raw evidence and private account data.
+
+## Private community
+
+### `community.StudyGroup`, `GroupMembership`, and `GroupInvite`
+
+Private invite-only groups with bounded membership, owner/moderator/member roles,
+and expiring usage-limited UUID invitation links. There is no public group listing
+or direct-message table.
+
+### `community.GroupRoadmapShare` and `DayComment`
+
+An owner-controlled roadmap-to-group relation plus separate personal and group day
+comments. Group access requires active membership; shared views omit roadmap/day
+descriptions and generated lesson content. Personal comments remain owner-only.
+
+### `community.DiscussionThread` and `DiscussionPost`
+
+Group-scoped bounded forum content. Threads can be locked/hidden; replies support
+author deletion and moderator hiding. Content is escaped in templates.
+
+### `community.CommunityReport` and `UserBlock`
+
+One report per reporter/target plus recorded moderation outcome. User blocks hide
+content in both directions and prevent direct replies/comments between blocked
+users.
 
 ## Deletion and privacy behavior
 

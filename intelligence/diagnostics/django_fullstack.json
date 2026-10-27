@@ -1,0 +1,15 @@
+{
+  "code": "django_fullstack",
+  "version": 1,
+  "title": "Django full-stack diagnostic",
+  "questions": [
+    {"id": "dj-http", "skill": "web.http", "prompt": "Which status code means the requested resource was not found?", "options": ["200", "302", "404", "500"], "correct": 2, "difficulty": 0.3},
+    {"id": "dj-route", "skill": "django.routing_views", "prompt": "What does Django URL configuration do?", "options": ["Maps request paths to views", "Creates database tables", "Hashes passwords directly", "Compiles CSS"], "correct": 0, "difficulty": 0.4},
+    {"id": "dj-orm", "skill": "django.orm", "prompt": "What should enforce that two fields are unique as a pair?", "options": ["A CSS class", "A database/model constraint", "A template comment", "A GET parameter"], "correct": 1, "difficulty": 0.5},
+    {"id": "dj-migrate", "skill": "django.migrations", "prompt": "Why should migrations be committed to version control?", "options": ["They describe reproducible schema changes", "They store user passwords", "They replace tests", "They contain media uploads"], "correct": 0, "difficulty": 0.5},
+    {"id": "dj-owner", "skill": "django.authorization", "prompt": "Which queryset is safest for retrieving a private note by ID?", "options": ["Note.objects.get(id=id)", "get_object_or_404(Note, id=id, user=request.user)", "Note.objects.first()", "Note.objects.all()"], "correct": 1, "difficulty": 0.6},
+    {"id": "dj-csrf", "skill": "django.csrf_sessions", "prompt": "What does CSRF protection defend on authenticated state-changing requests?", "options": ["Cross-site forged actions", "Slow SQL only", "Missing CSS", "Password hashing speed"], "correct": 0, "difficulty": 0.6},
+    {"id": "dj-n1", "skill": "django.query_optimization", "prompt": "Which tool commonly prevents an N+1 query when following a foreign key?", "options": ["select_related", "sleep", "print", "redirect"], "correct": 0, "difficulty": 0.6},
+    {"id": "dj-test", "skill": "django.testing", "prompt": "What should an authorization regression test verify?", "options": ["Another user receives a denial/404 for private data", "Only the page color", "That DEBUG is always true", "That all users share records"], "correct": 0, "difficulty": 0.6}
+  ]
+}

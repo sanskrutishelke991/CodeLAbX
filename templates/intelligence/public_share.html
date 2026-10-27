@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shared {{ share.get_share_type_display }} — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="intel-shell intel-shell-wide public-share-shell" aria-labelledby="public-share-title">
+    <header class="intel-hero">
+        <div class="intel-kicker">Public CodeLabX snapshot</div>
+        <h1 id="public-share-title">{{ share.display_name }} · {{ share.get_share_type_display }}</h1>
+        <p>{{ snapshot.trust_label }}</p>
+    </header>
+
+    <div class="intel-notice">
+        This is a learner-controlled frozen snapshot generated {{ snapshot.generated_at }}.
+        It is not identity verification, a certificate, an employment credential,
+        or independently verified skill evidence.
+    </div>
+
+    {% if share.share_type == 'passport' %}
+    <section class="intel-stat-grid" aria-label="Shared Passport summary">
+        <article class="intel-stat"><strong>{{ snapshot.observed_skill_count }}/{{ snapshot.total_pack_skills }}</strong><span>Skills with scoreable evidence when refreshed</span></article>
+        <article class="intel-stat"><strong>{{ snapshot.pack.name }}</strong><span>Skill Pack version {{ snapshot.pack.version }}</span></article>
+    </section>
+    <div class="passport-grid">
+        {% for skill in snapshot.skills %}
+        <article class="intel-card passport-card">
+            <div class="passport-card-head">
+                <div><div class="intel-card-kicker">{{ skill.evidence_level }}</div><h3>{{ skill.name }}</h3></div>
+                <strong>{{ skill.mastery_percent }}%</strong>
+            </div>
+            <dl class="passport-metrics">
+                <div><dt>Mastery estimate</dt><dd>{{ skill.mastery_percent }}%</dd></div>
+                <div><dt>Confidence</dt><dd>{{ skill.confidence_percent }}%</dd></div>
+                <div><dt>Freshness</dt><dd>{{ skill.freshness_percent }}%</dd></div>
+            </dl>
+            {% if skill.evidence %}
+            <div class="passport-evidence-split">
+                <span>Scoreable: {{ skill.evidence.scoreable }}</span>
+                <span>Deterministic: {{ skill.evidence.deterministic }}</span>
+                <span>Supporting: {{ skill.evidence.supporting }}</span>
+                <span>Non-scoreable: {{ skill.evidence.observed_non_scoreable }}</span>
+            </div>
+            {% endif %}
+        </article>
+        {% empty %}
+        <div class="intel-card intel-empty">No evidenced skills were included in this snapshot.</div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <section class="intel-card public-roadmap-summary">
+        <div class="intel-card-kicker">{{ snapshot.roadmap.topic }}</div>
+        <h2>{{ snapshot.roadmap.title }}</h2>
+        <dl class="retention-metrics">
+            <div><dt>Level</dt><dd>{{ snapshot.roadmap.level }}</dd></div>
+            <div><dt>Status</dt><dd>{{ snapshot.roadmap.status }}</dd></div>
+            <div><dt>Completed days</dt><dd>{{ snapshot.roadmap.completed_days }}/{{ snapshot.roadmap.total_days }}</dd></div>
+            <div><dt>Progress</dt><dd>{{ snapshot.roadmap.progress_percent }}%</dd></div>
+        </dl>
+    </section>
+    {% if snapshot.days %}
+    <section class="intel-card public-day-list">
+        <h2>Included roadmap days</h2>
+        {% for day in snapshot.days %}
+        <div><span>Day {{ day.day_number }} · {{ day.title }}</span><strong>{% if day.is_completed %}Completed{% else %}Not completed{% endif %}</strong></div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    {% if snapshot.adaptive_route %}
+    <section class="intel-card public-day-list">
+        <h2>Adaptive skill route · revision {{ snapshot.adaptive_route.revision }}</h2>
+        {% for node in snapshot.adaptive_route.nodes %}
+        <div><span>{{ node.order }}. {{ node.skill }} · {{ node.domain }}</span><strong>{{ node.status }}{% if node.learner_pinned %} · Learner pinned{% endif %}</strong></div>
+        {% endfor %}
+    </section>
+    {% endif %}
+    {% endif %}
+
+    <footer class="public-share-footer">
+        <span>Snapshot hash: {{ share.snapshot_hash }}</span>
+        <span>Refreshed {{ share.refreshed_at|date:"d M Y H:i T" }}</span>
+    </footer>
+</section>
+{% endblock %}

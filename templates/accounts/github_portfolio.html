@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}GitHub Public Portfolio — CodeLabX{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/accounts-settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-page github-page">
+    <section class="settings-hero">
+        <div>
+            <span class="settings-kicker"><i class="bi bi-github"></i> Public metadata only</span>
+            <h1 class="settings-title">GitHub portfolio</h1>
+            <p class="settings-copy">
+                Cache a bounded list of public repositories without OAuth tokens or
+                private-repository access.
+            </p>
+        </div>
+        <a class="settings-btn" href="{% url 'accounts:settings' %}">Back to settings</a>
+    </section>
+
+    <div class="email-status-banner is-development">
+        <strong>Not identity verification</strong>
+        <span>
+            Entering a public username does not prove that you own that GitHub
+            account, and repositories are not accepted as verified skill evidence.
+        </span>
+    </div>
+
+    {% if not integration_enabled %}
+    <div class="settings-notice">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>GitHub public portfolio integration is disabled by configuration.</span>
+    </div>
+    {% else %}
+    <div class="github-layout">
+        <form method="post" action="{% url 'accounts:github_connect' %}" class="settings-card github-connect-card">
+            {% csrf_token %}
+            <div class="settings-heading">
+                <span class="settings-icon"><i class="bi bi-person-badge-fill"></i></span>
+                <h2>{% if connection %}Change public username{% else %}Connect public username{% endif %}</h2>
+            </div>
+            <div class="email-field">
+                <label for="{{ form.username.id_for_label }}">GitHub username</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+            <p>
+                CodeLabX requests only the public profile and public owner
+                repositories from <code>api.github.com</code>. No access token is stored.
+            </p>
+            <button class="settings-btn primary" type="submit">Connect and refresh</button>
+        </form>
+
+        <section class="settings-card github-status-card">
+            <div class="settings-heading">
+                <span class="settings-icon"><i class="bi bi-cloud-check-fill"></i></span>
+                <h2>Cached snapshot</h2>
+            </div>
+            {% if connection %}
+            <dl class="github-profile-stats">
+                <div><dt>Username</dt><dd>@{{ connection.username }}</dd></div>
+                <div><dt>Status</dt><dd>{{ connection.get_status_display }}</dd></div>
+                <div><dt>Public repositories</dt><dd>{{ connection.public_repos }}</dd></div>
+                <div><dt>Followers</dt><dd>{{ connection.followers }}</dd></div>
+                <div><dt>Last refresh</dt><dd>{% if connection.fetched_at %}{{ connection.fetched_at|date:"d M Y H:i" }}{% else %}Never{% endif %}</dd></div>
+            </dl>
+            {% if connection.status == 'synced' %}
+            <a class="settings-btn" href="{{ connection.profile_url }}" target="_blank" rel="noopener noreferrer">Open public GitHub profile</a>
+            {% endif %}
+            <div class="settings-actions">
+                <form method="post" action="{% url 'accounts:github_refresh' %}">
+                    {% csrf_token %}
+                    <button class="settings-btn" type="submit">Refresh public snapshot</button>
+                </form>
+                <form method="post"
+                      action="{% url 'accounts:github_disconnect' %}"
+                      data-confirm="Disconnect GitHub and delete cached repository metadata?">
+                    {% csrf_token %}
+                    <button class="settings-btn settings-danger-btn" type="submit">Disconnect</button>
+                </form>
+            </div>
+            {% else %}
+            <p>No GitHub public portfolio is connected.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <section class="settings-card full github-repositories">
+        <div class="settings-heading">
+            <span class="settings-icon"><i class="bi bi-git"></i></span>
+            <h2>Cached public repositories</h2>
+        </div>
+        <div class="github-repository-grid">
+            {% for repository in repositories %}
+            <article class="github-repository-card">
+                <div>
+                    <h3><a href="{{ repository.html_url }}" target="_blank" rel="noopener noreferrer">{{ repository.name }}</a></h3>
+                    <span>{% if repository.language %}{{ repository.language }}{% else %}Language not reported{% endif %}{% if repository.is_fork %} · Fork{% endif %}</span>
+                </div>
+                <p>{{ repository.description|default:"No public description." }}</p>
+                <div class="github-repository-meta">
+                    <span><i class="bi bi-star-fill"></i> {{ repository.stargazers_count }}</span>
+                    <span><i class="bi bi-diagram-2-fill"></i> {{ repository.forks_count }}</span>
+                    <span>Updated {% if repository.pushed_at %}{{ repository.pushed_at|date:"d M Y" }}{% else %}unknown{% endif %}</span>
+                </div>
+            </article>
+            {% empty %}
+            <p>No cached public repositories.</p>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

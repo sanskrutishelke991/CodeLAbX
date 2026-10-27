@@ -1,6 +1,33 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Chat History — CodeLabX{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/ai_tools-chat_sessions.css' %}">{% endblock %}
-{% block content %}<div class="chat-history"><h1>Chat history</h1><p>Your private saved Study Buddy conversations.</p><div class="session-grid"><section class="session-list">{% for session in sessions %}<button class="session-button" type="button" data-session-id="{{ session.id }}">{{ session.title }}<span class="session-meta">{{ session.message_count }} messages · {{ session.updated_at|date:"M d, Y H:i" }}</span></button>{% empty %}<p>No saved conversations.</p>{% endfor %}{% include 'partials/pagination.html' with page_obj=page_obj %}</section><section class="conversation" id="conversation"><p>Select a conversation.</p></section></div></div>{% endblock %}
-{% block extra_js %}<script src="{% static 'js/pages/ai_tools-chat_sessions.js' %}"></script>{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/ai_tools-chat_sessions.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-history">
+    <h1>Chat history</h1>
+    <p>Your private saved Study Buddy conversations.</p>
+    <p><a class="btn btn-primary" href="{% url 'intelligence:tutor_memory' %}">Manage tutor memory and session summaries</a></p>
+    <div class="session-grid">
+        <section class="session-list">
+            {% for session in sessions %}
+            <button class="session-button" type="button" data-session-id="{{ session.id }}">
+                {{ session.title }}
+                <span class="session-meta">{{ session.message_count }} messages · {{ session.updated_at|date:"M d, Y H:i" }}</span>
+            </button>
+            {% empty %}
+            <p>No saved conversations.</p>
+            {% endfor %}
+            {% include 'partials/pagination.html' with page_obj=page_obj %}
+        </section>
+        <section class="conversation" id="conversation"><p>Select a conversation.</p></section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/ai_tools-chat_sessions.js' %}"></script>
+{% endblock %}

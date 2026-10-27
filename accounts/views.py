@@ -1,5 +1,7 @@
 import json
+import logging
 
+from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.conf import settings as django_settings
@@ -15,14 +17,56 @@ from django.views.decorators.http import require_POST
 
 from assessments.models import Test
 from challenges.models import UserChallenge
+from community.models import (
+    CommunityReport,
+    DayComment,
+    DiscussionPost,
+    DiscussionThread,
+    GroupMembership,
+    GroupRoadmapShare,
+    StudyGroup,
+    UserBlock,
+)
 from content.models import UserVideoProgress
 from learning.models import Day, Roadmap
 from notes.models import Note
 from progress.models import DailyActivity, UserBadge, UserLevel, UserStreak
+from intelligence.models import (
+    DiagnosticResponse,
+    LearnerIntelligenceProfile,
+    PublicShare,
+    RoadmapNode,
+    RoadmapRevision,
+    TutorFeedback,
+    TutorMemory,
+    TutorPreference,
+)
 from codelabx.throttling import is_rate_limited
 
-from .forms import ProfileUpdateForm, RegistrationForm
-from .models import UserProfile
+from .forms import (
+    EmailPreferenceForm,
+    GitHubConnectionForm,
+    ProfileUpdateForm,
+    RegistrationForm,
+)
+from .models import (
+    EmailPreference,
+    GitHubConnection,
+    GitHubRepository,
+    UserProfile,
+    WeeklyReportDelivery,
+)
+from .services.github_public import (
+    GitHubPublicAPIError,
+    record_sync_failure,
+    sync_public_github,
+)
+from .services.weekly_reports import (
+    render_weekly_report,
+    send_weekly_report_preview,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def register(request):
@@ -270,7 +314,411 @@ def public_profile(request, username):
 
 @login_required
 def settings(request):
-    return render(request, 'accounts/settings.html')
+    email_preference = EmailPreference.objects.filter(user=request.user).first()
+    github_connection = GitHubConnection.objects.filter(user=request.user).first()
+    return render(
+        request,
+        "accounts/settings.html",
+        {
+            "email_preference": email_preference,
+            "github_connection": github_connection,
+        },
+    )
+
+
+@login_required
+def email_preferences(request):
+    preference = EmailPreference.objects.filter(user=request.user).first()
+    if request.method == "POST":
+        form = EmailPreferenceForm(
+            request.POST,
+            instance=preference,
+            user=request.user,
+        )
+        if form.is_valid():
+            preference = form.save()
+            messages.success(
+                request,
+                "Email report preferences saved."
+                if preference.weekly_report_enabled
+                else "Weekly report email remains off.",
+            )
+            return redirect("accounts:email_preferences")
+    else:
+        form = EmailPreferenceForm(instance=preference, user=request.user)
+
+    backend = django_settings.EMAIL_BACKEND.lower()
+    external_delivery_configured = not any(
+        marker in backend
+        for marker in ("console", "locmem", "dummy", "filebased")
+    )
+    deliveries = WeeklyReportDelivery.objects.filter(
+        user=request.user
+    ).order_by("-period_end")[:10]
+    return render(
+        request,
+        "accounts/email_preferences.html",
+        {
+            "form": form,
+            "preference": preference,
+            "deliveries": deliveries,
+            "external_delivery_configured": external_delivery_configured,
+        },
+    )
+
+
+@login_required
+def weekly_report_preview(request):
+    preference = (
+        EmailPreference.objects.filter(user=request.user).first()
+        or EmailPreference(user=request.user)
+    )
+    rendered = render_weekly_report(request.user, preference)
+    return render(
+        request,
+        "accounts/weekly_report_preview.html",
+        {
+            "preference": preference,
+            "report": rendered.data,
+            "subject": rendered.subject,
+        },
+    )
+
+
+@login_required
+@require_POST
+def send_weekly_report_test(request):
+    if is_rate_limited(
+        request,
+        f"weekly-report-preview:{request.user.id}",
+        django_settings.EMAIL_PREVIEW_ATTEMPTS,
+        django_settings.EMAIL_PREVIEW_WINDOW_SECONDS,
+    ):
+        messages.error(
+            request,
+            "Too many preview-email requests. Try again later.",
+        )
+        return redirect("accounts:weekly_report_preview")
+    preference = (
+        EmailPreference.objects.filter(user=request.user).first()
+        or EmailPreference(user=request.user)
+    )
+    try:
+        send_weekly_report_preview(request.user, preference)
+    except ValidationError:
+        messages.error(
+            request,
+            "A valid account email is required before a preview can be sent.",
+        )
+    except Exception:
+        logger.exception(
+            "Weekly report preview email failed",
+            extra={"user_id": request.user.id},
+        )
+        messages.error(
+            request,
+            "The configured email backend could not send the preview.",
+        )
+    else:
+        backend = django_settings.EMAIL_BACKEND.lower()
+        if any(
+            marker in backend
+            for marker in ("console", "locmem", "dummy", "filebased")
+        ):
+            messages.success(
+                request,
+                "Preview passed to the configured development backend; no external inbox delivery is claimed.",
+            )
+        else:
+            messages.success(
+                request,
+                "Weekly report preview sent to your account email.",
+            )
+    return redirect("accounts:weekly_report_preview")
+
+
+@login_required
+def github_portfolio(request):
+    connection = (
+        GitHubConnection.objects.filter(user=request.user)
+        .prefetch_related("repositories")
+        .first()
+    )
+    form = GitHubConnectionForm(
+        instance=connection,
+        user=request.user,
+    )
+    repositories = (
+        list(connection.repositories.all()[:30]) if connection else []
+    )
+    return render(
+        request,
+        "accounts/github_portfolio.html",
+        {
+            "connection": connection,
+            "repositories": repositories,
+            "form": form,
+            "integration_enabled": (
+                django_settings.GITHUB_PUBLIC_INTEGRATION_ENABLED
+            ),
+        },
+    )
+
+
+def _sync_github_for_request(request, username):
+    if is_rate_limited(
+        request,
+        f"github-refresh:{request.user.id}",
+        django_settings.GITHUB_REFRESH_ATTEMPTS,
+        django_settings.GITHUB_REFRESH_WINDOW_SECONDS,
+    ):
+        messages.error(request, "Too many GitHub refresh attempts. Try again later.")
+        return
+    try:
+        result = sync_public_github(request.user, username)
+    except GitHubPublicAPIError as exc:
+        record_sync_failure(request.user, username, exc.code)
+        messages.error(request, exc.public_message)
+    except ValidationError:
+        messages.error(request, "Enter a valid public GitHub username.")
+    except Exception:
+        logger.exception(
+            "Unexpected GitHub public portfolio refresh failure",
+            extra={"user_id": request.user.id},
+        )
+        record_sync_failure(request.user, username, "github_internal_error")
+        messages.error(
+            request,
+            "GitHub public data could not be refreshed right now.",
+        )
+    else:
+        messages.success(
+            request,
+            f"Public GitHub portfolio refreshed with {result.repository_count} repositories.",
+        )
+
+
+@login_required
+@require_POST
+def github_connect(request):
+    connection = GitHubConnection.objects.filter(user=request.user).first()
+    form = GitHubConnectionForm(
+        request.POST,
+        instance=connection,
+        user=request.user,
+    )
+    if not form.is_valid():
+        messages.error(request, "Enter a valid public GitHub username.")
+        return redirect("accounts:github_portfolio")
+    _sync_github_for_request(request, form.cleaned_data["username"])
+    return redirect("accounts:github_portfolio")
+
+
+@login_required
+@require_POST
+def github_refresh(request):
+    connection = GitHubConnection.objects.filter(user=request.user).first()
+    if connection is None:
+        messages.error(request, "Connect a public GitHub username first.")
+    else:
+        _sync_github_for_request(request, connection.username)
+    return redirect("accounts:github_portfolio")
+
+
+@login_required
+@require_POST
+def github_disconnect(request):
+    connection = GitHubConnection.objects.filter(user=request.user).first()
+    if connection:
+        connection.delete()
+        messages.success(request, "GitHub public portfolio disconnected and cached repositories deleted.")
+    return redirect("accounts:github_portfolio")
+
+
+def _export_learning_intelligence(user):
+    intelligence_profile = (
+        LearnerIntelligenceProfile.objects.filter(user=user)
+        .values(
+            "primary_goal",
+            "custom_goal",
+            "selected_pack__code",
+            "selected_pack__version",
+            "routing_diagnostic_completed_at",
+            "goal_diagnostic_completed_at",
+            "created_at",
+            "updated_at",
+        )
+        .first()
+    )
+    missions = list(
+        user.intelligence_missions.select_related("primary_skill")
+        .prefetch_related("additional_skills")
+        .order_by("created_at")
+    )
+    return {
+        "profile": intelligence_profile,
+        "learning_events": list(
+            user.learning_events.values(
+                "skill__code",
+                "event_type",
+                "source_type",
+                "outcome",
+                "difficulty",
+                "evidence_weight",
+                "hints_used",
+                "retry_count",
+                "duration_seconds",
+                "metadata",
+                "occurred_at",
+                "schema_version",
+            )
+        ),
+        "skill_states": list(
+            user.skill_states.values(
+                "skill__code",
+                "mastery",
+                "confidence",
+                "freshness",
+                "evidence_count",
+                "total_evidence_weight",
+                "last_evidence_at",
+                "misconception_codes",
+                "algorithm_version",
+                "calculated_at",
+            )
+        ),
+        "diagnostic_attempts": list(
+            user.diagnostic_attempts.values(
+                "stage",
+                "diagnostic_code",
+                "question_set_version",
+                "status",
+                "score",
+                "question_count",
+                "started_at",
+                "completed_at",
+            )
+        ),
+        "diagnostic_responses": list(
+            DiagnosticResponse.objects.filter(attempt__user=user).values(
+                "attempt__diagnostic_code",
+                "question_id",
+                "skill__code",
+                "selected_option",
+                "is_correct",
+                "answered_at",
+            )
+        ),
+        "missions": [
+            {
+                "primary_skill": mission.primary_skill.code,
+                "additional_skills": [
+                    skill.code for skill in mission.additional_skills.all()
+                ],
+                "mission_type": mission.mission_type,
+                "status": mission.status,
+                "title": mission.title,
+                "description": mission.description,
+                "rationale": mission.rationale,
+                "success_criteria": mission.success_criteria,
+                "expected_minutes": mission.expected_minutes,
+                "evidence_policy_version": mission.evidence_policy_version,
+                "created_at": mission.created_at,
+                "updated_at": mission.updated_at,
+                "decided_at": mission.decided_at,
+                "postponed_until": mission.postponed_until,
+            }
+            for mission in missions
+        ],
+        "roadmap_revisions": list(
+            RoadmapRevision.objects.filter(roadmap__user=user).values(
+                "roadmap__title",
+                "revision_number",
+                "status",
+                "reason_code",
+                "summary",
+                "input_state_at",
+                "algorithm_version",
+                "based_on__revision_number",
+                "trigger_mission__title",
+                "created_at",
+                "decided_at",
+                "postponed_until",
+            )
+        ),
+        "roadmap_nodes": list(
+            RoadmapNode.objects.filter(revision__roadmap__user=user).values(
+                "revision__roadmap__title",
+                "revision__revision_number",
+                "skill__code",
+                "mission__title",
+                "order",
+                "status",
+                "rationale",
+                "expected_minutes",
+                "is_user_locked",
+                "created_at",
+                "updated_at",
+            )
+        ),
+        "public_shares": list(
+            PublicShare.objects.filter(user=user).values(
+                "share_type",
+                "roadmap__title",
+                "public_id",
+                "display_name",
+                "include_evidence_counts",
+                "include_completed_items",
+                "snapshot",
+                "snapshot_hash",
+                "snapshot_version",
+                "is_active",
+                "created_at",
+                "refreshed_at",
+                "revoked_at",
+            )
+        ),
+        "tutor_preference": (
+            TutorPreference.objects.filter(user=user)
+            .values(
+                "explanation_depth",
+                "teaching_mode",
+                "code_density",
+                "preferred_language",
+                "pace",
+                "session_minutes",
+                "accessibility_preferences",
+                "learning_context_enabled",
+                "observed_adaptation_enabled",
+                "onboarding_completed_at",
+                "created_at",
+                "updated_at",
+            )
+            .first()
+        ),
+        "tutor_memories": list(
+            TutorMemory.objects.filter(user=user).values(
+                "category",
+                "content",
+                "reason",
+                "source_type",
+                "chat_session__title",
+                "is_active",
+                "user_confirmed",
+                "created_at",
+                "updated_at",
+            )
+        ),
+        "tutor_feedback": list(
+            TutorFeedback.objects.filter(user=user).values(
+                "message_id",
+                "message__session__title",
+                "feedback_type",
+                "created_at",
+                "updated_at",
+            )
+        ),
+    }
 
 
 @login_required
@@ -321,6 +769,113 @@ def export_account_data(request):
                 "created_at",
             )
         ),
+        "email_preference": (
+            EmailPreference.objects.filter(user=user)
+            .values(
+                "weekly_report_enabled",
+                "report_weekday",
+                "include_activity",
+                "include_skill_progress",
+                "include_next_steps",
+                "created_at",
+                "updated_at",
+            )
+            .first()
+        ),
+        "weekly_report_deliveries": list(
+            WeeklyReportDelivery.objects.filter(user=user).values(
+                "period_start",
+                "period_end",
+                "status",
+                "subject",
+                "attempt_count",
+                "last_attempt_at",
+                "sent_at",
+                "created_at",
+                "updated_at",
+            )
+        ),
+        "github_public_connection": (
+            GitHubConnection.objects.filter(user=user)
+            .values(
+                "username",
+                "github_user_id",
+                "profile_url",
+                "display_name",
+                "bio",
+                "public_repos",
+                "followers",
+                "status",
+                "fetched_at",
+                "created_at",
+                "updated_at",
+            )
+            .first()
+        ),
+        "github_public_repositories": list(
+            GitHubRepository.objects.filter(connection__user=user).values(
+                "github_id",
+                "name",
+                "full_name",
+                "html_url",
+                "description",
+                "language",
+                "stargazers_count",
+                "forks_count",
+                "is_fork",
+                "pushed_at",
+                "fetched_at",
+            )
+        ),
+        "community": {
+            "owned_groups": list(
+                StudyGroup.objects.filter(owner=user).values(
+                    "id", "name", "description", "max_members", "is_active",
+                    "created_at", "updated_at",
+                )
+            ),
+            "memberships": list(
+                GroupMembership.objects.filter(user=user).values(
+                    "group_id", "group__name", "role", "joined_at",
+                )
+            ),
+            "roadmap_shares": list(
+                GroupRoadmapShare.objects.filter(shared_by=user).values(
+                    "group_id", "group__name", "roadmap_id", "roadmap__title",
+                    "created_at",
+                )
+            ),
+            "threads": list(
+                DiscussionThread.objects.filter(author=user).values(
+                    "id", "group_id", "title", "body", "is_hidden",
+                    "created_at", "updated_at",
+                )
+            ),
+            "posts": list(
+                DiscussionPost.objects.filter(author=user).values(
+                    "id", "thread_id", "body", "is_deleted", "is_hidden",
+                    "created_at", "updated_at",
+                )
+            ),
+            "day_comments": list(
+                DayComment.objects.filter(author=user).values(
+                    "id", "day_id", "group_id", "body", "is_deleted",
+                    "is_hidden", "created_at", "updated_at",
+                )
+            ),
+            "reports": list(
+                CommunityReport.objects.filter(reporter=user).values(
+                    "id", "group_id", "target_type", "target_id", "reason",
+                    "details", "status", "created_at",
+                )
+            ),
+            "blocks": list(
+                UserBlock.objects.filter(blocker=user).values(
+                    "blocked_id", "blocked__username", "created_at",
+                )
+            ),
+        },
+        "learning_intelligence": _export_learning_intelligence(user),
     }
 
     response = HttpResponse(

@@ -23,6 +23,7 @@ from ai_tools.api import (
 )
 from ai_tools.security import guard_ai_request
 from ai_tools.services import GeminiService
+from intelligence.services.emitters import emit_challenge_attempt
 from progress.services import BadgeManager
 
 from .models import Challenge, ChallengeStreak, UserChallenge
@@ -257,6 +258,7 @@ def challenge_submit(request, challenge_id):
         awarded_xp = xp_result.get("xp_added", 0)
         attempt.xp_earned = awarded_xp
         attempt.save(update_fields=["xp_earned"])
+        emit_challenge_attempt(request.user, attempt)
 
     theory = challenge.challenge_type == "theory"
     return JsonResponse(

@@ -622,6 +622,11 @@
         }
 
         .chat-header-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            text-decoration: none;
             background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
@@ -1164,4 +1169,44 @@
     .omni-btn-7:hover { transform: translate(113px, -113px) scale(1.15); }
     .omni-btn-8:hover { transform: translate(149px, -63px) scale(1.15); }
     .omni-btn-9:hover { transform: translate(160px, -0px) scale(1.15); }
+}
+
+.chat-feedback {
+    display: grid;
+    gap: 6px;
+    padding-top: 8px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.chat-feedback-label,
+.chat-feedback-status {
+    color: var(--text-tertiary);
+    font-size: .66rem;
+}
+
+.chat-feedback-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.chat-feedback-button {
+    padding: 3px 6px;
+    border: 1px solid var(--border-default);
+    border-radius: 99px;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    font-size: .62rem;
+}
+
+.chat-feedback-button:hover,
+.chat-feedback-button.is-selected {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+.chat-feedback-button:disabled:not(.is-selected) {
+    opacity: .55;
 }

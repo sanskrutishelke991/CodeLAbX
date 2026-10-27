@@ -1,2 +1,117 @@
 {% extends 'base.html' %}
-{% load static %}{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pages/legal.css' %}">{% endblock %}{% block title %}Privacy — CodeLabX{% endblock %}{% block content %}<article class="legal"><h1>Privacy summary</h1><p>Last updated: August 2026. This page describes the current development version of CodeLabX.</p><h2>Stored data</h2><p>CodeLabX stores account details, profile information, learning progress, assessments, notes, bookmarks, chat history, uploaded image metadata, badges, and XP events.</p><h2>AI processing</h2><p>When you use an AI feature, the relevant prompt, code, question, or normalized image is sent to Google Gemini for processing. Do not submit secrets or highly sensitive personal information.</p><h2>Visibility</h2><p>Private user-owned records are scoped to their owner. Public profile and leaderboard visibility follows the profile visibility setting.</p><h2>Essential browser storage</h2><p>CodeLabX uses Django session and CSRF cookies for sign-in and request protection, plus local browser storage for display preferences such as theme. No advertising or analytics cookie integration is present in this development version.</p><h2>Your controls</h2><p>Settings provides profile visibility, password reset, JSON data export, and permanent account deletion.</p><h2>Local development</h2><p>This repository currently uses SQLite and local media for development. Production storage and retention controls must be configured before public deployment.</p></article>{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/legal.css' %}">
+{% endblock %}
+{% block title %}Privacy — CodeLabX{% endblock %}
+
+{% block content %}
+<article class="legal">
+    <h1>Privacy summary</h1>
+    <p>Last updated: August 2026. This page describes the current development version of CodeLabX.</p>
+
+    <h2>Stored data</h2>
+    <p>
+        CodeLabX stores account details, profile information, learning progress,
+        assessments, notes, bookmarks, chat history, uploaded image metadata,
+        badges, XP events, Learning DNA evidence, adaptive route revisions,
+        explicit tutor preferences, tutor memory, tutor feedback, email-report
+        preferences, weekly delivery metadata, optional public-share snapshots,
+        optional cached public GitHub metadata, private study-group membership,
+        group discussions, roadmap-day comments, reports, and user blocks.
+    </p>
+
+    <h2>AI processing</h2>
+    <p>
+        When you use an AI feature, the relevant prompt, code, question, normalized
+        image, or bounded tutor context is sent to Google Gemini for processing.
+        Tutor context can include your explicit preferences, accepted mission,
+        evidence-backed skill states, and active memory visible on the Tutor page.
+        Learning-record context can be disabled in Tutor preferences. Do not submit
+        secrets or highly sensitive personal information.
+    </p>
+
+    <h2>Skill Passport, retention, and public snapshots</h2>
+    <p>
+        The private Skill Passport and Retention Center are derived from your
+        existing evidence and are not independently verified credentials. Public
+        sharing is off until you explicitly create a privacy-minimized snapshot.
+        Shared links use unguessable identifiers, request no search indexing, do not
+        update silently, and return Gone after revocation.
+    </p>
+
+    <h2>GitHub public portfolio</h2>
+    <p>
+        The optional GitHub integration stores a bounded cache of public profile and
+        repository metadata retrieved from GitHub's public API. It stores no OAuth
+        token and cannot access private repositories. Entering a username does not
+        verify that you own the GitHub account; disconnecting deletes the cache.
+    </p>
+
+    <h2>Weekly email reports</h2>
+    <p>
+        Weekly reports are off by default and contain selected sections derived
+        from recorded database activity. Scheduled-delivery records keep period,
+        status, attempt, subject, and content-hash metadata but not a copy of the
+        email body. You can disable reports from Email settings.
+    </p>
+
+    <h2>Tutor-memory controls</h2>
+    <p>
+        Tutor memory is private by default and is not per-user model training. You
+        can inspect, edit, pause, delete, or forget all tutor memory and feedback.
+        Feedback-based suggestions require opt-in and repeated matching signals.
+    </p>
+
+    <h2>Private community controls</h2>
+    <p>
+        Study groups are invite-only and have no public discovery or direct
+        messaging. Group forums and comments are visible only to active members.
+        Owners and moderators can review reports and hide content; members can block
+        other users. Sharing a roadmap with a group excludes its description,
+        generated lesson content, and private owner comments.
+    </p>
+
+    <h2>Visibility</h2>
+    <p>
+        Private user-owned records are scoped to their owner. Public profile and
+        leaderboard visibility follows the profile visibility setting.
+    </p>
+
+    <h2>PWA and text-to-speech</h2>
+    <p>
+        The installable web app caches only the generic offline shell and versioned
+        static assets. Private authenticated pages, API responses, chat content,
+        uploads, and learning records are intentionally not stored in the offline
+        cache. Text-to-speech uses the browser Web Speech API and does not upload
+        text or audio to CodeLabX; available voices depend on the device. Voice
+        coding input starts only after explicit microphone permission. CodeLabX
+        does not store microphone audio, but the browser or operating-system speech
+        provider may process audio under its own policy.
+    </p>
+
+    <h2>Essential browser storage</h2>
+    <p>
+        CodeLabX uses Django session and CSRF cookies for sign-in and request
+        protection, a language-preference cookie, plus local browser storage for
+        display theme and text-to-speech voice/rate preferences. The service worker
+        uses browser Cache Storage for public shell assets. No advertising or analytics cookie integration is
+        present in this development version.
+    </p>
+
+    <h2>Your controls</h2>
+    <p>
+        Settings provides profile visibility, email-report opt-in/out, password
+        reset, JSON data export, and permanent account deletion. The Tutor page
+        provides separate memory and feedback deletion controls.
+    </p>
+
+    <h2>Local development</h2>
+    <p>
+        This repository currently uses SQLite and local media for development.
+        Production storage and retention controls must be configured before public
+        deployment.
+    </p>
+</article>
+{% endblock %}

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>{{ report.period_start|date:"d M" }}–{{ report.period_end|date:"d M Y" }} CodeLabX report</title></head>
+<body>
+    <main>
+        <h1>CodeLabX weekly learning report</h1>
+        <p><strong>{{ report.period_start|date:"d M Y" }} to {{ report.period_end|date:"d M Y" }}</strong></p>
+        <p>Hi {{ report_user.first_name|default:report_user.username }},</p>
+        <p>This report contains recorded CodeLabX activity only. Missing activity is shown as zero; no AI-generated progress claims are added.</p>
+
+        {% if preference.include_activity %}
+        <section>
+            <h2>Recorded activity</h2>
+            <ul>
+                <li>Active days: {{ report.active_days }}</li>
+                <li>Study time: {{ report.study_minutes }} minutes ({{ report.study_hours }} hours)</li>
+                <li>Roadmap days completed: {{ report.completed_days }} across {{ report.roadmaps_touched }} roadmap(s)</li>
+                <li>Tests completed: {{ report.completed_tests }}{% if report.average_test_score != None %}; average recorded score: {{ report.average_test_score }}%{% endif %}</li>
+                <li>Challenges completed: {{ report.completed_challenges }}</li>
+            </ul>
+        </section>
+        {% endif %}
+
+        {% if preference.include_skill_progress %}
+        <section>
+            <h2>Evidence and skill progress</h2>
+            <ul>
+                <li>Learning-evidence records this week: {{ report.evidence_records }}</li>
+                <li>Scoreable evidence records: {{ report.scoreable_evidence_records }}</li>
+                <li>Skills with new evidence: {{ report.evidenced_skills }}</li>
+                {% if report.passport_total_skills != None %}
+                <li>Current Skill Passport coverage: {{ report.passport_observed_skills }}/{{ report.passport_total_skills }} skills with scoreable evidence</li>
+                {% else %}
+                <li>Skill Passport summary: not available until Learning Intelligence diagnostics are complete</li>
+                {% endif %}
+            </ul>
+            <p>Skill estimates are evidence observed, not independently verified credentials.</p>
+        </section>
+        {% endif %}
+
+        {% if preference.include_next_steps %}
+        <section>
+            <h2>Next steps</h2>
+            <ul>
+                {% if report.current_mission_title %}
+                <li>Current mission: {{ report.current_mission_title }} ({{ report.current_mission_status }})</li>
+                {% else %}
+                <li>Current mission: none recorded</li>
+                {% endif %}
+                {% if report.retention_due_skills != None %}
+                <li>Skills currently worth a retention review: {{ report.retention_due_skills }}</li>
+                {% else %}
+                <li>Retention summary: not available until Learning Intelligence diagnostics are complete</li>
+                {% endif %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <hr>
+        <p>You explicitly opted into this report. To change or stop it, sign in to CodeLabX and open Settings → Email reports.</p>
+        <p><small>CodeLabX is a development-stage learning platform. This message is not a certificate or employment credential.</small></p>
+    </main>
+</body>
+</html>

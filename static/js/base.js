@@ -119,7 +119,84 @@
             messages.appendChild(welcome);
         }
 
-        function addMessage(role, content, isHtml) {
+        const feedbackOptions = [
+            ["helped", "Helpful"],
+            ["too_fast", "Too fast"],
+            ["too_detailed", "Too detailed"],
+            ["more_examples", "More examples"],
+            ["more_code", "More code"],
+            ["ask_me_questions", "Quiz me"],
+            ["already_known", "Already knew this"],
+        ];
+
+        function csrfToken() {
+            const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : "";
+        }
+
+        async function submitFeedback(messageId, feedbackType, wrapper, status) {
+            const buttons = Array.from(wrapper.querySelectorAll("button"));
+            buttons.forEach(function (button) { button.disabled = true; });
+            status.textContent = "Saving…";
+            try {
+                const body = new URLSearchParams({
+                    message: String(messageId),
+                    feedback_type: feedbackType,
+                });
+                const response = await fetch(root.dataset.feedbackUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                        "X-CSRFToken": csrfToken(),
+                    },
+                    body: body.toString(),
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error("feedback rejected");
+                }
+                buttons.forEach(function (button) {
+                    button.classList.toggle(
+                        "is-selected",
+                        button.dataset.feedbackType === feedbackType,
+                    );
+                });
+                status.textContent = data.message || "Feedback saved.";
+            } catch (error) {
+                buttons.forEach(function (button) { button.disabled = false; });
+                status.textContent = "Feedback could not be saved.";
+            }
+        }
+
+        function appendFeedback(contentBox, messageId) {
+            if (!root.dataset.feedbackUrl || !messageId) return;
+            const wrapper = document.createElement("div");
+            wrapper.className = "chat-feedback";
+            const prompt = document.createElement("span");
+            prompt.className = "chat-feedback-label";
+            prompt.textContent = "Shape future replies:";
+            wrapper.appendChild(prompt);
+            const controls = document.createElement("div");
+            controls.className = "chat-feedback-options";
+            const status = document.createElement("span");
+            status.className = "chat-feedback-status";
+            status.setAttribute("role", "status");
+            feedbackOptions.forEach(function (option) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "chat-feedback-button";
+                button.dataset.feedbackType = option[0];
+                button.textContent = option[1];
+                button.addEventListener("click", function () {
+                    submitFeedback(messageId, option[0], controls, status);
+                });
+                controls.appendChild(button);
+            });
+            wrapper.append(controls, status);
+            contentBox.appendChild(wrapper);
+        }
+
+        function addMessage(role, content, isHtml, messageId) {
             const welcome = messages.querySelector(".welcome-message");
             if (welcome) welcome.remove();
 
@@ -138,6 +215,9 @@
                 contentBox.innerHTML = String(content || "");
             } else {
                 contentBox.textContent = String(content || "");
+            }
+            if (role === "assistant") {
+                appendFeedback(contentBox, messageId);
             }
             message.append(avatar, contentBox);
             messages.appendChild(message);
@@ -181,7 +261,7 @@
                 removeTyping();
                 if (response.ok && data.success) {
                     currentSessionId = data.session_id;
-                    addMessage("assistant", data.response, true);
+                    addMessage("assistant", data.response, true, data.message_id);
                 } else {
                     addMessage("assistant", data.error || "The assistant is unavailable right now.", false);
                 }

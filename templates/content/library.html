@@ -1,134 +1,76 @@
-{% extends 'base.html' %}
+{% extends "v2/base.html" %}
 {% load static %}
-
-{% block title %}Video Library - CodeLabX{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/content-library.css' %}">
-{% endblock %}
-
+{% block title %}CodeLabX — Library{% endblock %}
+{% block dial_index %}1{% endblock %}
 {% block content %}
-<div class="library-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
-        <div>
-            <h1><i class="bi bi-play-btn-fill me-2"></i>Video Library</h1>
-            <p class="mb-0" style="opacity: 0.9;">{{ total_videos }} curated videos to learn from</p>
-        </div>
-        <a href="{% url 'content:my_videos' %}" class="btn btn-light btn-sm">
-            <i class="bi bi-collection-play me-1"></i>My Videos
-        </a>
-    </div>
-    
-    <!-- Search -->
-    <form method="get">
-        <input type="text" name="q" class="search-input" placeholder="🔍 Search videos..." value="{{ query }}">
-    </form>
+<div class="top-row">
+  <div>
+    <p class="kicker">Learn</p>
+    <h1>Library</h1>
+  </div>
+  <a class="btn-ghost" href="{% url 'content:my_videos' %}">My videos</a>
 </div>
+<p class="evidence">{{ total_videos }} videos</p>
 
-<!-- Categories -->
-<div class="mb-4">
-    <h5 style="color: white;" class="mb-3"><i class="bi bi-grid me-2" style="color: #14B8A6;"></i>Categories</h5>
-    <div>
-        <a href="{% url 'content:library' %}" class="category-chip {% if not active_category %}active{% endif %}">
-            
-            <span>All ({{ total_videos }})</span>
-        </a>
-        {% for cat in categories %}
-        <a href="?category={{ cat.slug }}" class="category-chip {% if active_category == cat.slug %}active{% endif %}">
-            
-            <span>{{ cat.name }} ({{ cat.video_count }})</span>
-        </a>
-        {% endfor %}
-    </div>
-</div>
+<form class="search" method="get" action="{% url 'content:library' %}">
+  {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+  {% if active_difficulty %}<input type="hidden" name="difficulty" value="{{ active_difficulty }}">{% endif %}
+  <input type="search" name="q" value="{{ query }}" placeholder="Search titles" aria-label="Search videos">
+  <button type="submit">Search</button>
+</form>
 
-<!-- Difficulty Filter -->
-<div class="mb-4">
-    <strong style="color: white;">Difficulty:</strong>
-    <a href="?{% if active_category %}category={{ active_category }}{% endif %}" 
-       class="category-chip {% if not active_difficulty %}active{% endif %}" style="padding: 5px 15px; font-size: 0.85rem;">All</a>
-    <a href="?difficulty=beginner{% if active_category %}&category={{ active_category }}{% endif %}" 
-       class="category-chip {% if active_difficulty == 'beginner' %}active{% endif %}" style="padding: 5px 15px; font-size: 0.85rem;">🌱 Beginner</a>
-    <a href="?difficulty=intermediate{% if active_category %}&category={{ active_category }}{% endif %}" 
-       class="category-chip {% if active_difficulty == 'intermediate' %}active{% endif %}" style="padding: 5px 15px; font-size: 0.85rem;">⚡ Intermediate</a>
-    <a href="?difficulty=advanced{% if active_category %}&category={{ active_category }}{% endif %}" 
-       class="category-chip {% if active_difficulty == 'advanced' %}active{% endif %}" style="padding: 5px 15px; font-size: 0.85rem;">🔥 Advanced</a>
-</div>
+<nav class="filters" aria-label="Category">
+  <a href="{% url 'content:library' %}{% if query %}?q={{ query|urlencode }}{% endif %}" class="{% if not active_category %}on{% endif %}">All</a>
+  {% for cat in categories %}
+  <a href="?category={{ cat.slug }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if active_difficulty %}&difficulty={{ active_difficulty }}{% endif %}"
+     class="{% if active_category == cat.slug %}on{% endif %}">{{ cat.name }}</a>
+  {% endfor %}
+</nav>
+<nav class="filters" aria-label="Level">
+  <a href="?{% if active_category %}category={{ active_category }}&{% endif %}{% if query %}q={{ query|urlencode }}&{% endif %}" class="{% if not active_difficulty %}on{% endif %}">All levels</a>
+  <a href="?difficulty=beginner{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if active_difficulty == 'beginner' %}on{% endif %}">Beginner</a>
+  <a href="?difficulty=intermediate{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if active_difficulty == 'intermediate' %}on{% endif %}">Intermediate</a>
+  <a href="?difficulty=advanced{% if active_category %}&category={{ active_category }}{% endif %}{% if query %}&q={{ query|urlencode }}{% endif %}" class="{% if active_difficulty == 'advanced' %}on{% endif %}">Advanced</a>
+</nav>
 
-<!-- Featured Videos (only when no filter) -->
-{% if not query and not active_category and not active_difficulty and featured_videos %}
-<h3 class="section-title">
-    <i class="bi bi-star-fill me-2" style="color: #f59e0b;"></i>Featured Videos
-</h3>
-<div class="row">
-    {% for video in featured_videos %}
-    <div class="col-lg-4 col-md-6">
-        <a href="{% url 'content:video_detail' video.id %}" class="video-card">
-            <div class="position-relative">
-                <span class="featured-badge">⭐ FEATURED</span>
-                {% if video.id in watched_video_ids %}
-                    <span class="watched-badge">✓ Watched</span>
-                {% endif %}
-                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" class="video-thumbnail" loading="lazy">
-                {% if video.duration %}
-                    <span class="duration-badge">{{ video.duration }}</span>
-                {% endif %}
-            </div>
-            <div class="video-body">
-                <div class="video-title">{{ video.title }}</div>
-                <div class="video-channel">{{ video.channel_name }}</div>
-                <div class="video-meta">
-                    <span class="difficulty-tag {{ video.difficulty }}">{{ video.get_difficulty_display }}</span>
-                    <span>{{ video.category.icon }} {{ video.category.name }}</span>
-                </div>
-            </div>
-        </a>
-    </div>
-    {% endfor %}
-</div>
+{% if featured_videos and not query and not active_category and not active_difficulty %}
+  {% with video=featured_videos.0 %}
+  <a class="hero-vid" href="{% url 'content:video_detail' video.id %}">
+    <span class="thumb">
+      {% if video.thumbnail_url %}<img src="{{ video.thumbnail_url }}" alt="">{% endif %}
+      {% if video.duration %}<span class="dur">{{ video.duration }}</span>{% endif %}
+      {% if video.id in watched_video_ids %}<span class="seen">Watched</span>{% endif %}
+    </span>
+    <span class="hero-body">
+      <p class="hero-kicker">{{ video.category.name }} · {{ video.get_difficulty_display }}</p>
+      <h2>{{ video.title }}</h2>
+      <p class="hero-meta">{% if video.channel_name %}{{ video.channel_name }}{% else %}Video{% endif %}</p>
+      <span class="btn-sm">Watch</span>
+    </span>
+  </a>
+  {% endwith %}
 {% endif %}
-
-<!-- All Videos -->
-<h3 class="section-title">
-    <i class="bi bi-collection-play me-2" style="color: #14B8A6;"></i>
-    {% if query %}Search Results{% elif active_category %}{{ active_category|title }} Videos{% else %}All Videos{% endif %}
-</h3>
 
 {% if videos %}
-<div class="row">
-    {% for video in videos %}
-    <div class="col-lg-4 col-md-6">
-        <a href="{% url 'content:video_detail' video.id %}" class="video-card">
-            <div class="position-relative">
-                {% if video.is_featured %}
-                    <span class="featured-badge">⭐</span>
-                {% endif %}
-                {% if video.id in watched_video_ids %}
-                    <span class="watched-badge">✓ Watched</span>
-                {% endif %}
-                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" class="video-thumbnail" loading="lazy">
-                {% if video.duration %}
-                    <span class="duration-badge">{{ video.duration }}</span>
-                {% endif %}
-            </div>
-            <div class="video-body">
-                <div class="video-title">{{ video.title }}</div>
-                <div class="video-channel">{{ video.channel_name }}</div>
-                <div class="video-meta">
-                    <span class="difficulty-tag {{ video.difficulty }}">{{ video.get_difficulty_display }}</span>
-                    <span>{{ video.category.icon }} {{ video.category.name }}</span>
-                </div>
-            </div>
-        </a>
-    </div>
-    {% endfor %}
-</div>
+  {% for video in videos %}
+    {% if featured_videos and not query and not active_category and not active_difficulty and video.id == featured_videos.0.id %}
+    {% else %}
+    <a class="vrow" href="{% url 'content:video_detail' video.id %}">
+      <span class="thumb">
+        {% if video.thumbnail_url %}<img src="{{ video.thumbnail_url }}" alt="">{% endif %}
+        {% if video.duration %}<span class="dur">{{ video.duration }}</span>{% endif %}
+        {% if video.id in watched_video_ids %}<span class="seen">Watched</span>{% endif %}
+      </span>
+      <span class="prow-body">
+        <span class="vrow-title">{{ video.title }}</span>
+        <span class="vrow-meta">{{ video.category.name }} · {{ video.get_difficulty_display }}{% if video.channel_name %} · {{ video.channel_name }}{% endif %}</span>
+      </span>
+    </a>
+    {% endif %}
+  {% endfor %}
 {% else %}
-<div class="empty-state">
-    <i class="bi bi-camera-video-off"></i>
-    <h4 class="mt-3">No videos found</h4>
-    <p>Try different filters or search terms</p>
-</div>
+  <div class="empty">
+    <p>{% if query or active_category or active_difficulty %}No videos match this filter.{% else %}No videos in the library yet.{% endif %}</p>
+  </div>
 {% endif %}
-{% include 'partials/pagination.html' with page_obj=page_obj %}
 {% endblock %}

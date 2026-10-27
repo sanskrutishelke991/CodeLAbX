@@ -1,22 +1,30 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="{{ LANGUAGE_CODE }}" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CodeLabX learning dashboard for roadmaps, verified progress, assessments, challenges, and AI-assisted study.">
+    <meta name="description" content="CodeLabX learning dashboard for roadmaps, evidence-backed progress, assessments, challenges, and optional AI-assisted study.">
+    <meta name="theme-color" content="#6c5ce7">
+    <meta name="application-name" content="CodeLabX">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{% block title %}CodeLabX - AI-Powered Learning{% endblock %}</title>
 
-
+    <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/pwa-180.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/pwa-192.png' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pwa-accessibility.css' %}">
 
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if request.resolver_match.url_name == 'landing' %}landing-page{% endif %}">
-    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>
     <header class="top-header" role="banner">
         <div class="header-container">
             <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'landing' %}{% endif %}" class="brand">
@@ -25,8 +33,36 @@
             </a>
 
             <div class="header-actions">
+                {% include 'partials/language_selector.html' %}
+                <button class="header-btn"
+                        id="ttsToggleButton"
+                        type="button"
+                        title="{% translate 'Read page aloud' %}"
+                        aria-label="{% translate 'Open text-to-speech controls' %}"
+                        aria-expanded="false"
+                        aria-controls="ttsPanel">
+                    <i class="bi bi-volume-up-fill"></i>
+                </button>
+                <button class="header-btn"
+                        id="voiceToggleButton"
+                        type="button"
+                        title="{% translate 'Voice coding input' %}"
+                        aria-label="{% translate 'Open voice coding input controls' %}"
+                        aria-expanded="false"
+                        aria-controls="voicePanel">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
+                <button class="header-btn"
+                        id="pwaInstallButton"
+                        type="button"
+                        title="{% translate 'Install CodeLabX' %}"
+                        aria-label="{% translate 'Install CodeLabX on this device' %}"
+                        aria-hidden="true"
+                        hidden>
+                    <i class="bi bi-download"></i>
+                </button>
                 {% if user.is_authenticated %}
-                    <button class="header-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle color theme">
+                    <button class="header-btn" id="themeToggle" title="{% translate 'Toggle theme' %}" aria-label="{% translate 'Toggle color theme' %}">
                         <i class="bi bi-moon-fill" id="themeIcon"></i>
                     </button>
                     <a class="user-avatar" href="{% url 'accounts:profile' %}" aria-label="Open your profile">
@@ -37,12 +73,15 @@
                         {% endif %}
                     </a>
                 {% else %}
-                    <a href="{% url 'accounts:login' %}" class="btn btn-ghost">Sign in</a>
-                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Get Started</a>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-ghost">{% translate "Sign in" %}</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">{% translate "Get Started" %}</a>
                 {% endif %}
             </div>
         </div>
     </header>
+
+    {% include 'partials/tts_controls.html' %}
+    {% include 'partials/voice_controls.html' %}
 
     {% if messages %}
         <div class="main-container" style="padding-top: 0; padding-bottom: 0;">
@@ -95,7 +134,10 @@
 
     {% if user.is_authenticated %}
     <!-- AI Study Buddy Chat Widget -->
-    <div id="chatWidget" data-chat-url="{% url 'ai_tools:chat_send' %}" data-user-initial="{{ user.username|first|upper }}">
+    <div id="chatWidget"
+         data-chat-url="{% url 'ai_tools:chat_send' %}"
+         data-feedback-url="{% url 'intelligence:tutor_feedback' %}"
+         data-user-initial="{{ user.username|first|upper }}">
         <button id="chatToggleBtn" class="chat-toggle-btn" title="AI Study Buddy" aria-label="Open AI Study Buddy" aria-expanded="false" aria-controls="chatWindow">
             <i class="bi bi-chat-dots-fill" id="chatToggleIcon"></i>
         </button>
@@ -112,6 +154,12 @@
                     </div>
                 </div>
                 <div>
+                    <a class="chat-header-btn"
+                       href="{% url 'intelligence:tutor_home' %}"
+                       title="Tutor preferences and memory"
+                       aria-label="Open tutor preferences and memory">
+                        <i class="bi bi-sliders"></i>
+                    </a>
                     <button class="chat-header-btn" data-chat-new title="New chat" aria-label="Start a new chat">
                         <i class="bi bi-plus-lg"></i>
                     </button>
@@ -127,7 +175,7 @@
                         <i class="bi bi-stars"></i>
                     </div>
                     <h5>Hi! I am your Study Buddy</h5>
-                    <p>Ask me anything about programming, ML, AI, or DSA.</p>
+                    <p>Ask a learning question. Preferences and active memories are always under your control.</p>
                     <div class="suggested-prompts">
                         <button class="prompt-btn" data-chat-suggestion>Explain recursion simply</button>
                         <button class="prompt-btn" data-chat-suggestion>What is machine learning?</button>
@@ -235,5 +283,8 @@
     {% endif %}
 
     <script src="{% static 'js/base.js' %}"></script>
+    <script src="{% static 'js/pwa.js' %}"></script>
+    <script src="{% static 'js/tts.js' %}"></script>
+    <script src="{% static 'js/voice-input.js' %}"></script>
 </body>
 </html>

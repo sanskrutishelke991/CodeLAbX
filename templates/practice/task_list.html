@@ -1,77 +1,14 @@
-{% extends 'base.html' %}
+{% extends "v2/base.html" %}
 {% load static %}
-
-{% block title %}Practice Arena - CodeLabX{% endblock %}
-
+{% block title %}CodeLabX — Practice{% endblock %}
+{% block dial_index %}2{% endblock %}
+{% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/practice-task_list.css' %}">
+<link rel="stylesheet" href="{% static 'css/v2/practice.css' %}?v=1">
 {% endblock %}
-
+{% block extra_js %}
+<script src="{% static 'js/v2/practice.js' %}?v=1" defer></script>
+{% endblock %}
 {% block content %}
-<div class="practice-header">
-    <h1><i class="bi bi-code-slash me-2"></i>Practice Arena</h1>
-    <p class="mb-0" style="opacity: 0.9;">Master coding through hands-on practice and AI-powered feedback</p>
-</div>
-
-<div class="row g-4">
-    <div class="col-md-6 col-lg-4">
-        <a href="{% url 'practice:examiner' %}" class="feature-card">
-            <div class="feature-icon icon-purple">
-                <i class="bi bi-robot"></i>
-            </div>
-            <h4>AI Code Examiner <span class="badge-new">NEW</span></h4>
-            <p>Get instant AI feedback on your code. Bug detection, improvements & best practices.</p>
-        </a>
-    </div>
-    
-    <div class="col-md-6 col-lg-4">
-        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
-            <div class="feature-icon icon-green">
-                <i class="bi bi-lightning-charge"></i>
-            </div>
-            <h4>Daily Challenges</h4>
-            <p>Coming soon! Solve daily coding problems with varying difficulty.</p>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4">
-        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
-            <div class="feature-icon icon-red">
-                <i class="bi bi-trophy"></i>
-            </div>
-            <h4>Coding Contests</h4>
-            <p>Coming soon! Compete with others in real-time coding contests.</p>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4">
-        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
-            <div class="feature-icon icon-orange">
-                <i class="bi bi-collection"></i>
-            </div>
-            <h4>Problem Sets</h4>
-            <p>Coming soon! Curated problems by topic - Arrays, Trees, DP, etc.</p>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4">
-        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
-            <div class="feature-icon icon-purple">
-                <i class="bi bi-people"></i>
-            </div>
-            <h4>Mock Interviews</h4>
-            <p>Coming soon! AI-powered mock interview preparation.</p>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-4">
-        <div class="feature-card" style="cursor: not-allowed; opacity: 0.6;">
-            <div class="feature-icon icon-green">
-                <i class="bi bi-graph-up"></i>
-            </div>
-            <h4>Progress Tracker</h4>
-            <p>Coming soon! Track your practice progress with detailed analytics.</p>
-        </div>
-    </div>
-</div>
+{% include "practice/_studio.html" %}
 {% endblock %}

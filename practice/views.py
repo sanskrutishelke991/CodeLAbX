@@ -21,6 +21,7 @@ from ai_tools.services import (
     GeminiService,
     parse_json_object_response,
 )
+from intelligence.services.emitters import emit_code_review
 from progress.services import BadgeManager
 
 from .models import CodeReview
@@ -188,7 +189,7 @@ def check_code(request):
         )
 
     with transaction.atomic():
-        review_record, _ = CodeReview.objects.get_or_create(
+        review_record, review_created = CodeReview.objects.get_or_create(
             user=request.user,
             code_hash=CodeReview.hash_code(language, code),
             defaults={"language": language},
@@ -203,6 +204,13 @@ def check_code(request):
             source_object_id=review_record.id,
         )
         new_badges = BadgeManager.check_and_award_badges(request.user)
+        if review_created:
+            emit_code_review(
+                request.user,
+                review_record,
+                language=language,
+                problem=problem,
+            )
 
     return JsonResponse(
         {

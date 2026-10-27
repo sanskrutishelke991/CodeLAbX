@@ -1,101 +1,43 @@
-{% extends 'base.html' %}
+{% extends "v2/base.html" %}
 {% load static %}
-{% block title %}Test Results - CodeLabX{% endblock %}
+{% block title %}CodeLabX — Result{% endblock %}
+{% block dial_index %}4{% endblock %}
+{% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/assessments-test_result.css' %}">
-{% endblock %}
-{% block content %}
-<div class="result-header">
-    <h2 class="mb-2"><i class="bi bi-trophy me-2"></i>Test Results</h2>
-    <p class="mb-0" style="opacity: 0.9;">{{ test.title }}</p>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="result-card text-center">
-            <div class="score-circle">
-                <div>
-                    <div class="score-number">{{ test.percentage }}%</div>
-                    <div class="score-label">{{ test.score }}/{{ test.total_marks }}</div>
-                </div>
-            </div>
-            <div class="grade-badge mt-3">{{ test.grade }}</div>
-            <p class="text-muted mt-2">Time taken: {{ attempt.time_taken_seconds }} seconds</p>
-        </div>
-    </div>
-    <div class="col-md-8">
-        <div class="result-card">
-            <h4 style="color: white; margin-bottom: 20px;">Performance Summary</h4>
-            <div class="row">
-                <div class="col-6 mb-3">
-                    <div style="color: #a0a0a0; font-size: 0.9rem;">Total Questions</div>
-                    <div style="color: white; font-size: 1.5rem; font-weight: 700;">{{ test.num_questions }}</div>
-                </div>
-                <div class="col-6 mb-3">
-                    <div style="color: #a0a0a0; font-size: 0.9rem;">Correct Answers</div>
-                    <div style="color: #00D4AA; font-size: 1.5rem; font-weight: 700;">{% widthratio test.score test.total_marks test.num_questions %}</div>
-                </div>
-                <div class="col-6 mb-3">
-                    <div style="color: #a0a0a0; font-size: 0.9rem;">Difficulty</div>
-                    <div style="color: white; font-size: 1.2rem; font-weight: 600;">{{ test.get_difficulty_display }}</div>
-                </div>
-                <div class="col-6 mb-3">
-                    <div style="color: #a0a0a0; font-size: 0.9rem;">Topic</div>
-                    <div style="color: white; font-size: 1.2rem; font-weight: 600;">{{ test.topic }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="result-card">
-    <h4 style="color: white; margin-bottom: 20px;">Question-by-Question Breakdown</h4>
-    
-    {% for item in question_breakdown %}
-    <div class="question-item {% if item.is_correct %}correct{% else %}incorrect{% endif %}">
-        <div class="d-flex align-items-start mb-3">
-            <span class="badge" style="background: #14B8A6; color: white; margin-right: 10px;">{{ forloop.counter }}</span>
-            <h5 style="color: white; margin: 0;">{{ item.question }}</h5>
-        </div>
-        
-        <div class="options-list">
-            {% for option in item.options %}
-            <div class="option-item 
-                {% if forloop.counter0 == item.user_answer %}{% if item.is_correct %}user-correct{% else %}user-wrong{% endif %}{% endif %}
-                {% if forloop.counter0 == item.correct_answer %}correct-answer{% endif %}">
-                <span style="color: #a0a0a0; margin-right: 10px;">{{ forloop.counter0|add:65 }}.</span>
-                <span style="color: #e0e0e0;">{{ option }}</span>
-                {% if forloop.counter0 == item.user_answer %}
-                    <i class="bi bi-check-circle float-end" style="color: {% if item.is_correct %}#00D4AA{% else %}#FF6B6B{% endif %};"></i>
-                {% endif %}
-                {% if forloop.counter0 == item.correct_answer and forloop.counter0 != item.user_answer %}
-                    <i class="bi bi-check-circle float-end" style="color: #00D4AA;"></i>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-        
-        {% if item.explanation %}
-        <div class="explanation-box">
-            <strong style="color: #14B8A6;"><i class="bi bi-lightbulb me-2"></i>Explanation:</strong>
-            <p class="mb-0" style="color: #e0e0e0; margin-top: 5px;">{{ item.explanation }}</p>
-        </div>
-        {% endif %}
-    </div>
-    {% endfor %}
-</div>
-
-<div class="text-center mt-4">
-    <a href="{% url 'assessments:create' %}" class="btn-action me-3">
-        <i class="bi bi-plus-circle me-2"></i>Create New Test
-    </a>
-    <a href="{% url 'assessments:quiz_list' %}" class="btn-secondary-action">
-        <i class="bi bi-list me-2"></i>Back to Tests
-    </a>
-</div>
-
-<div id="confettiContainer" class="confetti" data-celebrate="{% if test.percentage >= 80 %}true{% else %}false{% endif %}"></div>
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=3">
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/pages/assessments-test_result.js' %}"></script>
+<script src="{% static 'js/v2/assessments.js' %}?v=3" defer></script>
+{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{% url 'assessments:quiz_list' %}">Tests</a> / Result</p>
+<header class="as-mark glass">
+  <div>
+    <p class="hero-pct" data-pct="{{ test.percentage }}">{{ test.percentage }}%</p>
+    <div class="as-bar" aria-hidden="true"><i data-p="{{ test.percentage }}"></i></div>
+  </div>
+  <div>
+    <p class="kicker">{{ test.topic }} · {{ test.get_difficulty_display }}</p>
+    <h1>{{ test.grade }}</h1>
+    <p class="as-meta">{{ test.title }} · {{ test.score }} / {{ test.total_marks }} · {{ attempt.time_taken_seconds }} s</p>
+  </div>
+  <div class="q-nav">
+    <a class="btn" href="{% url 'assessments:create' %}">Create a test</a>
+    <a class="btn-ghost" href="{% url 'assessments:quiz_list' %}">All tests</a>
+  </div>
+</header>
+<div class="break">
+  {% for item in question_breakdown %}
+  <article class="qitem glass {% if item.is_correct %}ok{% else %}bad{% endif %}">
+    <p class="as-k">Question {{ forloop.counter }}{% if item.is_correct %} · Correct{% else %} · Missed{% endif %}</p>
+    <h3>{{ item.question }}</h3>
+    {% for option in item.options %}
+    <p class="{% if forloop.counter0 == item.user_answer %}mine{% endif %}{% if forloop.counter0 == item.correct_answer %} right{% endif %}">
+      {{ option }}
+    </p>
+    {% endfor %}
+    {% if item.explanation %}<p class="as-meta">{{ item.explanation }}</p>{% endif %}
+  </article>
+  {% endfor %}
+</div>
 {% endblock %}

@@ -25,6 +25,7 @@ from .services import GeminiService
 from .uploads import normalize_uploaded_image
 from .models import ChatSession, ChatMessage
 from django.shortcuts import get_object_or_404
+from intelligence.services.tutor_context import build_tutor_context
 
 logger = logging.getLogger(__name__)
 
@@ -101,13 +102,23 @@ def chat_send(request):
 
     history.reverse()
 
+    try:
+        tutor_context = build_tutor_context(
+            request.user,
+            session=session,
+        )
+        user_context = tutor_context.prompt
+    except Exception:
+        logger.exception(
+            "Tutor context could not be built; continuing without personalization"
+        )
+        tutor_context = None
+        user_context = ""
+
     result = GeminiService().chat(
         message=message,
         chat_history=history[:-1],
-        user_context=(
-            f"Username: "
-            f"{request.user.username}"
-        ),
+        user_context=user_context,
     )
 
     if not result.get("success"):
@@ -122,6 +133,7 @@ def chat_send(request):
         role="assistant",
         content=result["response_text"],
     )
+    session.save(update_fields=["updated_at"])
 
     return JsonResponse(
         {
@@ -129,6 +141,9 @@ def chat_send(request):
             "session_id": session.id,
             "response": result["response_html"],
             "message_id": ai_message.id,
+            "personalized": bool(
+                tutor_context and tutor_context.personalized
+            ),
         }
     )
 

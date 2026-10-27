@@ -1,0 +1,16 @@
+{
+  "code": "routing",
+  "version": 1,
+  "title": "Learning path routing diagnostic",
+  "questions": [
+    {"id": "routing-decompose", "skill": "programming.problem_decomposition", "prompt": "Which first step is best when a programming requirement feels too large?", "options": ["Start writing random code", "Break it into smaller inputs, outputs, and steps", "Skip directly to optimization", "Copy a complete solution"], "correct": 1, "difficulty": 0.3},
+    {"id": "routing-python-flow", "skill": "python.control_flow", "prompt": "Which construct repeats work while a condition remains true?", "options": ["class", "import", "while", "return"], "correct": 2, "difficulty": 0.3},
+    {"id": "routing-complexity", "skill": "dsa.complexity", "prompt": "A single loop over n items usually has which time growth?", "options": ["O(1)", "O(log n)", "O(n)", "O(n²)"], "correct": 2, "difficulty": 0.4},
+    {"id": "routing-data-split", "skill": "ml.data_splitting", "prompt": "Why should model evaluation use data not used for training?", "options": ["To make training slower", "To estimate generalization to unseen data", "To remove all model errors", "To avoid choosing metrics"], "correct": 1, "difficulty": 0.5},
+    {"id": "routing-overfit", "skill": "ml.generalization", "prompt": "A model performs very well on training data but poorly on new data. What is the likely issue?", "options": ["Overfitting", "Perfect calibration", "Data normalization", "Under-sampling only"], "correct": 0, "difficulty": 0.5},
+    {"id": "routing-metric", "skill": "ml.model_evaluation", "prompt": "For a highly imbalanced classification problem, which statement is safest?", "options": ["Accuracy is always enough", "Metrics must reflect the error tradeoff", "Training score is the final result", "No validation is needed"], "correct": 1, "difficulty": 0.6},
+    {"id": "routing-http", "skill": "web.http", "prompt": "Which HTTP method is normally used to retrieve a page without changing server state?", "options": ["GET", "POST", "DELETE", "PATCH"], "correct": 0, "difficulty": 0.3},
+    {"id": "routing-ownership", "skill": "django.authorization", "prompt": "What must an object-detail view verify for private user content?", "options": ["Only that an ID exists", "That the object belongs to or is authorized for the requester", "That JavaScript is enabled", "That the object was created today"], "correct": 1, "difficulty": 0.6},
+    {"id": "routing-test", "skill": "django.testing", "prompt": "What is the main purpose of a regression test?", "options": ["Make the UI colorful", "Prevent a fixed behavior from breaking again", "Replace authorization", "Increase database size"], "correct": 1, "difficulty": 0.4}
+  ]
+}

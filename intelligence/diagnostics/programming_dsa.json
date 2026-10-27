@@ -1,0 +1,15 @@
+{
+  "code": "programming_dsa",
+  "version": 1,
+  "title": "Programming and DSA diagnostic",
+  "questions": [
+    {"id": "pd-function", "skill": "python.functions", "prompt": "What is the clearest reason to put repeated logic into a function?", "options": ["To hide every variable", "To create a reusable operation with a clear contract", "To prevent testing", "To make all state global"], "correct": 1, "difficulty": 0.4},
+    {"id": "pd-dict", "skill": "python.collections", "prompt": "Which Python collection is the natural choice for mapping student IDs to names?", "options": ["list", "tuple", "dictionary", "string"], "correct": 2, "difficulty": 0.3},
+    {"id": "pd-debug", "skill": "programming.debugging", "prompt": "A test fails only for an empty list. What should you do first?", "options": ["Delete the test", "Reproduce the smallest failing input and inspect assumptions", "Rewrite the entire program", "Ignore the edge case"], "correct": 1, "difficulty": 0.5},
+    {"id": "pd-hash", "skill": "dsa.hash_maps", "prompt": "Which structure usually supports average constant-time lookup by key?", "options": ["Hash map", "Linked list", "Stack", "Unsorted array scan"], "correct": 0, "difficulty": 0.5},
+    {"id": "pd-bfs", "skill": "dsa.graphs", "prompt": "Which structure does breadth-first search use to process nodes level by level?", "options": ["Stack", "Queue", "Heap only", "Recursion only"], "correct": 1, "difficulty": 0.6},
+    {"id": "pd-binary", "skill": "dsa.sorting_searching", "prompt": "What prerequisite does binary search require?", "options": ["Duplicate values only", "A sorted search space", "A linked list", "Randomized input"], "correct": 1, "difficulty": 0.5},
+    {"id": "pd-recursion", "skill": "dsa.recursion", "prompt": "What prevents a recursive function from calling itself forever?", "options": ["A base case with progress toward it", "A global list", "A print statement", "A class constructor"], "correct": 0, "difficulty": 0.5},
+    {"id": "pd-dp", "skill": "dsa.greedy_dynamic", "prompt": "Dynamic programming is most useful when a problem has which property?", "options": ["No subproblems", "Overlapping subproblems and reusable optimal results", "Only one input", "No objective"], "correct": 1, "difficulty": 0.8}
+  ]
+}

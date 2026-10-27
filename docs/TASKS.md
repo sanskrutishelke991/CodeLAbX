@@ -36,6 +36,52 @@ schedule. Completed work remains in Git history and regression tests.
 - [ ] Continue reviewing broad exception handlers at intentional API/provider boundaries
 - [ ] Raise remaining low service coverage without testing implementation trivia
 
+## Learning Intelligence feature branch
+
+- [x] Define domain-agnostic V1 technical specification
+- [x] Add Skill Pack, Skill, membership, and prerequisite schema
+- [x] Add immutable LearningEvent and rebuildable SkillState schema
+- [x] Add three starter domain packs plus shared foundations
+- [x] Add cycle-validating idempotent Skill Pack seeder
+- [x] Add deterministic mastery/confidence/freshness calculator
+- [x] Add evidence write and state rebuild services/commands/tasks
+- [x] Emit evidence from existing assessments, challenges, days, and reviews
+- [x] Build routing and goal-specific diagnostics
+- [x] Add onboarding and initial evidence-baseline pages
+- [x] Build full Learning DNA profile, evidence explorer, and recommendation UI
+- [x] Build approval-based roadmap revisions
+- [x] Build tutor preferences and user-controlled memory
+- [x] Build a private evidence-observed Skill Passport
+- [x] Add deterministic retention analysis and refresh missions
+- [x] Add opt-in public passport/roadmap snapshots with revocable no-index links
+- [x] Add token-free cached public GitHub portfolio integration
+- [ ] Define certificate verification policy before issuing certificates
+
+## Product communication extensions
+
+- [x] Add explicit email-report preferences and local backend preview
+- [x] Add deterministic weekly reports with an idempotent delivery ledger
+- [x] Add maintenance task and scheduler-safe weekly-report command
+- [ ] Configure a transactional production email provider
+- [ ] Schedule the weekly-report command through an external scheduler/worker
+
+## Product accessibility and installability
+
+- [x] Add installable PWA manifest, icons, root service worker, and public offline shell
+- [x] Keep authenticated pages, APIs, media, chats, and learner records out of offline cache
+- [x] Add bounded browser-native text-to-speech with voice/rate controls
+- [x] Add English/Hindi/Marathi language selection and translated core controls
+- [ ] Expand translations across all legacy feature-page copy
+- [x] Add bounded voice coding input with explicit microphone permission
+
+## Private community
+
+- [x] Add private invite-only study groups with bounded membership
+- [x] Add group-scoped discussion threads and replies
+- [x] Add personal and shared-group roadmap day comments
+- [x] Add owner/moderator roles, reports, hiding, and user blocking
+- [x] Keep public group discovery and direct messaging out of the minor-safe release
+
 ## Next frontend-security phase
 
 - [x] Extract all page-specific inline CSS into versioned static stylesheets

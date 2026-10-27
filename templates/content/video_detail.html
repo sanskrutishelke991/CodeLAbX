@@ -1,117 +1,61 @@
-{% extends 'base.html' %}
+{% extends "v2/base.html" %}
 {% load static %}
-
-{% block title %}{{ video.title }} - CodeLabX{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/content-video_detail.css' %}">
-{% endblock %}
-
-{% block content %}
-<div class="mb-3">{% include 'partials/bookmark_button.html' with bookmark_title=video.title bookmark_type='other' %}</div>
-<div class="breadcrumb-custom">
-    <a href="{% url 'content:library' %}"><i class="bi bi-arrow-left"></i> Library</a> / 
-    <a href="?category={{ video.category.slug }}">{{ video.category.name }}</a> / 
-    {{ video.title|truncatechars:50 }}
-</div>
-
-<div class="row">
-    <!-- Left: Video Player + Info -->
-    <div class="col-lg-8">
-        <!-- Video Player -->
-        <div class="video-player-container">
-            <iframe 
-                src="{{ video.embed_url }}?rel=0" 
-                title="{{ video.title }}" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-            </iframe>
-        </div>
-        
-        <!-- Video Info -->
-        <div class="video-info-card">
-            <h2 class="video-title-big">{{ video.title }}</h2>
-            
-            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
-                <div>
-                    <strong style="color: white;">{{ video.channel_name }}</strong>
-                    <span style="color: #a0a0a0;" class="ms-2">
-                        {{ video.category.icon }} {{ video.category.name }}
-                    </span>
-                </div>
-                <div>
-                    <span class="badge bg-warning">{{ video.get_difficulty_display }}</span>
-                    {% if video.duration %}
-                        <span class="badge bg-secondary ms-1">⏱ {{ video.duration }}</span>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="video-actions">
-                <button class="action-btn {% if progress.is_watched %}watched{% endif %}" 
-                        id="watchedBtn" data-endpoint="{% url 'content:mark_watched' video.id %}">
-                    <i class="bi bi-check-circle{% if progress.is_watched %}-fill{% endif %}"></i>
-                    <span>{% if progress.is_watched %}Watched{% else %}Mark Watched{% endif %}</span>
-                </button>
-                
-                <button class="action-btn {% if progress.is_favorited %}favorited{% endif %}" 
-                        id="favoriteBtn" data-endpoint="{% url 'content:toggle_favorite' video.id %}">
-                    <i class="bi bi-heart{% if progress.is_favorited %}-fill{% endif %}"></i>
-                    <span>{% if progress.is_favorited %}Favorited{% else %}Favorite{% endif %}</span>
-                </button>
-                
-                <a href="{{ video.watch_url }}" target="_blank" class="action-btn">
-                    <i class="bi bi-box-arrow-up-right"></i>
-                    <span>Open in YouTube</span>
-                </a>
-            </div>
-            
-            <!-- Description -->
-            <h5 style="color: white;" class="mt-4">About this video</h5>
-            <p style="line-height: 1.7; color: #e0e0e0;">{{ video.description|linebreaks }}</p>
-            
-            <!-- Tags -->
-            {% if video.tags %}
-            <div class="mt-3">
-                {% for tag in video.tags %}
-                    <span class="tag-pill">#{{ tag }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Right: Related Videos -->
-    <div class="col-lg-4">
-        <div class="video-info-card">
-            <h5 style="color: white;" class="mb-3">
-                <i class="bi bi-collection-play me-2" style="color: #14B8A6;"></i>
-                More from {{ video.category.name }}
-            </h5>
-            
-            {% if related_videos %}
-                {% for related in related_videos %}
-                <a href="{% url 'content:video_detail' related.id %}" class="related-video">
-                    <img src="{{ related.thumbnail_url }}" alt="{{ related.title }}" class="related-thumbnail">
-                    <div class="related-info">
-                        <div class="related-title">{{ related.title }}</div>
-                        <div class="related-channel">{{ related.channel_name }}</div>
-                        {% if related.duration %}
-                            <small class="text-muted">⏱ {{ related.duration }}</small>
-                        {% endif %}
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                <p class="text-muted text-center">No related videos</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
-{% endblock %}
-
+{% block title %}{{ video.title }} — CodeLabX{% endblock %}
+{% block dial_index %}1{% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/pages/content-video_detail.js' %}"></script>
+<script src="{% static 'js/v2/learn.js' %}?v=1" defer></script>
+{% endblock %}
+{% block content %}
+<p class="crumb">
+  <a href="{% url 'content:library' %}">Library</a> /
+  <a href="{% url 'content:library' %}?category={{ video.category.slug }}">{{ video.category.name }}</a> /
+  {{ video.title }}
+</p>
+
+<div class="player">
+  <iframe
+    src="{{ video.embed_url }}"
+    title="{{ video.title }}"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen></iframe>
+</div>
+
+<p class="kicker">{{ video.category.name }} · {{ video.get_difficulty_display }}{% if video.duration %} · {{ video.duration }}{% endif %}</p>
+<h1 class="vid-h">{{ video.title }}</h1>
+{% if video.channel_name %}<p class="evidence">{{ video.channel_name }}</p>{% endif %}
+
+{% csrf_token %}
+<div class="actions" id="vid-actions"
+     data-watch="{% url 'content:mark_watched' video.id %}"
+     data-fav="{% url 'content:toggle_favorite' video.id %}">
+  <button type="button" class="btn{% if progress.is_watched %}-ghost btn-on{% endif %}" id="watch-btn">
+    {% if progress.is_watched %}Watched{% else %}Mark watched{% endif %}
+  </button>
+  <button type="button" class="btn-ghost{% if progress.is_favorited %} btn-on{% endif %}" id="fav-btn">
+    {% if progress.is_favorited %}Saved{% else %}Save{% endif %}
+  </button>
+  <a class="btn-ghost" href="{{ video.watch_url }}" rel="noopener noreferrer" target="_blank">Open on YouTube</a>
+</div>
+<p class="note">Hosted on YouTube. CodeLabX does not own this recording.</p>
+
+<section class="panel">
+  <p class="kicker">About</p>
+  <p>{{ video.description }}</p>
+</section>
+
+{% if related_videos %}
+<p class="kicker timeline-k">More in {{ video.category.name }}</p>
+{% for rel in related_videos %}
+<a class="vrow" href="{% url 'content:video_detail' rel.id %}">
+  <span class="thumb">
+    {% if rel.thumbnail_url %}<img src="{{ rel.thumbnail_url }}" alt="">{% endif %}
+    {% if rel.duration %}<span class="dur">{{ rel.duration }}</span>{% endif %}
+  </span>
+  <span class="prow-body">
+    <span class="vrow-title">{{ rel.title }}</span>
+    <span class="vrow-meta">{{ rel.get_difficulty_display }}</span>
+  </span>
+</a>
+{% endfor %}
+{% endif %}
 {% endblock %}

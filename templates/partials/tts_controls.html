@@ -1,0 +1,40 @@
+{% load i18n %}
+<section class="tts-panel"
+         id="ttsPanel"
+         role="region"
+         aria-label="{% translate 'Text-to-speech controls' %}"
+         data-tts-ignore
+         hidden>
+    <div class="tts-panel-head">
+        <div>
+            <strong>{% translate "Read aloud" %}</strong>
+            <span>{% translate "Browser voice · no audio upload" %}</span>
+        </div>
+        <button id="ttsCloseButton" type="button" aria-label="{% translate 'Close text-to-speech controls' %}">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="tts-field">
+        <label for="ttsVoiceSelect">{% translate "Voice" %}</label>
+        <select id="ttsVoiceSelect" class="form-select" data-default-label="{% translate 'Browser default' %}">
+            <option value="">{% translate "Browser default" %}</option>
+        </select>
+    </div>
+    <div class="tts-field">
+        <label for="ttsRateSelect">{% translate "Speed" %}</label>
+        <select id="ttsRateSelect" class="form-select">
+            <option value="0.75">0.75×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+        </select>
+    </div>
+    <div class="tts-actions">
+        <button id="ttsPlayButton" type="button"><i class="bi bi-play-fill"></i> {% translate "Read" %}</button>
+        <button id="ttsPauseButton" type="button">{% translate "Pause" %}</button>
+        <button id="ttsStopButton" type="button">{% translate "Stop" %}</button>
+    </div>
+    <p class="tts-status" id="ttsStatus" role="status" aria-live="polite">
+        {% translate "Select text to read only that selection, or read the main page content." %}
+    </p>
+</section>

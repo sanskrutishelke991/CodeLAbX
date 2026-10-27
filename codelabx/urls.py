@@ -17,12 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from dashboard import views as dashboard_views
-from codelabx.views import health, live
+from codelabx.views import health, live, offline, service_worker
 
 urlpatterns = [
     path('live/', live, name='live'),
     path('health/', health, name='health'),
+    path('service-worker.js', service_worker, name='service_worker'),
+    path('offline/', offline, name='offline'),
     path('admin/', admin.site.urls),
+    path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include('accounts.urls')),
     path('', dashboard_views.landing, name='landing'),
     path('dashboard/', include('dashboard.urls')),
@@ -34,6 +37,8 @@ urlpatterns = [
     path('progress/', include('progress.urls')),
     path('notes/', include('notes.urls')),
     path('challenges/', include('challenges.urls')),
+    path('intelligence/', include('intelligence.urls')),
+    path('community/', include('community.urls')),
 ]
 from django.conf import settings
 from django.conf.urls.static import static

@@ -293,7 +293,8 @@ class AssessmentAttemptLifecycleTests(TestCase):
         self.assertEqual(TestAttempt.objects.filter(test=self.test).count(), 1)
         self.assertIsNotNone(TestAttempt.objects.get(test=self.test).deadline_at)
 
-    def test_submission_finalizes_once_and_awards_once(self):
+    @patch("assessments.views.emit_assessment_attempt")
+    def test_submission_finalizes_once_and_awards_once(self, emit_event):
         self.client.get(reverse("assessments:take", args=[self.test.id]))
         attempt = TestAttempt.objects.get(test=self.test)
         url = reverse("assessments:submit", args=[self.test.id])
@@ -306,6 +307,8 @@ class AssessmentAttemptLifecycleTests(TestCase):
         self.assertTrue(second.json()["already_finalized"])
         self.assertEqual(second.json()["xp_earned"], 0)
         self.assertEqual(XPTransaction.objects.filter(user=self.user, event_type="assessment-completed").count(), 1)
+        attempt.refresh_from_db()
+        emit_event.assert_called_once_with(self.user, self.test, attempt)
 
     def test_expired_attempt_is_finalized_with_zero(self):
         self.client.get(reverse("assessments:take", args=[self.test.id]))
