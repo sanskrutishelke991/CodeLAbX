@@ -1,202 +1,65 @@
-{% extends 'base.html' %}
+{% extends "v2/base.html" %}
 {% load static %}
-
-{% block title %}Create Test - CodeLabX{% endblock %}
-
+{% block title %}CodeLabX — Create a test{% endblock %}
+{% block dial_index %}4{% endblock %}
+{% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/assessments-create_test.css' %}">
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=1">
 {% endblock %}
-
-{% block content %}
-<div class="ct-container">
-    
-    <!-- HERO -->
-    <div class="ct-hero">
-        <div class="ct-hero-content">
-            <div class="ct-hero-left">
-                <div class="ct-hero-icon">
-                    <i class="bi bi-magic"></i>
-                </div>
-                <div>
-                    <div class="ct-hero-eyebrow">
-                        <i class="bi bi-stars"></i>
-                        <span>AI-Powered</span>
-                    </div>
-                    <h1>Create <span>Smart Test</span></h1>
-                    <p>Generate custom AI quizzes on any topic in seconds.</p>
-                </div>
-            </div>
-            <a href="{% url 'assessments:quiz_list' %}" class="btn-back">
-                <i class="bi bi-arrow-left"></i>
-                Back to Tests
-            </a>
-        </div>
-    </div>
-    
-    <!-- FORM -->
-    <form method="post" class="form-wrapper" id="testForm" data-generate-endpoint="{% url 'assessments:generate' %}">
-        {% csrf_token %}
-        
-        <!-- Section 1: Topic -->
-        <div class="form-section">
-            <div class="section-header">
-                <div class="section-number">1</div>
-                <h3 class="section-title">Choose Your Topic</h3>
-            </div>
-            <p class="section-subtitle">What do you want to test yourself on?</p>
-            
-            <div class="topic-input-wrapper">
-                <i class="bi bi-search topic-input-icon"></i>
-                <input type="text" name="topic" id="topicInput" class="topic-input" 
-                       placeholder="e.g., Python Basics, Machine Learning, React Hooks..." 
-                       required autocomplete="off">
-            </div>
-            
-            <p class="section-subtitle" style="margin-top: 12px;">💡 Popular topics right now:</p>
-            <div class="suggested-topics">
-                <button type="button" class="topic-chip trending" data-test-topic="Python Basics">Python Basics</button>
-                <button type="button" class="topic-chip trending" data-test-topic="Machine Learning">Machine Learning</button>
-                <button type="button" class="topic-chip trending" data-test-topic="JavaScript ES6">JavaScript ES6</button>
-                <button type="button" class="topic-chip" data-test-topic="Data Structures">Data Structures</button>
-                <button type="button" class="topic-chip" data-test-topic="React Hooks">React Hooks</button>
-                <button type="button" class="topic-chip" data-test-topic="SQL Queries">SQL Queries</button>
-                <button type="button" class="topic-chip" data-test-topic="Docker Basics">Docker Basics</button>
-                <button type="button" class="topic-chip" data-test-topic="Git Commands">Git Commands</button>
-            </div>
-        </div>
-        
-        <!-- Section 2: Difficulty -->
-        <div class="form-section">
-            <div class="section-header">
-                <div class="section-number">2</div>
-                <h3 class="section-title">Select Difficulty</h3>
-            </div>
-            <p class="section-subtitle">How challenging should it be?</p>
-            
-            <div class="difficulty-grid">
-                <div class="difficulty-card easy selected" role="button" tabindex="0" data-test-difficulty="easy">
-                    <span class="diff-emoji">🌱</span>
-                    <div class="diff-name">Easy</div>
-                    <p class="diff-desc">Perfect for beginners</p>
-                    <div class="diff-badge">Beginner</div>
-                </div>
-                
-                <div class="difficulty-card medium" role="button" tabindex="0" data-test-difficulty="medium">
-                    <span class="diff-emoji">⚡</span>
-                    <div class="diff-name">Medium</div>
-                    <p class="diff-desc">Balanced challenge</p>
-                    <div class="diff-badge">Intermediate</div>
-                </div>
-                
-                <div class="difficulty-card hard" role="button" tabindex="0" data-test-difficulty="hard">
-                    <span class="diff-emoji">🔥</span>
-                    <div class="diff-name">Hard</div>
-                    <p class="diff-desc">Test your expertise</p>
-                    <div class="diff-badge">Advanced</div>
-                </div>
-            </div>
-            
-            <input type="hidden" name="difficulty" id="difficultyInput" value="easy">
-        </div>
-        
-        <!-- Section 3: Settings -->
-        <div class="form-section">
-            <div class="section-header">
-                <div class="section-number">3</div>
-                <h3 class="section-title">Test Settings</h3>
-            </div>
-            <p class="section-subtitle">Customize your test experience</p>
-            
-            <div class="settings-row">
-                <div class="setting-group">
-                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">
-                        <i class="bi bi-question-circle" style="color: #EC4899;"></i>
-                        Number of Questions
-                    </label>
-                    <div class="count-slider-wrapper">
-                        <div class="count-display">
-                            <div class="count-value" id="countDisplay">10</div>
-                            <div class="count-label">Questions</div>
-                        </div>
-                        <input type="range" name="num_questions" id="countSlider" 
-                               class="count-slider" min="5" max="30" value="10" step="5"
-                               data-question-count>
-                        <div class="count-range">
-                            <span>5</span>
-                            <span>15</span>
-                            <span>30</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="setting-group">
-                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">
-                        <i class="bi bi-clock" style="color: #A855F7;"></i>
-                        Time Limit
-                    </label>
-                    <div class="time-presets">
-                        <div class="time-preset" role="button" tabindex="0" data-test-time="5">
-                            <div class="time-preset-icon">⚡</div>
-                            <div class="time-preset-value">5</div>
-                            <div class="time-preset-label">Quick</div>
-                        </div>
-                        <div class="time-preset selected" role="button" tabindex="0" data-test-time="10">
-                            <div class="time-preset-icon">⏱️</div>
-                            <div class="time-preset-value">10</div>
-                            <div class="time-preset-label">Standard</div>
-                        </div>
-                        <div class="time-preset" role="button" tabindex="0" data-test-time="20">
-                            <div class="time-preset-icon">🏃</div>
-                            <div class="time-preset-value">20</div>
-                            <div class="time-preset-label">Extended</div>
-                        </div>
-                    </div>
-                    <input type="hidden" name="time_limit_minutes" id="timeInput" value="10">
-                </div>
-            </div>
-        </div>
-        
-        <!-- AI Preview -->
-        <div class="form-section">
-            <div class="ai-preview">
-                <div class="preview-header">
-                    <div class="preview-icon">
-                        <i class="bi bi-magic"></i>
-                    </div>
-                    <div class="preview-title">Your Test Preview</div>
-                </div>
-                <div class="preview-stats">
-                    <div class="preview-stat">
-                        <div class="preview-stat-value" id="previewQuestions">10</div>
-                        <div class="preview-stat-label">Questions</div>
-                    </div>
-                    <div class="preview-stat">
-                        <div class="preview-stat-value" id="previewTime">10 min</div>
-                        <div class="preview-stat-label">Duration</div>
-                    </div>
-                    <div class="preview-stat">
-                        <div class="preview-stat-value" id="previewXP">+50 XP</div>
-                        <div class="preview-stat-label">Reward</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Submit -->
-        <div class="submit-section">
-            <button type="submit" class="btn-generate" id="submitBtn">
-                <i class="bi bi-magic"></i>
-                <span>Generate Test with AI</span>
-            </button>
-            <p class="generate-info">
-                <i class="bi bi-info-circle"></i>
-                Takes ~10-15 seconds • Powered by Gemini AI
-            </p>
-        </div>
-    </form>
-</div>
-{% endblock %}
-
 {% block extra_js %}
-<script src="{% static 'js/pages/assessments-create_test.js' %}"></script>
+<script src="{% static 'js/v2/assessments.js' %}?v=1" defer></script>
+{% endblock %}
+{% block content %}
+{% csrf_token %}
+<div class="as-compose">
+  <div class="as-copy">
+    <p class="crumb"><a href="{% url 'assessments:quiz_list' %}">Tests</a> / New</p>
+    <p class="kicker">New test</p>
+            <h1>Set the paper.</h1>
+            <i class="as-rule" aria-hidden="true"></i>
+    <p class="form-copy">Name a topic. Choose level, length, and time. The generator writes multiple-choice questions. It can be wrong. You still sit the paper.</p>
+  </div>
+  <form class="as-form" id="make-test" method="post">
+    <div>
+      <label class="fld" for="topic">Topic</label>
+      <input class="as-field" id="topic" name="topic" maxlength="100" required placeholder="Machine Learning">
+    </div>
+    <div class="chips" id="topic-chips">
+      <button type="button" class="chip" data-topic="Machine Learning">Machine Learning</button>
+      <button type="button" class="chip" data-topic="Data Structures">Data Structures</button>
+      <button type="button" class="chip" data-topic="Python">Python</button>
+      <button type="button" class="chip" data-topic="JavaScript">JavaScript</button>
+      <button type="button" class="chip" data-topic="SQL">SQL</button>
+      <button type="button" class="chip" data-topic="Git">Git</button>
+    </div>
+    <div>
+      <p class="kicker">Level</p>
+      <div class="picks" id="diff-picks">
+        <button type="button" class="pick" data-diff="easy"><b>Easy</b><span>Foundations</span></button>
+        <button type="button" class="pick on" data-diff="medium"><b>Medium</b><span>Working knowledge</span></button>
+        <button type="button" class="pick" data-diff="hard"><b>Hard</b><span>Edge cases</span></button>
+      </div>
+    </div>
+    <div>
+      <p class="kicker">Questions</p>
+      <div class="chips" id="n-picks">
+        <button type="button" class="chip" data-n="5">5</button>
+        <button type="button" class="chip on" data-n="10">10</button>
+        <button type="button" class="chip" data-n="15">15</button>
+        <button type="button" class="chip" data-n="20">20</button>
+        <button type="button" class="chip" data-n="30">30</button>
+      </div>
+    </div>
+    <div>
+      <p class="kicker">Time</p>
+      <div class="chips" id="t-picks">
+        <button type="button" class="chip" data-t="5">5 min</button>
+        <button type="button" class="chip on" data-t="10">10 min</button>
+        <button type="button" class="chip" data-t="20">20 min</button>
+      </div>
+    </div>
+    <button type="submit" class="btn" id="gen-test">Generate this test</button>
+    <p class="note" id="gen-status">Assistance only. Questions can be wrong.</p>
+  </form>
+</div>
 {% endblock %}

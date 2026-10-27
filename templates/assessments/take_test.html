@@ -1,85 +1,45 @@
-{% extends 'base.html' %}
+{% extends "v2/base.html" %}
 {% load static %}
-{% block title %}Take Test - CodeLabX{% endblock %}
+{% block title %}CodeLabX — {{ test.title }}{% endblock %}
+{% block dial_index %}4{% endblock %}
+{% block page_mod %} page-fill{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/assessments-take_test.css' %}">
-{% endblock %}
-{% block content %}
-<div id="testRuntime"
-     data-storage-key="test_{{ test.id }}_answers"
-     data-seconds-remaining="{{ seconds_remaining }}"
-     data-attempt-id="{{ attempt.id }}"
-     data-submit-url="{% url 'assessments:submit' test.id %}"
-     data-result-url="{% url 'assessments:result' test.id %}"
-     hidden></div>
-<div class="test-header">
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h4 class="mb-1"><i class="bi bi-clipboard-check me-2"></i>{{ test.title }}</h4>
-            <small style="opacity: 0.9;">{{ test.topic }} • {{ test.get_difficulty_display }}</small>
-        </div>
-        <div class="text-end">
-            <div class="timer-display" id="timer">{{ test.time_limit_minutes }}:00</div>
-            <small>Time Remaining</small>
-        </div>
-    </div>
-</div>
-
-<div class="progress-bar-custom mb-4">
-    <div class="progress-fill" id="progressBar" style="width: 0%;"></div>
-</div>
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <span style="color: #a0a0a0;">Question <span id="currentQ">1</span> of <span id="totalQ">{{ test.num_questions }}</span></span>
-    <button type="button" class="btn btn-sm btn-outline-light" id="saveProgressBtn">
-        <i class="bi bi-save me-1"></i>Save Progress
-    </button>
-</div>
-
-<div class="question-card">
-    <div class="d-flex align-items-start mb-4">
-        <span class="question-number" id="qNumber">1</span>
-        <h4 style="color: white;" id="questionText">Loading question...</h4>
-    </div>
-    
-    <div id="optionsContainer">
-        <!-- Options will be rendered here -->
-    </div>
-    
-    <div class="d-flex justify-content-between mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.1);">
-        <button type="button" class="btn-nav" id="prevBtn" disabled>
-            <i class="bi bi-arrow-left me-2"></i>Previous
-        </button>
-        <button type="button" class="btn-nav" id="nextBtn">
-            Next<i class="bi bi-arrow-right ms-2"></i>
-        </button>
-        <button type="button" class="btn-submit" id="submitBtn" style="display: none;">
-            <i class="bi bi-check-circle me-2"></i>Submit Test
-        </button>
-    </div>
-</div>
-
-<!-- Submit Confirmation Modal -->
-<div class="modal fade" id="submitModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid rgba(108,99,255,0.3); border-radius: 8px;">
-            <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <h5 class="modal-title" style="color: white;">Submit Test?</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" style="color: #e0e0e0;">
-                <p>Are you sure you want to submit your test?</p>
-                <p class="text-muted">You have answered <span id="answeredCount">0</span> out of {{ test.num_questions }} questions.</p>
-            </div>
-            <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1);">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">Cancel</button>
-                <button type="button" class="btn btn-submit" id="confirmSubmitBtn">Submit</button>
-            </div>
-        </div>
-    </div>
-</div>
+<link rel="stylesheet" href="{% static 'css/v2/assessments.css' %}?v=1">
 {% endblock %}
 {% block extra_js %}
-{{ public_questions|json_script:"test-questions-data" }}
-<script src="{% static 'js/pages/assessments-take_test.js' %}"></script>
+<script src="{% static 'js/v2/assessments.js' %}?v=1" defer></script>
+{% endblock %}
+{% block content %}
+{% csrf_token %}
+<p class="crumb"><a href="{% url 'assessments:quiz_list' %}">Tests</a> / {{ test.topic }}</p>
+{% if not test.questions %}
+<div class="empty">
+  <h1>No questions</h1>
+  <p>This paper has nothing to sit.</p>
+  <a class="btn" href="{% url 'assessments:quiz_list' %}">Back to tests</a>
+</div>
+{% else %}
+{{ test.questions|json_script:"quiz-json" }}
+<div class="as-take" id="exam" data-id="{{ test.id }}" data-mins="{{ test.time_limit_minutes }}">
+  <section class="q-stage">
+    <p class="as-k" id="q-kicker">Question 1 of {{ test.num_questions }}</p>
+    <p class="q-text" id="q-text"></p>
+    <div class="opts" id="opts"></div>
+    <div class="q-nav">
+      <button type="button" class="btn-ghost" id="prev-q">Previous</button>
+      <button type="button" class="btn-ghost" id="next-q">Next</button>
+      <button type="button" class="btn" id="submit-q" hidden>Submit paper</button>
+    </div>
+  </section>
+  <aside class="q-side">
+    <p class="as-k">Time</p>
+    <p class="timer" id="timer">{{ test.time_limit_minutes }}:00</p>
+    <div class="hair" aria-hidden="true"><i id="q-hair"></i></div>
+    <p class="as-meta" id="answered">Answered 0 of {{ test.num_questions }}</p>
+    <div class="dots" id="dots"></div>
+    <button type="button" class="btn-ghost" id="save-q">Save progress</button>
+    <p class="note">Keys 1–4 choose. Arrows move. Assistance can be wrong.</p>
+  </aside>
+</div>
+{% endif %}
 {% endblock %}
