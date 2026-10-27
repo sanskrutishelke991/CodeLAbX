@@ -1,0 +1,56 @@
+.page-fill{
+  width:100%;max-width:none;margin:0;
+  padding:56px 16px 96px;
+  min-height:100dvh;box-sizing:border-box;
+  display:flex;flex-direction:column;gap:10px
+}
+.studio-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;flex:none
+}
+.studio-bar h1{
+  font-size:clamp(22px,3vw,32px);margin:0
+}
+.studio-bar .kicker{margin:0 0 2px}
+.studio-tools{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center
+}
+.studio-tools select,.studio-tools textarea,.studio-tools input{
+  min-height:40px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--canvas);color:var(--ink);font:inherit
+}
+.problem{
+  width:100%;min-height:52px;max-height:88px;padding:8px 10px;border:1px solid var(--line);
+  border-radius:8px;background:var(--canvas);color:var(--ink);font:inherit;resize:vertical;flex:none
+}
+.exam{
+  flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:0;
+  height:calc(100dvh - 168px)
+}
+.pane{
+  display:flex;flex-direction:column;min-height:0;border:1px solid var(--line);border-radius:12px;overflow:hidden
+}
+.pane-h{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;font-weight:650;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);flex:none
+}
+#code{
+  flex:1;width:100%;border:0;padding:12px;resize:none;background:var(--canvas);color:var(--ink);
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;min-height:0
+}
+.fb{
+  flex:1;overflow:auto;padding:16px;min-height:0;font-size:14px;line-height:1.55;color:var(--muted)
+}
+.fb h2,.fb h3{font-family:var(--font-display);font-weight:400;color:var(--ink);margin:14px 0 8px}
+.fb pre{
+  background:var(--path-tile);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;
+  font-family:ui-monospace,Menlo,monospace;font-size:12px
+}
+.fb[hidden],.fb-state[hidden]{display:none}
+.studio-actions{display:flex;gap:8px;flex:none}
+@media (max-width:880px){
+  .page-fill{padding:64px 12px 108px}
+  .exam{grid-template-columns:1fr;height:auto;min-height:70vh}
+  #code{min-height:40vh}
+  .fb{min-height:28vh}
+}

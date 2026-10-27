@@ -20,7 +20,7 @@
   </svg>
   <span class="brand-word">Code<span class="lab">Lab</span>X</span>
 </a>
-<main class="page" id="main">
+<main class="page{% block page_mod %}{% endblock %}" id="main">
   {% if messages %}
   <ul class="flash">
     {% for message in messages %}
